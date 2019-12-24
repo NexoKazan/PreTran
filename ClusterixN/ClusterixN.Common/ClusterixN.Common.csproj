@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{82242B68-E565-456D-8FC4-14D97C041F90}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ClusterixN.Common</RootNamespace>
+    <AssemblyName>ClusterixN.Common</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Configuration\ConfigurationElement\BaseServicesConfigurationSectionHandler.cs" />
+    <Compile Include="Configuration\ConfigurationHelper.cs" />
+    <Compile Include="Configuration\ConfigurationService.cs" />
+    <Compile Include="Configuration\Connection\ConnectionCollection.cs" />
+    <Compile Include="Configuration\Connection\ConnectionElement.cs" />
+    <Compile Include="Configuration\Connection\ConnectionsConfigSection.cs" />
+    <Compile Include="Configuration\Listener\ListenerElement.cs" />
+    <Compile Include="Configuration\Listener\ListenersCollection.cs" />
+    <Compile Include="Configuration\Listener\ListenersConfigSection.cs" />
+    <Compile Include="Data\Constants.cs" />
+    <Compile Include="Data\Enums\Command.cs" />
+    <Compile Include="Data\Enums\NodeStatus.cs" />
+    <Compile Include="Data\Enums\TimePoint.cs" />
+    <Compile Include="Data\Enums\NodeType.cs" />
+    <Compile Include="Data\Enums\RelationStatus.cs" />
+    <Compile Include="Data\EventArgs\Base\QueryEventArgBase.cs" />
+    <Compile Include="Data\EventArgs\Base\NetworkEventArgBase.cs" />
+    <Compile Include="Data\EventArgs\DisconnectEventArg.cs" />
+    <Compile Include="Data\EventArgs\Base\SimpleEventArgs.cs" />
+    <Compile Include="Data\EventArgs\SelectResultEventArg.cs" />
+    <Compile Include="Data\Log\Enum\MeasuredOperation.cs" />
+    <Compile Include="Data\Log\PerformanceLogEvent.cs" />
+    <Compile Include="Data\Log\TimeLogEvent.cs" />
+    <Compile Include="Data\Node.cs" />
+    <Compile Include="Data\Query\Base\TimeMeasureQueryBase.cs" />
+    <Compile Include="Data\Query\Base\QueryBase.cs" />
+    <Compile Include="Data\Query\ConditionTree\Condition.cs" />
+    <Compile Include="Data\Query\ConditionTree\Operation.cs" />
+    <Compile Include="Data\Query\Enum\QueryProcessStatus.cs" />
+    <Compile Include="Data\Query\Enum\QueryRelationStatus.cs" />
+    <Compile Include="Data\Query\JoinTree\JoinTreeLeaf.cs" />
+    <Compile Include="Data\Query\Relation\Field.cs" />
+    <Compile Include="Data\Query\Relation\Index.cs" />
+    <Compile Include="Data\Query\Relation\RelationSchema.cs" />
+    <Compile Include="Data\Query\SortQuery.cs" />
+    <Compile Include="Data\Query\Relation\Relation.cs" />
+    <Compile Include="Data\Query\Query.cs" />
+    <Compile Include="Data\Query\JoinQuery.cs" />
+    <Compile Include="Data\Query\Enum\QueryStatus.cs" />
+    <Compile Include="Data\Query\SelectQuery.cs" />
+    <Compile Include="Data\SelectTable.cs" />
+    <Compile Include="Data\TimeMeasure.cs" />
+    <Compile Include="Infrastructure\Base\DatabaseService.cs" />
+    <Compile Include="Infrastructure\Base\QuerySourceManagerBase.cs" />
+    <Compile Include="Infrastructure\Logging\DefaultLogger.cs" />
+    <Compile Include="Infrastructure\Logging\DefaultLogService.cs" />
+    <Compile Include="Interfaces\IConfigurationService.cs" />
+    <Compile Include="Interfaces\IDatabase.cs" />
+    <Compile Include="Interfaces\IDatabaseService.cs" />
+    <Compile Include="Interfaces\ILogEvent.cs" />
+    <Compile Include="Interfaces\ILogger.cs" />
+    <Compile Include="Interfaces\ILogService.cs" />
+    <Compile Include="Interfaces\IQuerySourceManager.cs" />
+    <Compile Include="Interfaces\IHasher.cs" />
+    <Compile Include="Interfaces\ITimeMeasured.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ServiceLocator.cs" />
+    <Compile Include="Utils\AssemblyResolver.cs" />
+    <Compile Include="Utils\ConnectionStringParserBase.cs" />
+    <Compile Include="Utils\FileHelper.cs" />
+    <Compile Include="Utils\Hasher\ParallelHashHelper.cs" />
+    <Compile Include="Utils\Hasher\GpuHashHelper.cs" />
+    <Compile Include="Utils\Hasher\SequenceHashHelper.cs" />
+    <Compile Include="Utils\Hasher\HashHelperBase.cs" />
+    <Compile Include="Utils\LogServices\PerformanceLogService.cs" />
+    <Compile Include="Utils\ObjectDumper.cs" />
+    <Compile Include="Utils\PerformanceCounters\LinuxAvaibleRamCounter.cs" />
+    <Compile Include="Utils\PerformanceCounters\ICounter.cs" />
+    <Compile Include="Utils\PerformanceCounters\Counter.cs" />
+    <Compile Include="Utils\PerformanceCounters\PerformanceMonitor.cs" />
+    <Compile Include="Utils\HashHelperce.cs" />
+    <Compile Include="Utils\ProcessRunHelper.cs" />
+    <Compile Include="Utils\QueryBuilder.cs" />
+    <Compile Include="Utils\QueueManager.cs" />
+    <Compile Include="Utils\MultiNodeProcessingManager.cs" />
+    <Compile Include="Utils\StringReplacer\FastReplacer.cs" />
+    <Compile Include="Utils\StringReplacer\StringReplacer.cs" />
+    <Compile Include="Utils\SystemTime.cs" />
+    <Compile Include="Utils\Task\LimitedConcurrencyLevelTaskScheduler.cs" />
+    <Compile Include="Utils\Task\ParallelQeueHelper.cs" />
+    <Compile Include="Utils\Task\QueueTask.cs" />
+    <Compile Include="Utils\Task\TaskSequenceHelper.cs" />
+    <Compile Include="Utils\LogServices\TimeLogHelper.cs" />
+    <Compile Include="Utils\LogServices\TimeLogService.cs" />
+    <Compile Include="Utils\TimeMeasureHelper.cs" />
+    <Compile Include="Utils\IPEndPointParser.cs" />
+    <Compile Include="Utils\XmlSerializationBase.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\Bases\" />
+    <Folder Include="Utils\TypeExtensions\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\performance.db" />
+    <None Include="Resources\timeLog.db" />
+    <None Include="_native\CUDA\Readme.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="_native\CUDA\cudart64_75.dll" />
+    <None Include="_native\CUDA\gpuhash.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent Condition=" '$(OS)' != 'Unix' ">
+      copy "$(ProjectDir)\_native\CUDA\cudart64_75.dll" "$(TargetDir)\cudart64_75.dll"
+      copy "$(ProjectDir)\_native\CUDA\gpuhash.dll" "$(TargetDir)\gpuhash.dll"
+    </PostBuildEvent>
+    <PostBuildEvent Condition=" '$(OS)' == 'Unix' ">
+      cp "$(ProjectDir)\_native\CUDA\cudart64_75.dll" "$(TargetDir)\cudart64_75.dll"
+      cp "$(ProjectDir)\_native\CUDA\gpuhash.dll" "$(TargetDir)\gpuhash.dll"
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

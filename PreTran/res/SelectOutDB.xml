@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<DataBaseStructure xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="TPCH_Select">
+  <Tables>
+    <TableStructure Name="S_0_TB">
+      <Columns>
+        <ColumnStructure IsPrimary="true" Name="C_CUSTKEY" TypeID="2" />
+      </Columns>
+    </TableStructure>
+    <TableStructure Name="S_1_TB">
+      <Columns>
+        <ColumnStructure IsPrimary="false" Name="O_SHIPPRIORITY" TypeID="2" />
+        <ColumnStructure IsPrimary="false" Name="O_CUSTKEY" TypeID="2" />
+        <ColumnStructure IsPrimary="true" Name="O_ORDERKEY" TypeID="2" />
+        <ColumnStructure IsPrimary="false" Name="O_ORDERDATE" TypeID="15" />
+      </Columns>
+    </TableStructure>
+    <TableStructure Name="S_2_TB">
+      <Columns>
+        <ColumnStructure IsPrimary="true" Name="L_ORDERKEY" TypeID="2" />
+        <ColumnStructure IsPrimary="false" Name="L_REVENUE" TypeID="7" />
+      </Columns>
+    </TableStructure>
+  </Tables>
+  <Types>
+    <S_Type Name="CHAR(25)" Size="25" ID="1" />
+    <S_Type Name="INTEGER" Size="4" ID="2" />
+    <S_Type Name="VARCHAR(152)" Size="152" ID="3" />
+    <S_Type Name="VARCHAR(25)" Size="25" ID="4" />
+    <S_Type Name="VARCHAR(55)" Size="55" ID="5" />
+    <S_Type Name="CHAR(10)" Size="10" ID="6" />
+    <S_Type Name="DECIMAL(15,2)" Size="7" ID="7" />
+    <S_Type Name="VARCHAR(23)" Size="23" ID="8" />
+    <S_Type Name="VARCHAR(101)" Size="101" ID="9" />
+    <S_Type Name="VARCHAR(40)" Size="40" ID="10" />
+    <S_Type Name="CHAR(15)" Size="15" ID="11" />
+    <S_Type Name="VARCHAR(199)" Size="199" ID="12" />
+    <S_Type Name="VARCHAR(117)" Size="117" ID="13" />
+    <S_Type Name="CHAR(1)" Size="1" ID="14" />
+    <S_Type Name="DATE" Size="3" ID="15" />
+    <S_Type Name="VARCHAR(79)" Size="79" ID="16" />
+    <S_Type Name="VARCHAR(44)" Size="44" ID="17" />
+  </Types>
+</DataBaseStructure>

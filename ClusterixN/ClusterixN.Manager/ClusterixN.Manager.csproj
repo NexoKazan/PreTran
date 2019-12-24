@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{42D41709-7C93-4272-8BB4-A62FB6615903}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ClusterixN.Manager</RootNamespace>
+    <AssemblyName>ClusterixN.Manager</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Data\Config\JoinDataTransferMode.cs" />
+    <Compile Include="Data\Config\JoinDataStoreMode.cs" />
+    <Compile Include="Data\Config\SelectMode.cs" />
+    <Compile Include="Data\Config\JoinMode.cs" />
+    <Compile Include="Interfaces\IQueryManager.cs" />
+    <Compile Include="Interfaces\IQueryNumberGenerator.cs" />
+    <Compile Include="Managers\SortOnJoinQuerySourceManager.cs" />
+    <Compile Include="Managers\PauseLogManager.cs" />
+    <Compile Include="Managers\NodesManager.cs" />
+    <Compile Include="Managers\QueryManager.cs" />
+    <Compile Include="Managers\HashQuerySourceManager.cs" />
+    <Compile Include="Managers\QueryStreamGenerator.cs" />
+    <Compile Include="Managers\ParallelTranfserQueryManager.cs" />
+    <Compile Include="Managers\SequenceQueryManager.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\Base\HandlerBase.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\Base\JoinStartBase.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\Base\JoinTransferDataSyncBase.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\Base\SelectBase.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\AddQuery.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinMultiNodePrepare.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinStartSequencedMultiNodeWait.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinStartSequencedMultiNode.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\SelectAndSendToJoinAndWait.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\SelectAndSendToJoin.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\SelectOneByOne.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\SortPrepareMultiNode.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\TimeoutProcessing.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\CleanUp.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\SortTransferResult.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\SortTransferData.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\SortStart.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\SortPrepare.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinStartIntegrated.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinTransferDataByAllRelations.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinTransferDataByRelations.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinTransferDataByPackets.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\Base\JoinTransferDataBase.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinStartSequenced.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinPrepare.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\JoinTransferResult.cs" />
+    <Compile Include="ProcessingPipeline\Handlers\Select.cs" />
+    <Compile Include="ProcessingPipeline\Interfaces\IPipelineNode.cs" />
+    <Compile Include="ProcessingPipeline\PipelineManagment.cs" />
+    <Compile Include="QueryGenerators\TpchQueryNumberGenerator.cs" />
+    <Compile Include="QueryGenerators\RandomQueryNumberGenerator.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryProcessingHandler.cs" />
+    <Compile Include="Managers\QuerySourceManager.cs" />
+    <Compile Include="Server.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClusterixN.Common\ClusterixN.Common.csproj">
+      <Project>{82242B68-E565-456D-8FC4-14D97C041F90}</Project>
+      <Name>ClusterixN.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ClusterixN.Infrastructure.Logging\ClusterixN.Infrastructure.Logging.csproj">
+      <Project>{7dbd118d-4a00-4b32-b13c-5e326824260d}</Project>
+      <Name>ClusterixN.Infrastructure.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ClusterixN.Network\ClusterixN.Network.csproj">
+      <Project>{11498144-C913-4946-81AF-0B5E92C2FC05}</Project>
+      <Name>ClusterixN.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ClusterixN.QueryProcessing\ClusterixN.QueryProcessing.csproj">
+      <Project>{C4679D2E-C717-4751-962A-AEB9678AEF2E}</Project>
+      <Name>ClusterixN.QueryProcessing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ClusterixN.Terminal\ClusterixN.Terminal.csproj">
+      <Project>{16c40591-f50f-433d-8d7d-3c326c84adee}</Project>
+      <Name>ClusterixN.Terminal</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

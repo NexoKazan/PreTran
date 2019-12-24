@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreTan", "PreTran\PreTan.csproj", "{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClusterixN.Common", "ClusterixN\ClusterixN.Common\ClusterixN.Common.csproj", "{82242B68-E565-456D-8FC4-14D97C041F90}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ClusterixN", "ClusterixN", "{EFB9F0B5-CA63-4EE5-883F-3B4953D8A053}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClusterixN.Network", "ClusterixN\ClusterixN.Network\ClusterixN.Network.csproj", "{11498144-C913-4946-81AF-0B5E92C2FC05}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}.Debug|x64.ActiveCfg = Debug|x64
+		{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}.Debug|x64.Build.0 = Debug|x64
+		{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}.Release|x64.ActiveCfg = Release|Any CPU
+		{4FA8174E-8EBD-4302-8A1B-1E47DA74AFDB}.Release|x64.Build.0 = Release|Any CPU
+		{82242B68-E565-456D-8FC4-14D97C041F90}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{82242B68-E565-456D-8FC4-14D97C041F90}.Debug|x64.ActiveCfg = Debug|x64
+		{82242B68-E565-456D-8FC4-14D97C041F90}.Debug|x64.Build.0 = Debug|x64
+		{82242B68-E565-456D-8FC4-14D97C041F90}.Release|Any CPU.ActiveCfg = Release|x64
+		{82242B68-E565-456D-8FC4-14D97C041F90}.Release|x64.ActiveCfg = Release|x64
+		{82242B68-E565-456D-8FC4-14D97C041F90}.Release|x64.Build.0 = Release|x64
+		{11498144-C913-4946-81AF-0B5E92C2FC05}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{11498144-C913-4946-81AF-0B5E92C2FC05}.Debug|x64.ActiveCfg = Debug|x64
+		{11498144-C913-4946-81AF-0B5E92C2FC05}.Debug|x64.Build.0 = Debug|x64
+		{11498144-C913-4946-81AF-0B5E92C2FC05}.Release|Any CPU.ActiveCfg = Release|x64
+		{11498144-C913-4946-81AF-0B5E92C2FC05}.Release|x64.ActiveCfg = Release|x64
+		{11498144-C913-4946-81AF-0B5E92C2FC05}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{82242B68-E565-456D-8FC4-14D97C041F90} = {EFB9F0B5-CA63-4EE5-883F-3B4953D8A053}
+		{11498144-C913-4946-81AF-0B5E92C2FC05} = {EFB9F0B5-CA63-4EE5-883F-3B4953D8A053}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A66DF78B-F80D-4903-A222-E188F49A5ED5}
+	EndGlobalSection
+EndGlobal

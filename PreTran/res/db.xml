@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<DataBaseStructure xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="TPCH">
+  <Tables>
+    <TableStructure Name="CUSTOMER" ShortName="C_">
+      <Columns>
+        <ColumnStructure IsPrimary="1" Name="C_CUSTKEY" TypeID="2" />
+        <ColumnStructure IsPrimary="0" Name="C_NAME" TypeID="4"/>
+        <ColumnStructure IsPrimary="0" Name="C_ADDRESS" TypeID="10"/>
+        <ColumnStructure IsPrimary="0" Name="C_NATIONKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="C_PHONE" TypeID="11"/>
+        <ColumnStructure IsPrimary="0" Name="C_ACCTBAL" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="C_MKTSEGMENT" TypeID="6"/>
+        <ColumnStructure IsPrimary="0" Name="C_COMMENT" TypeID="13"/>
+      </Columns>
+    </TableStructure>
+    <TableStructure Name="LINEITEM" ShortName="L_">
+      <Columns>
+        <ColumnStructure IsPrimary="2" Name="L_ORDERKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="L_PARTKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="L_SUPPKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="2" Name="L_LINENUMBER" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="L_QUANTITY" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="L_EXTENDEDPRICE" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="L_DISCOUNT" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="L_TAX" TypeID="14"/>
+        <ColumnStructure IsPrimary="0" Name="L_RETURNFLAG" TypeID="14"/>
+        <ColumnStructure IsPrimary="0" Name="L_LINESTATUS" TypeID="14"/>
+        <ColumnStructure IsPrimary="0" Name="L_SHIPDATE" TypeID="15"/>
+        <ColumnStructure IsPrimary="0" Name="L_COMMITDATE" TypeID="15"/>
+        <ColumnStructure IsPrimary="0" Name="L_RECEIPTDATE" TypeID="15"/>
+        <ColumnStructure IsPrimary="0" Name="L_SHIPINSTRUCT" TypeID="1"/>
+        <ColumnStructure IsPrimary="0" Name="L_SHIPMODE" TypeID="17"/>
+        <ColumnStructure IsPrimary="0" Name="L_COMMENT" TypeID="2"/>
+      </Columns>
+    </TableStructure>
+    <TableStructure Name="ORDERS" ShortName="O_">
+      <Columns>
+        <ColumnStructure IsPrimary="1" Name="O_ORDERKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="O_CUSTKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="O_ORDERSTATUS" TypeID="14"/>
+        <ColumnStructure IsPrimary="0" Name="O_TOTALPRICE" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="O_ORDERDATE" TypeID="15"/>
+        <ColumnStructure IsPrimary="0" Name="O_ORDERPRIORITY" TypeID="1"/>
+        <ColumnStructure IsPrimary="0" Name="O_CLERK" TypeID="1"/>
+        <ColumnStructure IsPrimary="0" Name="O_SHIPPRIORITY" TypeID="2"/>
+		    <ColumnStructure IsPrimary="0" Name="O_COMMENT" TypeID="16"/>
+      </Columns>
+    </TableStructure>
+	<TableStructure Name="REGION" ShortName="R_">
+      <Columns>
+        <ColumnStructure IsPrimary="1" Name="R_REGIONKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="R_NAME" TypeID="1"/>
+        <ColumnStructure IsPrimary="0" Name="R_COMMENT" TypeID="3"/>
+      </Columns>
+    </TableStructure>
+    <TableStructure Name="NATION" ShortName="N_">
+      <Columns>
+        <ColumnStructure IsPrimary="1" Name="N_NATIONKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="N_NAME" TypeID="1"/>
+        <ColumnStructure IsPrimary="0" Name="N_REGIONKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="N_COMMENT" TypeID="3"/>
+      </Columns>
+    </TableStructure>
+    <TableStructure Name="PARTSUPP" ShortName="PS_">
+      <Columns>
+        <ColumnStructure IsPrimary="2" Name="PS_PARTKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="2" Name="PS_SUPPKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="PS_AVAILQTY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="PS_SUPPLYCOST" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="PS_COMMENT" TypeID="12"/>
+      </Columns>
+    </TableStructure>
+    <TableStructure Name="SUPPLIER" ShortName="S_">
+      <Columns>
+        <ColumnStructure IsPrimary="1" Name="S_SUPPKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="S_NAME" TypeID="1"/>
+        <ColumnStructure IsPrimary="0" Name="S_ADDRESS" TypeID="10"/>
+        <ColumnStructure IsPrimary="0" Name="S_NATIONKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="S_PHONE" TypeID="11"/>
+        <ColumnStructure IsPrimary="0" Name="S_ACCTBAL" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="S_COMMENT" TypeID="9"/>
+      </Columns>
+    </TableStructure>
+    <TableStructure Name="PART" ShortName="P_">
+      <Columns>
+        <ColumnStructure IsPrimary="1" Name="P_PARTKEY" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="P_NAME" TypeID="5"/>
+        <ColumnStructure IsPrimary="0" Name="P_MFGR" TypeID="1"/>
+        <ColumnStructure IsPrimary="0" Name="P_BRAND" TypeID="6"/>
+        <ColumnStructure IsPrimary="0" Name="P_TYPE" TypeID="1"/>
+        <ColumnStructure IsPrimary="0" Name="P_SIZE" TypeID="2"/>
+        <ColumnStructure IsPrimary="0" Name="P_CONTAINER" TypeID="6"/>
+        <ColumnStructure IsPrimary="0" Name="P_RETAILPRICE" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="P_COMMENT" TypeID="8"/>
+      </Columns>
+    </TableStructure>
+  </Tables>
+  <Types>
+    <S_Type Name="CHAR(25)" Size="25" ID="1" />
+    <S_Type Name="INT" Size="4" ID="2" />
+    <S_Type Name="VARCHAR(152)" Size="152" ID="3" />
+    <S_Type Name="VARCHAR(25)" Size="25" ID="4" />
+    <S_Type Name="VARCHAR(55)" Size="55" ID="5" />
+    <S_Type Name="CHAR(10)" Size="10" ID="6" />
+    <S_Type Name="DECIMAL(15,2)" Size="7" ID="7" />
+    <S_Type Name="VARCHAR(23)" Size="23" ID="8" />
+    <S_Type Name="VARCHAR(101)" Size="101" ID="9" />
+    <S_Type Name="VARCHAR(40)" Size="40" ID="10" />
+    <S_Type Name="CHAR(15)" Size="15" ID="11" />
+    <S_Type Name="VARCHAR(199)" Size="199" ID="12" />
+    <S_Type Name="VARCHAR(117)" Size="117" ID="13" />
+    <S_Type Name="CHAR(1)" Size="1" ID="14" />
+    <S_Type Name="DATE" Size="3" ID="15" />
+    <S_Type Name="VARCHAR(79)" Size="79" ID="16" />
+    <S_Type Name="VARCHAR(44)" Size="44" ID="17" />
+  </Types>
+</DataBaseStructure>

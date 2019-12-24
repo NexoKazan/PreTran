@@ -1,0 +1,37 @@
+# This is a sample build configuration for .NET Core.
+# Check our guides at https://confluence.atlassian.com/x/5Q4SMw for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: ollnixon/pipeline-mono
+
+pipelines:
+  branches:
+    master:
+      - step:
+          caches:
+            - nugetpacks
+          script:
+            - let "BUILD_NUMBER = BITBUCKET_BUILD_NUMBER + 150"
+            - VERSION="1.10.0.${BUILD_NUMBER}"
+            - TAG="ClusterixN-${VERSION}"
+            - FILENAME="${TAG}.tgz"
+            - cp SharedAssemblyInfo.cs SharedAssemblyInfo.cs.tmp
+            - sed -e "s/.*AssemblyVersion.*/[assembly:\ AssemblyVersion(\"${VERSION}\")]/" SharedAssemblyInfo.cs.tmp > SharedAssemblyInfo.cs
+            - cp SharedAssemblyInfo.cs SharedAssemblyInfo.cs.tmp
+            - sed -e "s/.*AssemblyFileVersion.*/[assembly:\ AssemblyFileVersion(\"${VERSION}\")]/" SharedAssemblyInfo.cs.tmp > SharedAssemblyInfo.cs
+            - cat SharedAssemblyInfo.cs
+            - rm SharedAssemblyInfo.cs.tmp
+            - nuget restore
+            - MONO_IOMAP=case xbuild /t:Build /p:Configuration="Release" /p:Platform="x64" ClusterixN.sln
+            - git config --global user.email "builder@example.com"
+            - git config --global user.name "Builder"
+            - git tag "${TAG}"
+            - git remote set-url origin https://rozh:${BITBUCKET_TOKEN}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}
+            - git push origin --tags
+            - tar -czf ${FILENAME} -C bin/Release/ . --exclude='*.pdb' --exclude='*.xml' --exclude='*.mdb'
+            - curl -X POST "https://rozh:${BITBUCKET_TOKEN}@api.bitbucket.org/2.0/repositories/rozh/ClusterixN/downloads" --form files=@"${FILENAME}"
+            - rm ${FILENAME}
+definitions:
+  caches:
+    nugetpacks: packages

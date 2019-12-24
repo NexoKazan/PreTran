@@ -1,0 +1,280 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AvgWorkByQuery" xml:space="preserve">
+    <value>SELECT 
+	Number, 
+	AVG(DataTransfer) AS DataTransfer, 
+	AVG(LoadData) AS LoadData, 
+	AVG(ProcessingSelect) AS ProcessingSelect, 
+	AVG(ProcessingJoin) AS ProcessingJoin, 
+	AVG(ProcessingSort) AS ProcessingSort, 
+	AVG(FileSave ) AS FileSave, 
+	AVG(DeleteData) AS DeleteData, 
+	AVG(HashData) AS HashData
+FROM 
+	(SELECT 
+		Number, 
+		d1.Duration AS DataTransfer, 
+		d2.Duration AS LoadData, 
+		d3.Duration AS ProcessingSelect, 
+		d4.Duration AS ProcessingJoin, 
+		d5.Duration AS ProcessingSort, 
+		d6.Duration AS FileSave, 
+		d7.Duration AS DeleteData, 
+		d8.Duration AS HashData
+	FROM
+		(SELECT Number, Id FROM query) AS q
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "DataTransfer" Group by QueryId, Operation) AS d1
+		ON q.Id = d1.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "LoadData" Group by QueryId, Operation) AS d2
+		ON q.Id = d2.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingSelect" Group by QueryId, Operation) AS d3
+		ON q.Id = d3.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingJoin" Group by QueryId, Operation) AS d4
+		ON q.Id = d4.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingSort" Group by QueryId, Operation) AS d5
+		ON q.Id = d5.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "FileSave" Group by QueryId, Operation) AS d6
+		ON q.Id = d6.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "DeleteData" Group by QueryId, Operation) AS d7
+		ON q.Id = d7.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "HashData" Group by QueryId, Operation) AS d8
+		ON q.Id = d8.QueryId
+	) AS TIMES
+GROUP BY Number
+ORDER BY Number;</value>
+    <comment>Получение среднего времен по запросам</comment>
+  </data>
+  <data name="CanceledQueryCount" xml:space="preserve">
+    <value>SELECT overal,canceled FROM
+(SELECT COUNT() as overal FROM query) as q1,
+(SELECT COUNT() as canceled FROM query WHERE IsCanceled=1) as q2;</value>
+    <comment>Количество запросов и количество отмененых запросов</comment>
+  </data>
+  <data name="QueryCountByQuery" xml:space="preserve">
+    <value>SELECT Number, Count(Id) FROM query GROUP BY Number</value>
+    <comment>Количество запросов</comment>
+  </data>
+  <data name="SumWorkByQuery" xml:space="preserve">
+    <value>SELECT 
+	Number, 
+	SUM(DataTransfer) AS DataTransfer, 
+	SUM(LoadData) AS LoadData, 
+	SUM(ProcessingSelect) AS ProcessingSelect, 
+	SUM(ProcessingJoin) AS ProcessingJoin, 
+	SUM(ProcessingSort) AS ProcessingSort, 
+	SUM(FileSave) AS FileSave, 
+	SUM(DeleteData) AS DeleteData, 
+	SUM(HashData) AS HashData
+FROM 
+	(SELECT 
+		Number, 
+		d1.Duration AS DataTransfer, 
+		d2.Duration AS LoadData, 
+		d3.Duration AS ProcessingSelect, 
+		d4.Duration AS ProcessingJoin, 
+		d5.Duration AS ProcessingSort, 
+		d6.Duration AS FileSave, 
+		d7.Duration AS DeleteData, 
+		d8.Duration AS HashData 
+	FROM
+		(SELECT Number, Id FROM query) AS q
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "DataTransfer" Group by QueryId, Operation) AS d1
+		ON q.Id = d1.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "LoadData" Group by QueryId, Operation) AS d2
+		ON q.Id = d2.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingSelect" Group by QueryId, Operation) AS d3
+		ON q.Id = d3.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingJoin" Group by QueryId, Operation) AS d4
+		ON q.Id = d4.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingSort" Group by QueryId, Operation) AS d5
+		ON q.Id = d5.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "FileSave" Group by QueryId, Operation) AS d6
+		ON q.Id = d6.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "DeleteData" Group by QueryId, Operation) AS d7
+		ON q.Id = d7.QueryId
+		LEFT JOIN
+		(SELECT QueryId, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "HashData" Group by QueryId, Operation) AS d8
+		ON q.Id = d8.QueryId
+	) AS TIMES
+GROUP BY Number
+ORDER BY Number;</value>
+    <comment>Получение суммы времен по запросам</comment>
+  </data>
+  <data name="WorkDuration" xml:space="preserve">
+    <value>SELECT Duration/1000 FROM times WHERE Operation = "WorkDuration"</value>
+    <comment>Время выполнения пакета</comment>
+  </data>
+  <data name="WorkStagesByNodes" xml:space="preserve">
+    <value>SELECT 
+	nodes.Module AS Node, 
+	d1.Duration AS DataTransfer, 
+	d2.Duration AS LoadData, 
+	d3.Duration AS ProcessingSelect, 
+	d4.Duration AS ProcessingJoin, 
+	d5.Duration AS ProcessingSort, 
+	d6.Duration AS FileSave, 
+	d7.Duration AS DeleteData, 
+	d8.Duration AS HashData  
+FROM
+	(SELECT DISTINCT Module FROM times) AS nodes
+	LEFT JOIN
+	(SELECT Module, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "DataTransfer" Group by Module, Operation) AS d1
+	ON nodes.Module = d1.Module
+	LEFT JOIN
+	(SELECT Module, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "LoadData" Group by Module, Operation) AS d2
+	ON nodes.Module = d2.Module
+	LEFT JOIN
+	(SELECT Module, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingSelect" Group by Module, Operation) AS d3
+	ON nodes.Module = d3.Module
+	LEFT JOIN
+	(SELECT Module, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingJoin" Group by Module, Operation) AS d4
+	ON nodes.Module = d4.Module
+	LEFT JOIN
+	(SELECT Module, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "ProcessingSort" Group by Module, Operation) AS d5
+	ON nodes.Module = d5.Module
+	LEFT JOIN
+	(SELECT Module, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "FileSave" Group by Module, Operation) AS d6
+	ON nodes.Module = d6.Module
+	LEFT JOIN
+	(SELECT Module, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "DeleteData" Group by Module, Operation) AS d7
+	ON nodes.Module = d7.Module
+	LEFT JOIN
+	(SELECT Module, SUM(Duration)/1000 AS Duration FROM times WHERE Operation = "HashData" Group by Module, Operation) AS d8
+	ON nodes.Module = d8.Module
+ORDER BY Node;</value>
+    <comment>Время работы каждой стадии по каждому узлу</comment>
+  </data>
+</root>
