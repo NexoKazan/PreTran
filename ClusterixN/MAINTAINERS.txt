@@ -1,2 +1,0 @@
-#[name] <email> [organization]
-Roman Klassen <klassen.roman@comp-gluk.ru> KNRTU-KAI
