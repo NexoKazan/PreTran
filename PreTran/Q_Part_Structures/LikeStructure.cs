@@ -17,14 +17,9 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySQL_Clear_standart.DataBaseSchemeStructure;
+using PreTran.DataBaseSchemeStructure;
 
-namespace MySQL_Clear_standart.Q_Part_Structures
+namespace PreTran.Q_Part_Structures
 {
     class LikeStructure
     {

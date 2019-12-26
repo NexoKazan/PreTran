@@ -20,13 +20,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySQL_Clear_standart.DataBaseSchemeStructure;
-using MySQL_Clear_standart.Q_Part_Structures;
-using MySQL_Clear_standart.Q_Structures;
+using PreTran.DataBaseSchemeStructure;
+using PreTran.Q_Part_Structures;
 
-namespace MySQL_Clear_standart
+namespace PreTran.Q_Structures
 {
     class SortStructure
     {

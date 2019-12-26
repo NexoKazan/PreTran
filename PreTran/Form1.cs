@@ -16,7 +16,6 @@ using Antlr4.Runtime.Tree;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Xml.Serialization;
-using MySQL_Clear_standart.DataBaseSchemeStructure;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -26,11 +25,14 @@ using ClusterixN.Common.Data.Query;
 using ClusterixN.Common.Data.Query.Relation;
 using ClusterixN.Common.Utils;
 using ClusterixN.Network.Packets;
-using MySQL_Clear_standart.Listeners;
-using MySQL_Clear_standart.Network;
 using MySQL_Clear_standart.Properties;
-using MySQL_Clear_standart.Q_Part_Structures;
-using MySQL_Clear_standart.Q_Structures;
+using PreTran;
+using PreTran.DataBaseSchemeStructure;
+using PreTran.Listeners;
+using PreTran.Network;
+using PreTran.Q_Part_Structures;
+using PreTran.Q_Structures;
+using PreTran.Visual;
 
 
 namespace MySQL_Clear_standart

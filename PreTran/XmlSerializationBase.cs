@@ -20,7 +20,7 @@
 using System.IO;
 using System.Xml.Serialization;
 
-namespace MySQL_Clear_standart
+namespace PreTran
 {
     /// <summary>
     ///     Класс реализует методы сериализации/десериализации XML

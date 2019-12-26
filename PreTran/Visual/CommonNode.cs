@@ -17,17 +17,10 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Drawing.Drawing2D;
 using Antlr4.Runtime.Tree;
-using Antlr4.Runtime;
-using System.Windows.Forms;
 
-namespace MySQL_Clear_standart
+namespace PreTran.Visual
 {
     public class CommonNode : ICommonNode
     {

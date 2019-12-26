@@ -19,7 +19,7 @@
 
 using System.Drawing;
 
-namespace MySQL_Clear_standart
+namespace PreTran.Visual
 {
     internal class TextMeasurer
     {

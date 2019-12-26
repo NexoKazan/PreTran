@@ -18,7 +18,8 @@
 #endregion
 
 using System.Collections.Generic;
-namespace MySQL_Clear_standart
+
+namespace PreTran.Visual
 {
     public interface ICommonNode
     {

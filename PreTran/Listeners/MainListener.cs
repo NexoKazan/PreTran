@@ -17,19 +17,13 @@
  */
 #endregion
 
-using Antlr4.Runtime.Misc;
-using Antlr4.Runtime;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
-using MySQL_Clear_standart.Listeners;
-using MySQL_Clear_standart.Q_Structures;
-using MySQL_Clear_standart.Q_Part_Structures;
+using PreTran.Q_Part_Structures;
 
-namespace MySQL_Clear_standart.Listeners
+namespace PreTran.Listeners
 {
     class MainListener : MySqlParserBaseListener
     {

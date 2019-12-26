@@ -17,15 +17,11 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading.Tasks;
-using MySQL_Clear_standart.DataBaseSchemeStructure;
+using PreTran.DataBaseSchemeStructure;
+using PreTran.Q_Structures;
 
-namespace MySQL_Clear_standart
+namespace PreTran
 {
     class SchemeCreator
     {

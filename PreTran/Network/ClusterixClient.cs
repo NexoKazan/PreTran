@@ -28,7 +28,7 @@ using ClusterixN.Network.Data.EventArgs;
 using ClusterixN.Network.Packets;
 using ClusterixN.Network.Packets.Base;
 
-namespace MySQL_Clear_standart.Network
+namespace PreTran.Network
 {
     class ClusterixClient
     {
