@@ -106,8 +106,9 @@ namespace MySQL_Clear_standart
             _treeNodeDrawable = new CommonNode(_tree);
             _vTree = new TreeVisitor(_treeNodeDrawable);
             _walker = new ParseTreeWalker();
-            _listener = new MainListener(0);
+            _listener = new MainListener(0); 
             _listener.Vocabulary = _mySqlParser.Vocabulary;
+            _listener.ruleNames = _mySqlParser.RuleNames;
             _walker.Walk(_listener, _tree);
 
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
@@ -1489,56 +1490,18 @@ namespace MySQL_Clear_standart
             GetTree();
             _output = "";
             _output += "\r\n========Return================\r\n";
+            _output += _listener._return;
 
-            _output += ShowDataBase(_queryDB);
             
-            SelectStructure[] tmpSelect = MakeSelect(_queryDB, _listener);
+            //for (int i = 0; i < _listener.ruleNames.Length; i++)
+            //{
+            //    _output += _listener.ruleNames[i] + Environment.NewLine;
+            //}
 
-            _output += "\r\n========SELECT================\r\n";
-
-            foreach (SelectStructure select in tmpSelect)
-            {
-                _output += select.Name + Environment.NewLine;
-                foreach (ColumnStructure column in select.OutColumn)
-                {
-                    _output += column.Name + " " + column.UsageCounter + Environment.NewLine;
-                }
-
-                _output += Environment.NewLine;
-            }
-            _output += "\r\n========JOIN================\r\n";
-            
-            JoinStructure[] tmpJoin = MakeJoin(_queryDB, _listener, tmpSelect);
-
-            foreach (JoinStructure join in tmpJoin)
-            {
-                _output += join.Name + Environment.NewLine;
-                if (join.LeftSelect != null)
-                {
-                    _output += Environment.NewLine + "LEFT_SELECT" + Environment.NewLine;
-                    foreach (var column in join.LeftSelect.OutColumn)
-                    {
-                        _output += column.Name + " " + column.UsageCounter + Environment.NewLine;
-                    }
-                }
-
-                if (join.RightSelect != null)
-                {
-                    _output += Environment.NewLine + "RIGHT" + Environment.NewLine;
-                    foreach (ColumnStructure column in join.RightSelect.OutColumn)
-                    {
-                        _output += column.Name + " " + column.UsageCounter + Environment.NewLine;
-                    }
-                }
-                if (join.LeftJoin != null)
-                {
-                    _output += Environment.NewLine + "LEFT_JOIN" + Environment.NewLine;
-                    foreach (ColumnStructure column in join.LeftJoin.Columns)
-                    {
-                        _output += column.Name + " " + column.UsageCounter + Environment.NewLine;
-                    }
-                }
-            }
+            //foreach (BaseRule listenerBaseRule in _listener.BaseRules)
+            //{
+            //    _output += listenerBaseRule.Text + Environment.NewLine;
+            //}
             textBox_tab1_Query.Text = _output;
         }
         

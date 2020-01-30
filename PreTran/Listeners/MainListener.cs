@@ -17,7 +17,9 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
@@ -27,6 +29,7 @@ namespace PreTran.Listeners
 {
     class MainListener : MySqlParserBaseListener
     {
+        
         private int _depth;
         private int _tmpDepth;
         private int _id;
@@ -42,6 +45,9 @@ namespace PreTran.Listeners
         private List<AsStructure> _asList = new List<AsStructure>();
         private List<OrderByStructure> _orderByList = new List<OrderByStructure>();   
         private List<MainListener> _subQueryListeners = new List<MainListener>();
+        private List<BaseRule> _baseRules = new List<BaseRule>();
+
+        public string[] ruleNames;
         
         private List<BinaryComparisionPredicateStructure> _binaries = new List<BinaryComparisionPredicateStructure>();
 
@@ -49,6 +55,8 @@ namespace PreTran.Listeners
         {
             _tmpDepth = _depth = depth;
         }
+
+        #region Свойства
 
         public int Depth
         {
@@ -112,10 +120,15 @@ namespace PreTran.Listeners
         {
             get { return _likeList; }
         }
+        
         public string SubSelectFunction
         {
             get { return _subSelectFunction; }
         }
+
+        internal List<BaseRule> BaseRules { get => _baseRules; set => _baseRules = value; }
+
+        #endregion
 
         public override void EnterFullColumnName([NotNull] MySqlParser.FullColumnNameContext context)
         {
@@ -160,6 +173,7 @@ namespace PreTran.Listeners
 
         public override void EnterBinaryComparasionPredicate([NotNull] MySqlParser.BinaryComparasionPredicateContext context)
         {
+            Console.WriteLine(ruleNames[context.RuleIndex]);
             if (_depth == _tmpDepth)
             {
                 BinaryComparisionPredicateStructure tmpBinary = new BinaryComparisionPredicateStructure(context.left.GetText(), context.comparisonOperator().GetText(), context.right.GetText());
@@ -235,6 +249,26 @@ namespace PreTran.Listeners
                 }
                 _likeList.Add(tmpLike);
             }
+        }
+
+        public override void EnterEveryRule([NotNull] ParserRuleContext context)
+        {
+            if (context.ChildCount > 1)
+            {
+                _baseRules.Add(new BaseRule(context.SourceInterval.a, context.SourceInterval.b, context, context.GetText()));
+                _return += ruleNames[context.RuleIndex] + " {" + context.SourceInterval + "} " + Environment.NewLine;
+
+            }
+        }
+
+        public override void VisitTerminal([NotNull] ITerminalNode node)
+        {
+            _return += "TERMINAL: " + Vocabulary.GetDisplayName(node.Symbol.Type) + " {" + node.SourceInterval + "} " + ": " + node.Symbol.Text + Environment.NewLine;
+        }
+
+        public override void VisitErrorNode([NotNull] IErrorNode node)
+        {
+            _return += "ERROR: " + Vocabulary.GetDisplayName(node.Symbol.Type) + " {" + node.SourceInterval + "} " + ": " + node.Symbol.Text + Environment.NewLine;
         }
     }
 }

@@ -72,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseRule.cs" />
     <Compile Include="Listeners\BetweenPredicateListener.cs" />
     <Compile Include="Listeners\MainListener.cs" />
     <Compile Include="Q_Part_Structures\BetweenStructure.cs" />
