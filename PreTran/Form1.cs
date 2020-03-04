@@ -32,6 +32,8 @@ using PreTran.Listeners;
 using PreTran.Network;
 using PreTran.Q_Part_Structures;
 using PreTran.Q_Structures;
+using PreTran.TestClasses;
+using PreTran.TestClasses.Listeners;
 using PreTran.Visual;
 
 
@@ -110,6 +112,26 @@ namespace MySQL_Clear_standart
             _listener.Vocabulary = _mySqlParser.Vocabulary;
             _listener.ruleNames = _mySqlParser.RuleNames;
             _walker.Walk(_listener, _tree);
+
+            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
+
+        }
+
+        private void GetTree(MySqlParserBaseListener listener)
+        {
+            FillScheme(); //странный баг.
+            textBox_tab2_Query.Text = textBox_tab1_Query.Text;
+            _inputString = textBox_tab1_Query.Text;
+            _inputStream = new AntlrInputStream(_inputString);
+            _mySqlLexer = new MySqlLexer(_inputStream);
+            _commonTokenStream = new CommonTokenStream(_mySqlLexer);
+            _mySqlParser = new MySqlParser(_commonTokenStream);
+            _mySqlParser.BuildParseTree = true;
+            _tree = _mySqlParser.root();
+            _treeNodeDrawable = new CommonNode(_tree);
+            _vTree = new TreeVisitor(_treeNodeDrawable);
+            _walker = new ParseTreeWalker();             
+            _walker.Walk(listener, _tree);
 
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
 
@@ -1478,7 +1500,7 @@ namespace MySQL_Clear_standart
 
         private void btn_Debug_Click(object sender, EventArgs e)
         {
-            //GetQuerryTreesScreens(@"D:\!Studing\Скриншоты деревьев\Originals\",12,14);
+            //GetQuerryTreesScreens(@"D:\!Studing\Скриншоты деревьев\Cцифрами\",1,14);
             //отладка
             pictureBox_tab1_Tree.Visible = false;
             richTextBox_tab1_Query.Visible = true;
@@ -1490,18 +1512,39 @@ namespace MySQL_Clear_standart
             GetTree();
             _output = "";
             _output += "\r\n========Return================\r\n";
-            _output += _listener._return;
 
-            
-            //for (int i = 0; i < _listener.ruleNames.Length; i++)
-            //{
-            //    _output += _listener.ruleNames[i] + Environment.NewLine;
-            //}
+            TemplateListener template = new TemplateListener(0);
+            GetTree(template);
+            List<BaseRule> outList = new List<BaseRule>();
+            bool isRemove;
+            foreach (var rule in template.AllRules)
+            {
+                isRemove = false;
+                foreach (var removeRule in template.RemoveRules)
+                {
+                    if (removeRule.SourceInterval.a == rule.SourceInterval.a && removeRule.SourceInterval.b == rule.SourceInterval.b)
+                    {
+                        outList.Add(removeRule);
+                        isRemove = true;
+                        break;
+                    }
+                }
+                if (!isRemove)
+                {
+                    outList.Add(rule);
+                }
+            }
 
-            //foreach (BaseRule listenerBaseRule in _listener.BaseRules)
-            //{
-            //    _output += listenerBaseRule.Text + Environment.NewLine;
-            //}
+            List<BaseRule> getList = new List<BaseRule>();
+            foreach (var baseRule in outList)
+            {
+                getList.AddRange(baseRule.GetRulesByType("terminal"));
+            }
+
+            foreach (var rule in outList)
+            {
+                _output +=rule.SourceInterval + "\t" + rule.Text + Environment.NewLine;
+            }
             textBox_tab1_Query.Text = _output;
         }
         
@@ -1895,6 +1938,8 @@ namespace MySQL_Clear_standart
             
             Console.WriteLine(debug);
         }
+
+
 
         #endregion
 

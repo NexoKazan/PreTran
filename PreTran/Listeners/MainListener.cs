@@ -24,6 +24,8 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
 using PreTran.Q_Part_Structures;
+using PreTran.TestClasses;
+using PreTran.TestClasses.Listeners;
 
 namespace PreTran.Listeners
 {
@@ -46,10 +48,15 @@ namespace PreTran.Listeners
         private List<OrderByStructure> _orderByList = new List<OrderByStructure>();   
         private List<MainListener> _subQueryListeners = new List<MainListener>();
         private List<BaseRule> _baseRules = new List<BaseRule>();
-
-        public string[] ruleNames;
-        
         private List<BinaryComparisionPredicateStructure> _binaries = new List<BinaryComparisionPredicateStructure>();
+       
+        //заменить после тестов
+        public string[] ruleNames;
+        public List<Interval> planeRulesInterval = new List<Interval>();
+        public List<BaseRule> allRules = new List<BaseRule>();
+        public List<BaseRule> readyRules = new List<BaseRule>();
+        public List<ITerminalNode> AllTerminalNodes = new List<ITerminalNode>();
+        public List<ITerminalNode> ReadyTerminalNodes = new List<ITerminalNode>();
 
         public MainListener(int depth)
         {
@@ -132,24 +139,43 @@ namespace PreTran.Listeners
 
         public override void EnterFullColumnName([NotNull] MySqlParser.FullColumnNameContext context)
         {
+            readyRules.Add(new EnterFullCollumnName(context.SourceInterval, context, context.GetText()));
             _columnNames.Add(context.GetText());
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
+
         }
 
         public override void EnterTableName([NotNull] MySqlParser.TableNameContext context)
         {
             _tableNames.Add(context.GetText());
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
 
         public override void EnterSelectColumnElement([NotNull] MySqlParser.SelectColumnElementContext context)
         {
             if(_depth == _tmpDepth)
                 _selectColumnNames.Add(context.GetText());
+
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
         
         public override void EnterTableSourceBase([NotNull] MySqlParser.TableSourceBaseContext context)
         { 
             if(_depth == _tmpDepth)
             TableNames.Add(context.GetText());
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
 
         public override void EnterSelectFunctionElement([NotNull] MySqlParser.SelectFunctionElementContext context)
@@ -169,11 +195,15 @@ namespace PreTran.Listeners
                     _subSelectFunction = context.GetText();
                 }
             }
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
 
         public override void EnterBinaryComparasionPredicate([NotNull] MySqlParser.BinaryComparasionPredicateContext context)
         {
-            Console.WriteLine(ruleNames[context.RuleIndex]);
+            //Console.WriteLine(ruleNames[context.RuleIndex]);
             if (_depth == _tmpDepth)
             {
                 BinaryComparisionPredicateStructure tmpBinary = new BinaryComparisionPredicateStructure(context.left.GetText(), context.comparisonOperator().GetText(), context.right.GetText());
@@ -196,12 +226,21 @@ namespace PreTran.Listeners
                 }
                 _binaries.Add(tmpBinary);
             }
+            readyRules.Add(new BinaryComp(context.SourceInterval, context, context.GetText()));
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
         
         public override void EnterGroupByItem([NotNull] MySqlParser.GroupByItemContext context)
         {
             if(_depth == _tmpDepth)
             GroupByColumnsNames.Add(context.GetText());
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
 
         public override void EnterOrderByExpression([NotNull] MySqlParser.OrderByExpressionContext context)
@@ -220,6 +259,10 @@ namespace PreTran.Listeners
 
                 OrderByList.Add(tmpOrder);
             }
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
 
         public override void EnterSubqueryExpessionAtom([NotNull] MySqlParser.SubqueryExpessionAtomContext context)
@@ -230,6 +273,10 @@ namespace PreTran.Listeners
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(tmpSubListener, context.selectStatement());
             SubQueryListeners.Add(tmpSubListener);
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
             
         }
 
@@ -249,21 +296,27 @@ namespace PreTran.Listeners
                 }
                 _likeList.Add(tmpLike);
             }
+            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
+            ParseTreeWalker tempWalker = new ParseTreeWalker();
+            tempWalker.Walk(tmpListener, context);
+            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
 
         public override void EnterEveryRule([NotNull] ParserRuleContext context)
         {
             if (context.ChildCount > 1)
             {
-                _baseRules.Add(new BaseRule(context.SourceInterval.a, context.SourceInterval.b, context, context.GetText()));
-                _return += ruleNames[context.RuleIndex] + " {" + context.SourceInterval + "} " + Environment.NewLine;
-
+                _baseRules.Add(new BaseRule(context.SourceInterval, context, context.GetText()));
+                //_return += ruleNames[context.RuleIndex] + " {" + context.SourceInterval + "} " + Environment.NewLine;
+                planeRulesInterval.Add(context.SourceInterval);
             }
+            allRules.Add(new BaseRule(context.SourceInterval, context, context.GetText()));
         }
 
         public override void VisitTerminal([NotNull] ITerminalNode node)
         {
-            _return += "TERMINAL: " + Vocabulary.GetDisplayName(node.Symbol.Type) + " {" + node.SourceInterval + "} " + ": " + node.Symbol.Text + Environment.NewLine;
+           // _return += "TERMINAL: " + Vocabulary.GetDisplayName(node.Symbol.Type) + " {" + node.SourceInterval + "} " + ": " + node.Symbol.Text + Environment.NewLine;
+            AllTerminalNodes.Add(node);
         }
 
         public override void VisitErrorNode([NotNull] IErrorNode node)

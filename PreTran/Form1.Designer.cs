@@ -329,8 +329,6 @@
             // checkBox_tab1_DisableHeavyQuerry
             // 
             this.checkBox_tab1_DisableHeavyQuerry.AutoSize = true;
-            this.checkBox_tab1_DisableHeavyQuerry.Checked = true;
-            this.checkBox_tab1_DisableHeavyQuerry.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox_tab1_DisableHeavyQuerry.Location = new System.Drawing.Point(188, 30);
             this.checkBox_tab1_DisableHeavyQuerry.Name = "checkBox_tab1_DisableHeavyQuerry";
             this.checkBox_tab1_DisableHeavyQuerry.Size = new System.Drawing.Size(100, 17);
@@ -360,7 +358,7 @@
             this.comboBox_tab1_QueryNumber.Name = "comboBox_tab1_QueryNumber";
             this.comboBox_tab1_QueryNumber.Size = new System.Drawing.Size(67, 21);
             this.comboBox_tab1_QueryNumber.TabIndex = 7;
-            this.comboBox_tab1_QueryNumber.Text = "2";
+            this.comboBox_tab1_QueryNumber.Text = "1";
             // 
             // btn_tab1_Debug
             // 

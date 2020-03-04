@@ -3005,12 +3005,12 @@ public partial class MySqlParserBaseListener : IMySqlParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void EnterQuerySpecification([NotNull] MySqlParser.QuerySpecificationContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="MySqlParser.querySpecification"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitQuerySpecification([NotNull] MySqlParser.QuerySpecificationContext context) { }
+    /// <summary>
+    /// Exit a parse tree produced by <see cref="MySqlParser.querySpecification"/>.
+    /// <para>The default implementation does nothing.</para>
+    /// </summary>
+    /// <param name="context">The parse tree.</param>
+    public virtual void ExitQuerySpecification([NotNull] MySqlParser.QuerySpecificationContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="MySqlParser.querySpecificationNointo"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -3059,12 +3059,15 @@ public partial class MySqlParserBaseListener : IMySqlParserListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitSelectSpec([NotNull] MySqlParser.SelectSpecContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="MySqlParser.selectElements"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterSelectElements([NotNull] MySqlParser.SelectElementsContext context) { }
+
+    /// <summary>
+    /// Enter a parse tree produced by <see cref="MySqlParser.selectElements"/>.
+    /// <para>The default implementation does nothing.</para>
+    /// </summary>
+    /// <param name="context">The parse tree.</param>
+    public virtual void EnterSelectElements([NotNull] MySqlParser.SelectElementsContext context)
+    {
+    }
 	/// <summary>
 	/// Exit a parse tree produced by <see cref="MySqlParser.selectElements"/>.
 	/// <para>The default implementation does nothing.</para>

@@ -72,7 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseRule.cs" />
+    <Compile Include="TestClasses\BaseRule.cs" />
     <Compile Include="Listeners\BetweenPredicateListener.cs" />
     <Compile Include="Listeners\MainListener.cs" />
     <Compile Include="Q_Part_Structures\BetweenStructure.cs" />
@@ -93,6 +93,26 @@
     <Compile Include="Q_Structures\SelectStructure.cs" />
     <Compile Include="Q_Structures\SortStructure.cs" />
     <Compile Include="DataBaseSchemeStructure\S_Type.cs" />
+    <Compile Include="TestClasses\BinaryComp.cs" />
+    <Compile Include="TestClasses\EnterFullCollumnName.cs" />
+    <Compile Include="TestClasses\Listeners\BaseListenerImplementation.cs" />
+    <Compile Include="TestClasses\Listeners\AggregateWindowedFunctionListener.cs" />
+    <Compile Include="TestClasses\Listeners\MathExpressionAtomListener.cs" />
+    <Compile Include="TestClasses\Listeners\NestedExpressionAtomListener.cs" />
+    <Compile Include="TestClasses\Listeners\SelectElementsListener.cs" />
+    <Compile Include="TestClasses\Listeners\SelectExpressionElementListener.cs" />
+    <Compile Include="TestClasses\Listeners\SelectFunctionElementListener.cs" />
+    <Compile Include="TestClasses\Listeners\TemplateListener.cs" />
+    <Compile Include="TestClasses\Listeners\tmpListenerFortTerminalNodes.cs" />
+    <Compile Include="TestClasses\Rules\FromClause.cs" />
+    <Compile Include="TestClasses\Rules\MathExpressionAtom.cs" />
+    <Compile Include="TestClasses\Rules\NestedExpressionAtom.cs" />
+    <Compile Include="TestClasses\Rules\OrderByClause.cs" />
+    <Compile Include="TestClasses\Rules\AggregateWindowedFunction.cs" />
+    <Compile Include="TestClasses\Rules\SelectExpressionElement.cs" />
+    <Compile Include="TestClasses\Rules\SelectFunctionElement.cs" />
+    <Compile Include="TestClasses\Rules\SelectElements.cs" />
+    <Compile Include="TestClasses\Rules\TerminalRule.cs" />
     <Compile Include="Visual\CommonNode.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
