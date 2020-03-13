@@ -10,17 +10,17 @@ using PreTran.TestClasses.Listeners;
 
 namespace PreTran.TestClasses.Rules
 {
-    class FromClause : BaseRule
+    class LogicalExpression : BaseRule
     {
-        private FromClauseListener _listener = new FromClauseListener();
-        public FromClause(Interval ruleInterval, MySqlParser.FromClauseContext context, string text) : base(ruleInterval, context, text)
+        private LogicalExpressionListener _listener = new LogicalExpressionListener();
+        public LogicalExpression(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
         {
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             Rules = _listener.Rules;
             foreach (var rule in Rules)
             {
-                rule.Text =Environment.NewLine + rule.Text;
+                rule.Text += " ";
             }
         }
     }

@@ -1500,6 +1500,7 @@ namespace MySQL_Clear_standart
 
         private void btn_Debug_Click(object sender, EventArgs e)
         {
+            Console.Clear();
             //GetQuerryTreesScreens(@"D:\!Studing\Скриншоты деревьев\Cцифрами\",1,14);
             //отладка
             pictureBox_tab1_Tree.Visible = false;
@@ -1543,7 +1544,7 @@ namespace MySQL_Clear_standart
 
             foreach (var rule in outList)
             {
-                _output +=rule.SourceInterval + "\t" + rule.Text + Environment.NewLine;
+                _output += rule.Text + Environment.NewLine;
             }
             textBox_tab1_Query.Text = _output;
         }

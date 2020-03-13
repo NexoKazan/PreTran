@@ -26,6 +26,8 @@ namespace PreTran.TestClasses.Listeners
             {
                 TerminalRule terminal = new TerminalRule(node.SourceInterval, node.GetText(), node.Parent);
                 Rules.Add(terminal);
+                
+                Console.WriteLine("TERMINAL\t" + node.GetType() + "\t\t" + node.GetText());
             }
         }
 
@@ -35,59 +37,77 @@ namespace PreTran.TestClasses.Listeners
             {
                 if(_isOtherListener == 1)
                     Rules.Add(new BaseRule(context.SourceInterval, context, context.GetText()));
+                
+
+                Console.WriteLine("EVERY RULE\t" + context.GetType() + "\t\t" + context.GetText());
             }
         }
 
         public override void EnterNestedExpressionAtom(MySqlParser.NestedExpressionAtomContext context)
         {
-            NestedExpressionAtom nestedExpressionAtom = new NestedExpressionAtom(context.SourceInterval, context,context.GetText());
-            Rules.Remove(Rules[Rules.Count - 1]);
-            Rules.Add(nestedExpressionAtom);
-            _isOtherListener ++;
+            if (_isOtherListener == 1)
+            {
+                NestedExpressionAtom nestedExpressionAtom =
+                    new NestedExpressionAtom(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(nestedExpressionAtom);
+            }
+            _isOtherListener++;
         }
 
         public override void ExitNestedExpressionAtom(MySqlParser.NestedExpressionAtomContext context)
         {
             _isOtherListener--;
         }
-        
+
         public override void EnterMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
         {
-            //if (_isOtherListener == 1 && _isFirst == false)
-            //{
-            //    MathExpressionAtom mathExpressionAtom = new MathExpressionAtom(context.SourceInterval, context, context.GetText());
-            //    Rules.Remove(Rules[Rules.Count - 1]);
-            //    Rules.Add(mathExpressionAtom);
-            //    _isOtherListener++;
-            //}
+            if (_isOtherListener == 1 && _isFirst == false)
+            {
+                MathExpressionAtom mathExpressionAtom =
+                    new MathExpressionAtom(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(mathExpressionAtom);
+            }
+
+            if (_isFirst == false)
+            {
+                _isOtherListener++;
+            }
+
             if (_isOtherListener == 1 && Rules.Count > 0 && _isFirst)
             {
                 Rules.Remove(Rules[Rules.Count - 1]);
                 _isFirst = false;
             }
 
+            
         }
 
         public override void EnterAggregateWindowedFunction(MySqlParser.AggregateWindowedFunctionContext context)
         {
-            
-            AggregateWindowedFunction aggregateWindowedFunction  = new AggregateWindowedFunction(context.SourceInterval, context, context.GetText());
-            Rules.Remove(Rules[Rules.Count - 1]);
-            Rules.Add(aggregateWindowedFunction);
-            _isOtherListener ++;
-        }
+            if (_isOtherListener == 1)
+            {
+                AggregateWindowedFunction aggregateWindowedFunction =
+                    new AggregateWindowedFunction(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(aggregateWindowedFunction);
+            }
+            _isOtherListener++;
+        
+    }
 
         public override void ExitAggregateWindowedFunction(MySqlParser.AggregateWindowedFunctionContext context)
         {
-            _isOtherListener --;
+            _isOtherListener--;
         }
 
-        //public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
-        //{
-        //    if (_isFirst == false)
-        //    {
-        //        _isOtherListener--;
-        //    }
-        //}
+        public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        {
+            if (_isFirst == false)
+            {
+                _isOtherListener--;
+            }
+        }
     }
 }

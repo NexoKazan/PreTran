@@ -10,9 +10,8 @@ using PreTran.TestClasses.Rules;
 
 namespace PreTran.TestClasses.Listeners
 {
-    class SelectExpressionElementListener : MySqlParserBaseListener
+    class CaseFunctionCallListener : MySqlParserBaseListener
     {
-        
         private int _tmpDepth;
         private int _depth;
         private bool _isMainQ = false;
@@ -39,7 +38,7 @@ namespace PreTran.TestClasses.Listeners
             }
         }
 
-        public override void EnterSelectExpressionElement(MySqlParser.SelectExpressionElementContext context)
+        public override void EnterCaseFunctionCall(MySqlParser.CaseFunctionCallContext context)
         {
             if (_isOtherListener == 1 && Rules.Count > 0 && _isFirst)
             {
@@ -48,20 +47,15 @@ namespace PreTran.TestClasses.Listeners
             }
         }
 
-        public override void EnterMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        public override void EnterCaseFuncAlternative(MySqlParser.CaseFuncAlternativeContext context)
         {
-            if (_isOtherListener == 1)
-            {
-                MathExpressionAtom mathExpressionAtom =
-                    new MathExpressionAtom(context.SourceInterval, context, context.GetText());
-                Rules.Remove(Rules[Rules.Count - 1]);
-                Rules.Add(mathExpressionAtom);
-            }
+            CaseFuncAlternative caseAlternative = new CaseFuncAlternative(context.SourceInterval, context, context.GetText());
+            Rules.Remove(Rules[Rules.Count - 1]);
+            Rules.Add(caseAlternative);
             _isOtherListener++;
-
         }
 
-        public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        public override void ExitCaseFuncAlternative(MySqlParser.CaseFuncAlternativeContext context)
         {
             _isOtherListener--;
         }

@@ -10,11 +10,12 @@ using PreTran.TestClasses.Rules;
 
 namespace PreTran.TestClasses.Listeners
 {
-    class AggregateWindowedFunctionListener : MySqlParserBaseListener
+    class FromClauseListener : MySqlParserBaseListener
     {
         private int _tmpDepth;
         private int _depth;
         private bool _isMainQ = false;
+        private bool _isFirst = true;
         private int _isOtherListener = 1;
 
         public List<BaseRule> Rules = new List<BaseRule>();
@@ -37,45 +38,58 @@ namespace PreTran.TestClasses.Listeners
             }
         }
 
-        public override void EnterAggregateWindowedFunction(MySqlParser.AggregateWindowedFunctionContext context)
+        public override void EnterFromClause(MySqlParser.FromClauseContext context)
         {
-            if (_isOtherListener == 1 && Rules.Count>0)
+            if (_isOtherListener == 1 && Rules.Count > 0 && _isFirst)
             {
                 Rules.Remove(Rules[Rules.Count - 1]);
+                _isFirst = false;
             }
         }
 
-        public override void EnterMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        public override void EnterTableSources(MySqlParser.TableSourcesContext context)
         {
             if (_isOtherListener == 1)
             {
-                MathExpressionAtom mathExpressionAtom =
-                    new MathExpressionAtom(context.SourceInterval, context, context.GetText());
-                Rules.Remove(Rules[Rules.Count - 1]);
-                Rules.Add(mathExpressionAtom);
+                if (context.ChildCount > 1)
+                {
+                    Rules.Remove(Rules[Rules.Count - 1]);
+                } 
+                TableSources tableSources =
+                    new TableSources(context.SourceInterval, context, context.GetText());
+                Rules.Add(tableSources);
             }
             _isOtherListener++;
-
         }
 
-        public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        public override void ExitTableSources(MySqlParser.TableSourcesContext context)
         {
             _isOtherListener--;
         }
 
-        public override void EnterCaseFunctionCall(MySqlParser.CaseFunctionCallContext context)
+        public override void EnterLogicalExpression(MySqlParser.LogicalExpressionContext context)
+        {
+            _isOtherListener++;
+        }
+
+        public override void ExitLogicalExpression(MySqlParser.LogicalExpressionContext context)
+        {
+            _isOtherListener--;
+        }
+
+        public override void EnterBinaryComparasionPredicate(MySqlParser.BinaryComparasionPredicateContext context)
         {
             if (_isOtherListener == 1)
             {
-                CaseFunctionCall caseFunctionCall =
-                    new CaseFunctionCall(context.SourceInterval, context, context.GetText());
+                BinaryComparasionPredicate binaryComparasionPredicate =
+                    new BinaryComparasionPredicate(context.SourceInterval, context, context.GetText());
                 Rules.Remove(Rules[Rules.Count - 1]);
-                Rules.Add(caseFunctionCall);
+                Rules.Add(binaryComparasionPredicate);
             }
             _isOtherListener++;
         }
 
-        public override void ExitCaseFunctionCall(MySqlParser.CaseFunctionCallContext context)
+        public override void ExitBinaryComparasionPredicate(MySqlParser.BinaryComparasionPredicateContext context)
         {
             _isOtherListener--;
         }

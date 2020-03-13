@@ -10,7 +10,7 @@ using PreTran.TestClasses.Rules;
 
 namespace PreTran.TestClasses.Listeners
 {
-    class SelectExpressionElementListener : MySqlParserBaseListener
+    class TableSourcesListener :  MySqlParserBaseListener
     {
         
         private int _tmpDepth;
@@ -39,31 +39,13 @@ namespace PreTran.TestClasses.Listeners
             }
         }
 
-        public override void EnterSelectExpressionElement(MySqlParser.SelectExpressionElementContext context)
+        public override void EnterTableSources(MySqlParser.TableSourcesContext context)
         {
             if (_isOtherListener == 1 && Rules.Count > 0 && _isFirst)
             {
                 Rules.Remove(Rules[Rules.Count - 1]);
                 _isFirst = false;
             }
-        }
-
-        public override void EnterMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
-        {
-            if (_isOtherListener == 1)
-            {
-                MathExpressionAtom mathExpressionAtom =
-                    new MathExpressionAtom(context.SourceInterval, context, context.GetText());
-                Rules.Remove(Rules[Rules.Count - 1]);
-                Rules.Add(mathExpressionAtom);
-            }
-            _isOtherListener++;
-
-        }
-
-        public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
-        {
-            _isOtherListener--;
         }
     }
 }
