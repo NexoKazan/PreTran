@@ -10,26 +10,18 @@ using PreTran.TestClasses.Listeners;
 
 namespace PreTran.TestClasses.Rules
 {
-    class TableSources :BaseRule
+    class FullColumnName : BaseRule
     {
-        private TableSourcesListener _listener = new TableSourcesListener();
+        private FullColumnNameListener _listener = new FullColumnNameListener();
 
-        public TableSources(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context,
-            text)
+        public FullColumnName(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
         {
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             Rules = _listener.Rules;
             foreach (var rule in Rules)
             {
-                if (rule.Text == ",")
-                {
-                    rule.Text += Environment.NewLine;
-                }
-                else
-                {
-                    rule.Text += " ";
-                }
+                rule.Text += "";
             }
         }
     }

@@ -25,6 +25,15 @@ namespace PreTran.TestClasses.Listeners
             if (_isOtherListener==1)
             {
                 TerminalRule terminal = new TerminalRule(node.SourceInterval, node.GetText(), node.Parent);
+                switch (node.GetText())
+                {
+                    case "FROM" :
+                        terminal.Text = Environment.NewLine + terminal.Text + Environment.NewLine; break;
+                    case "WHERE" : terminal.Text = Environment.NewLine + terminal.Text + Environment.NewLine; break;
+                    case "GROUP" : terminal.Text = Environment.NewLine + terminal.Text; break;
+                    case "BY" : terminal.Text += Environment.NewLine; break; 
+                    default: break;
+                }
                 Rules.Add(terminal);
             }
         }
@@ -69,6 +78,13 @@ namespace PreTran.TestClasses.Listeners
 
         public override void EnterLogicalExpression(MySqlParser.LogicalExpressionContext context)
         {
+            if (_isOtherListener == 1)
+            {
+                LogicalExpression logicalExpression =
+                    new LogicalExpression(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(logicalExpression);
+            }
             _isOtherListener++;
         }
 

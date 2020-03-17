@@ -67,5 +67,63 @@ namespace PreTran.TestClasses.Listeners
         {
             _isOtherListener--;
         }
+
+        public override void EnterMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                Rules.Remove(Rules[Rules.Count - 1]);
+                MathExpressionAtom mathExpressionAtom =
+                    new MathExpressionAtom(context.SourceInterval, context, context.GetText());
+                Rules.Add(mathExpressionAtom);
+                _isOtherListener++;
+            }
+        }
+
+        public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        {
+            _isOtherListener--;
+        }
+
+        public override void EnterSubqueryExpessionAtom(MySqlParser.SubqueryExpessionAtomContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                Rules.Remove(Rules[Rules.Count - 1]);
+
+                SubqueryExpessionAtom subqueryExpessionAtom =
+                    new SubqueryExpessionAtom(context.SourceInterval, context, context.GetText());
+                Rules.Add(subqueryExpessionAtom);
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitSubqueryExpessionAtom(MySqlParser.SubqueryExpessionAtomContext context)
+        {
+            _isOtherListener--;
+        }
+
+        public override void EnterFullColumnName(MySqlParser.FullColumnNameContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                if (context.ChildCount > 1)
+                {
+                    Rules.Remove(Rules[Rules.Count - 1]);
+                }
+
+                FullColumnName fullColumnName =
+                    new FullColumnName(context.SourceInterval, context, context.GetText());
+
+                Rules.Add(fullColumnName);
+
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitFullColumnName(MySqlParser.FullColumnNameContext context)
+        {
+            _isOtherListener--;
+        }
     }
 }

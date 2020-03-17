@@ -26,8 +26,6 @@ namespace PreTran.TestClasses.Listeners
             {
                 TerminalRule terminal = new TerminalRule(node.SourceInterval, node.GetText(), node.Parent);
                 Rules.Add(terminal);
-                
-                Console.WriteLine("TERMINAL\t" + node.GetType() + "\t\t" + node.GetText());
             }
         }
 
@@ -38,8 +36,6 @@ namespace PreTran.TestClasses.Listeners
                 if(_isOtherListener == 1)
                     Rules.Add(new BaseRule(context.SourceInterval, context, context.GetText()));
                 
-
-                Console.WriteLine("EVERY RULE\t" + context.GetType() + "\t\t" + context.GetText());
             }
         }
 
@@ -80,8 +76,14 @@ namespace PreTran.TestClasses.Listeners
                 Rules.Remove(Rules[Rules.Count - 1]);
                 _isFirst = false;
             }
-
-            
+        }
+        
+        public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        {
+            if (_isFirst == false)
+            {
+                _isOtherListener--;
+            }
         }
 
         public override void EnterAggregateWindowedFunction(MySqlParser.AggregateWindowedFunctionContext context)
@@ -94,20 +96,29 @@ namespace PreTran.TestClasses.Listeners
                 Rules.Add(aggregateWindowedFunction);
             }
             _isOtherListener++;
-        
-    }
+
+        }
 
         public override void ExitAggregateWindowedFunction(MySqlParser.AggregateWindowedFunctionContext context)
         {
             _isOtherListener--;
         }
 
-        public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
+        public override void EnterIntervalExpressionAtom(MySqlParser.IntervalExpressionAtomContext context)
         {
-            if (_isFirst == false)
+            if (_isOtherListener == 1)
             {
-                _isOtherListener--;
+                IntervalExpressionAtom intervalExpressionAtom =
+                    new IntervalExpressionAtom(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(intervalExpressionAtom);
             }
+            _isOtherListener++;
+        }
+
+        public override void ExitIntervalExpressionAtom(MySqlParser.IntervalExpressionAtomContext context)
+        {
+            _isOtherListener--;
         }
     }
 }

@@ -40,10 +40,31 @@ namespace PreTran.TestClasses.Listeners
 
         public override void EnterLogicalExpression(MySqlParser.LogicalExpressionContext context)
         {
+            if (_isOtherListener == 1 && _isFirst == false)
+            {
+                LogicalExpression logicalExpression =
+                    new LogicalExpression(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(logicalExpression);
+            }
+
+            if (_isFirst == false)
+            {
+                _isOtherListener++;
+            }
+
             if (_isOtherListener == 1 && Rules.Count > 0 && _isFirst)
             {
                 Rules.Remove(Rules[Rules.Count - 1]);
                 _isFirst = false;
+            }
+        }
+
+        public override void ExitLogicalExpression(MySqlParser.LogicalExpressionContext context)
+        {
+            if (_isFirst == false)
+            {
+                _isOtherListener--;
             }
         }
 
@@ -55,11 +76,75 @@ namespace PreTran.TestClasses.Listeners
                     new BinaryComparasionPredicate(context.SourceInterval, context, context.GetText());
                 Rules.Remove(Rules[Rules.Count - 1]);
                 Rules.Add(binaryComparasionPredicate);
-                _isOtherListener++;
+                
             }
+            _isOtherListener++;
         }
 
         public override void ExitBinaryComparasionPredicate(MySqlParser.BinaryComparasionPredicateContext context)
+        {
+            _isOtherListener--;
+        }
+
+        public override void EnterLikePredicate(MySqlParser.LikePredicateContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                LikePredicate likePredicate =
+                    new LikePredicate(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(likePredicate);
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitLikePredicate(MySqlParser.LikePredicateContext context)
+        {
+            _isOtherListener--;
+        }
+
+        public override void EnterExistsExpessionAtom(MySqlParser.ExistsExpessionAtomContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                if (context.ChildCount > 1)
+                {
+                    Rules.Remove(Rules[Rules.Count - 1]);
+                }
+
+                ExistsExpessionAtom existsExpessionAtom =
+                    new ExistsExpessionAtom(context.SourceInterval, context, context.GetText());
+
+                Rules.Add(existsExpessionAtom);
+
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitExistsExpessionAtom(MySqlParser.ExistsExpessionAtomContext context)
+        {
+            _isOtherListener--;
+        }
+
+        public override void EnterBetweenPredicate(MySqlParser.BetweenPredicateContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                if (context.ChildCount > 1)
+                {
+                    Rules.Remove(Rules[Rules.Count - 1]);
+                }
+
+                BetweenPredicate betweenPredicate =
+                    new BetweenPredicate(context.SourceInterval, context, context.GetText());
+
+                Rules.Add(betweenPredicate);
+
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitBetweenPredicate(MySqlParser.BetweenPredicateContext context)
         {
             _isOtherListener--;
         }

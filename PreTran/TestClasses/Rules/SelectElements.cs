@@ -16,43 +16,43 @@ namespace PreTran.TestClasses.Rules
     {
         private SelectElementsListener _listener = new SelectElementsListener();
 
+        private string _text;
         public SelectElements(Interval ruleInterval, MySqlParser.SelectElementsContext context, string text) : base(ruleInterval, context, text)
         {
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             Rules = _listener.Rules;
-            foreach (var rule in Rules)
-            {
-                rule.Text += "";
-            }
+            _text = text;
         }
-        
-        public override string Text {
+
+        public override string Text
+        {
             get
             {
-                string text = "";
+                _text = "";
                 if (this.Rules.Count > 0)
                 {
-                    
+
                     foreach (var baseRule in Rules)
                     {
                         if (baseRule.Text != ",")
                         {
-                            text += Environment.NewLine + baseRule.Text;
+                            _text += Environment.NewLine + baseRule.Text;
                         }
                         else
                         {
-                            text += baseRule.Text;
+                            _text += baseRule.Text;
                         }
                     }
 
-                    return text;
+                    return _text;
                 }
                 else
                 {
-                    return text;
+                    return _text;
                 }
             }
-            set => Text = value; }
+            set { _text = value; } 
+        }
     }
 }

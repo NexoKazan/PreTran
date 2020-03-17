@@ -1544,7 +1544,7 @@ namespace MySQL_Clear_standart
 
             foreach (var rule in outList)
             {
-                _output += rule.Text + Environment.NewLine;
+                _output += rule.Text + " ";
             }
             textBox_tab1_Query.Text = _output;
         }

@@ -15,13 +15,13 @@ namespace PreTran.TestClasses.Listeners
         private int _tmpDepth;
         private int _depth;
         private bool _isMainQ = false;
-        private bool _isOtherListener = false;
+        private int _isOtherListener = 1;
 
         public List<BaseRule> Rules = new List<BaseRule>();
 
         public override void VisitTerminal(ITerminalNode node)
         {
-            if (!_isOtherListener)
+            if (_isOtherListener == 1)
             {
                 TerminalRule terminal = new TerminalRule(node.SourceInterval, node.GetText(), node.Parent);
                 Rules.Add(terminal);
@@ -32,14 +32,14 @@ namespace PreTran.TestClasses.Listeners
         {
             if (context.ChildCount > 1)
             {
-                if(!_isOtherListener)
+                if(_isOtherListener == 1)
                     Rules.Add(new BaseRule(context.SourceInterval, context, context.GetText()));
             }
         }
 
         public override void EnterSelectElements(MySqlParser.SelectElementsContext context)
         {
-            if (!_isOtherListener && Rules.Count>0)
+            if (_isOtherListener == 1 && Rules.Count>0)
             {
                 Rules.Remove(Rules[Rules.Count - 1]);
             }
@@ -47,15 +47,24 @@ namespace PreTran.TestClasses.Listeners
 
         public override void EnterSelectFunctionElement(MySqlParser.SelectFunctionElementContext context)
         {
-            SelectFunctionElement selectFunctionElement = new SelectFunctionElement(context.SourceInterval, context, context.GetText());
-            Rules.Remove(Rules[Rules.Count - 1]);
-            Rules.Add(selectFunctionElement);
-            _isOtherListener = true;
+            if (_isOtherListener == 1)
+            {
+                SelectFunctionElement selectFunctionElement =
+                    new SelectFunctionElement(context.SourceInterval, context, context.GetText());
+                if (Rules.Count > 0)
+                {
+                    Rules.Remove(Rules[Rules.Count - 1]);
+                }
+
+                Rules.Add(selectFunctionElement);
+            }
+
+            _isOtherListener++;
         }
 
         public override void ExitSelectFunctionElement(MySqlParser.SelectFunctionElementContext context)
         {
-            _isOtherListener = false;
+            _isOtherListener --;
         }
 
         public override void EnterSelectExpressionElement(MySqlParser.SelectExpressionElementContext context)
@@ -63,12 +72,45 @@ namespace PreTran.TestClasses.Listeners
             SelectExpressionElement selectExpressionElement = new SelectExpressionElement(context.SourceInterval, context, context.GetText());
             Rules.Remove(Rules[Rules.Count - 1]);
             Rules.Add(selectExpressionElement);
-            _isOtherListener = true;
+            _isOtherListener++;
         }
 
         public override void ExitSelectExpressionElement(MySqlParser.SelectExpressionElementContext context)
         {
-            _isOtherListener = false;
+            _isOtherListener --;
+        }
+
+        public override void EnterFullColumnName(MySqlParser.FullColumnNameContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                if (context.ChildCount > 1)
+                {
+                    Rules.Remove(Rules[Rules.Count - 1]);
+                }
+
+                FullColumnName fullColumnName =
+                    new FullColumnName(context.SourceInterval, context, context.GetText());
+
+                Rules.Add(fullColumnName);
+
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitFullColumnName(MySqlParser.FullColumnNameContext context)
+        {
+            _isOtherListener--;
+        }
+
+        public override void EnterSelectColumnElement(MySqlParser.SelectColumnElementContext context)
+        {
+            base.EnterSelectColumnElement(context);
+        }
+
+        public override void ExitSelectColumnElement(MySqlParser.SelectColumnElementContext context)
+        {
+            base.ExitSelectColumnElement(context);
         }
     }
 }
