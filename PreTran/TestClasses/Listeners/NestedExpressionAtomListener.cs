@@ -62,5 +62,22 @@ namespace PreTran.TestClasses.Listeners
         {
             _isOtherListener--;
         }
+
+        public override void EnterLogicalExpression(MySqlParser.LogicalExpressionContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                LogicalExpression logicalExpression =
+                    new LogicalExpression(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(logicalExpression);
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitLogicalExpression(MySqlParser.LogicalExpressionContext context)
+        {
+            _isOtherListener--;
+        }
     }
 }

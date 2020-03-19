@@ -70,7 +70,11 @@ namespace PreTran.TestClasses.Listeners
         public override void EnterSelectExpressionElement(MySqlParser.SelectExpressionElementContext context)
         {
             SelectExpressionElement selectExpressionElement = new SelectExpressionElement(context.SourceInterval, context, context.GetText());
-            Rules.Remove(Rules[Rules.Count - 1]);
+            if (context.ChildCount > 1)
+            {
+                Rules.Remove(Rules[Rules.Count - 1]);
+            }
+
             Rules.Add(selectExpressionElement);
             _isOtherListener++;
         }
@@ -105,12 +109,25 @@ namespace PreTran.TestClasses.Listeners
 
         public override void EnterSelectColumnElement(MySqlParser.SelectColumnElementContext context)
         {
-            base.EnterSelectColumnElement(context);
+            if (_isOtherListener == 1)
+            {
+                if (context.ChildCount > 1)
+                {
+                    Rules.Remove(Rules[Rules.Count - 1]);
+                }
+
+                SelectColumnElement selectColumnElement =
+                    new SelectColumnElement(context.SourceInterval, context, context.GetText());
+
+                Rules.Add(selectColumnElement);
+
+            }
+            _isOtherListener++;
         }
 
         public override void ExitSelectColumnElement(MySqlParser.SelectColumnElementContext context)
         {
-            base.ExitSelectColumnElement(context);
+            _isOtherListener--;
         }
     }
 }

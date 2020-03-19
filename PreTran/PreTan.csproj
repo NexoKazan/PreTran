@@ -102,6 +102,7 @@
     <Compile Include="TestClasses\Listeners\CaseFuncAlternativeListener.cs" />
     <Compile Include="TestClasses\Listeners\CaseFunctionCallListener.cs" />
     <Compile Include="TestClasses\Listeners\ComparisonOperatorListener.cs" />
+    <Compile Include="TestClasses\Listeners\ExtractFunctionCallListener.cs" />
     <Compile Include="TestClasses\Listeners\FullColumnNameListener.cs" />
     <Compile Include="TestClasses\Listeners\ExistsExpessionAtomListener.cs" />
     <Compile Include="TestClasses\Listeners\FromClauseListener.cs" />
@@ -128,6 +129,7 @@
     <Compile Include="TestClasses\Rules\CaseFunctionCall.cs" />
     <Compile Include="TestClasses\Rules\ComparisonOperator.cs" />
     <Compile Include="TestClasses\Rules\ExistsExpessionAtom.cs" />
+    <Compile Include="TestClasses\Rules\ExtractFunctionCall.cs" />
     <Compile Include="TestClasses\Rules\FromClause.cs" />
     <Compile Include="TestClasses\Rules\FullColumnName.cs" />
     <Compile Include="TestClasses\Rules\IntervalExpressionAtom.cs" />

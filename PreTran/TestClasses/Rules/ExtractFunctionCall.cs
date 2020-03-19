@@ -10,10 +10,10 @@ using PreTran.TestClasses.Listeners;
 
 namespace PreTran.TestClasses.Rules
 {
-    class SelectColumnElement : BaseRule
+    class ExtractFunctionCall : BaseRule
     {
-        private SelectColumnElementListener _listener = new SelectColumnElementListener();
-        public SelectColumnElement(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
+        ExtractFunctionCallListener _listener = new ExtractFunctionCallListener();
+        public ExtractFunctionCall(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
         {
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);

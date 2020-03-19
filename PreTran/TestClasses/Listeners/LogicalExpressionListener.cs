@@ -148,5 +148,22 @@ namespace PreTran.TestClasses.Listeners
         {
             _isOtherListener--;
         }
+
+        public override void EnterNestedExpressionAtom(MySqlParser.NestedExpressionAtomContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                NestedExpressionAtom nestedExpressionAtom =
+                    new NestedExpressionAtom(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(nestedExpressionAtom);
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitNestedExpressionAtom(MySqlParser.NestedExpressionAtomContext context)
+        {
+            _isOtherListener--;
+        }
     }
 }
