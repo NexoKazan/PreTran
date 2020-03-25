@@ -26,10 +26,7 @@ namespace PreTran.TestClasses.Rules
                 {
                     rule.Text += Environment.NewLine;
                 }
-                else
-                {
-                    rule.Text += " ";
-                }
+                
             }
         }
     }

@@ -19,6 +19,7 @@ namespace PreTran.TestClasses.Listeners
         private bool _isFirst = true;
         private int _isOtherListener = 1;
 
+        public QuerySpecification ownRule;
         public List<BaseRule> Rules = new List<BaseRule>();
 
         public override void VisitTerminal(ITerminalNode node)
@@ -43,6 +44,7 @@ namespace PreTran.TestClasses.Listeners
         {
             if (_isOtherListener == 1 && Rules.Count > 0 && _isFirst)
             {
+                //ownRule = new QuerySpecification(context.SourceInterval, context, context.GetText());
                 Rules.Remove(Rules[Rules.Count - 1]);
                 _isFirst = false;
             }
@@ -52,7 +54,7 @@ namespace PreTran.TestClasses.Listeners
         {
             if (_tmpDepth == _depth)
             {
-                SelectElements selectElements = new SelectElements(context.SourceInterval, context, Environment.NewLine + "SELECT-----"+ context.GetText()+"----SELECT" + Environment.NewLine);
+                SelectElements selectElements = new SelectElements(context.SourceInterval, context, Environment.NewLine + "SELECT-----" + context.GetText() + "----SELECT" + Environment.NewLine);
                 if (Rules[Rules.Count - 1].RuleType == "selectelements")
                 {
                     Rules.Remove(Rules[Rules.Count - 1]);

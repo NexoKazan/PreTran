@@ -70,7 +70,7 @@ namespace PreTran.TestClasses.Listeners
         {
             if (_tmpDepth == _depth)
             {
-                FromClause fromClause = new FromClause(context.SourceInterval, context, Environment.NewLine + "FROM-----"+ context.GetText()+"----FROM "+ Environment.NewLine);
+                FromClause fromClause = new FromClause(context.SourceInterval, context, Environment.NewLine +  context.GetText() + Environment.NewLine);
                 AllRules.Remove(AllRules[AllRules.Count-1]);
                 AllRules.Add(fromClause);
                 _isOtherListener = true;

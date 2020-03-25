@@ -12,7 +12,7 @@ namespace PreTran.TestClasses.Rules
 {
     class QuerySpecification :BaseRule
     {
-        private QuerySpecificationListener _listener = new QuerySpecificationListener();
+        public QuerySpecificationListener _listener = new QuerySpecificationListener();
         public QuerySpecification(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
         {
             ParseTreeWalker walker = new ParseTreeWalker();
@@ -20,7 +20,7 @@ namespace PreTran.TestClasses.Rules
             Rules = _listener.Rules;
             foreach (var rule in Rules)
             {
-                rule.Text += " ";
+                rule.Text += "";
             }
         }
     }

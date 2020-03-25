@@ -19,7 +19,7 @@ namespace PreTran.TestClasses.Rules
             Rules = _listener.Rules;
             foreach (var rule in Rules)
             {
-                rule.Text += " ";
+                rule.Text += "";
             }
         }
     }

@@ -93,8 +93,6 @@
     <Compile Include="Q_Structures\SelectStructure.cs" />
     <Compile Include="Q_Structures\SortStructure.cs" />
     <Compile Include="DataBaseSchemeStructure\S_Type.cs" />
-    <Compile Include="TestClasses\BinaryComp.cs" />
-    <Compile Include="TestClasses\EnterFullCollumnName.cs" />
     <Compile Include="TestClasses\Listeners\AggregateWindowedFunctionListener.cs" />
     <Compile Include="TestClasses\Listeners\AtomTableItemListener.cs" />
     <Compile Include="TestClasses\Listeners\BetweenPredicateListener.cs" />
@@ -111,17 +109,19 @@
     <Compile Include="TestClasses\Listeners\LogicalExpressionListener.cs" />
     <Compile Include="TestClasses\Listeners\MathExpressionAtomListener.cs" />
     <Compile Include="TestClasses\Listeners\NestedExpressionAtomListener.cs" />
+    <Compile Include="TestClasses\Listeners\OrderByClauseListener.cs" />
+    <Compile Include="TestClasses\Listeners\OrderByExpressionListener.cs" />
     <Compile Include="TestClasses\Listeners\QueryExpressionListener.cs" />
     <Compile Include="TestClasses\Listeners\QuerySpecificationListener.cs" />
     <Compile Include="TestClasses\Listeners\SelectColumnElementListener.cs" />
     <Compile Include="TestClasses\Listeners\SelectElementsListener.cs" />
     <Compile Include="TestClasses\Listeners\SelectExpressionElementListener.cs" />
     <Compile Include="TestClasses\Listeners\SelectFunctionElementListener.cs" />
+    <Compile Include="TestClasses\Listeners\SqlStatsmentsListener.cs" />
     <Compile Include="TestClasses\Listeners\SubqueryExpessionAtomListener.cs" />
     <Compile Include="TestClasses\Listeners\SubqueryTableItemListener.cs" />
     <Compile Include="TestClasses\Listeners\TableSourcesListener.cs" />
     <Compile Include="TestClasses\Listeners\TemplateListener.cs" />
-    <Compile Include="TestClasses\Listeners\tmpListenerFortTerminalNodes.cs" />
     <Compile Include="TestClasses\Rules\AtomTableItem.cs" />
     <Compile Include="TestClasses\Rules\BetweenPredicate.cs" />
     <Compile Include="TestClasses\Rules\BinaryComparasionPredicate.cs" />
@@ -139,6 +139,7 @@
     <Compile Include="TestClasses\Rules\NestedExpressionAtom.cs" />
     <Compile Include="TestClasses\Rules\OrderByClause.cs" />
     <Compile Include="TestClasses\Rules\AggregateWindowedFunction.cs" />
+    <Compile Include="TestClasses\Rules\OrderByExpression.cs" />
     <Compile Include="TestClasses\Rules\QueryExpression.cs" />
     <Compile Include="TestClasses\Rules\QuerySpecification.cs" />
     <Compile Include="TestClasses\Rules\SelectColumnElement.cs" />

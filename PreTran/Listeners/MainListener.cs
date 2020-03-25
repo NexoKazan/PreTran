@@ -36,6 +36,7 @@ namespace PreTran.Listeners
         private int _tmpDepth;
         private int _id;
         private bool _triggerEnterSelectFunctionElemenAsExist = false;
+        private bool _isFirst = true;
         public string _return = "Return:\r\n";
         private string _subSelectFunction;
         private IVocabulary _vocabulary;
@@ -50,17 +51,10 @@ namespace PreTran.Listeners
         private List<BaseRule> _baseRules = new List<BaseRule>();
         private List<BinaryComparisionPredicateStructure> _binaries = new List<BinaryComparisionPredicateStructure>();
        
-        //заменить после тестов
-        public string[] ruleNames;
-        public List<Interval> planeRulesInterval = new List<Interval>();
-        public List<BaseRule> allRules = new List<BaseRule>();
-        public List<BaseRule> readyRules = new List<BaseRule>();
-        public List<ITerminalNode> AllTerminalNodes = new List<ITerminalNode>();
-        public List<ITerminalNode> ReadyTerminalNodes = new List<ITerminalNode>();
-
         public MainListener(int depth)
         {
-            _tmpDepth = _depth = depth;
+            _tmpDepth = depth;
+            _depth = depth;
         }
 
         #region Свойства
@@ -139,43 +133,25 @@ namespace PreTran.Listeners
 
         public override void EnterFullColumnName([NotNull] MySqlParser.FullColumnNameContext context)
         {
-            readyRules.Add(new EnterFullCollumnName(context.SourceInterval, context, context.GetText()));
             _columnNames.Add(context.GetText());
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
-
         }
 
         public override void EnterTableName([NotNull] MySqlParser.TableNameContext context)
         {
             _tableNames.Add(context.GetText());
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
 
         public override void EnterSelectColumnElement([NotNull] MySqlParser.SelectColumnElementContext context)
         {
             if(_depth == _tmpDepth)
                 _selectColumnNames.Add(context.GetText());
-
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
         }
         
         public override void EnterTableSourceBase([NotNull] MySqlParser.TableSourceBaseContext context)
         { 
             if(_depth == _tmpDepth)
             TableNames.Add(context.GetText());
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
+            
         }
 
         public override void EnterSelectFunctionElement([NotNull] MySqlParser.SelectFunctionElementContext context)
@@ -195,10 +171,7 @@ namespace PreTran.Listeners
                     _subSelectFunction = context.GetText();
                 }
             }
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
+           
         }
 
         public override void EnterBinaryComparasionPredicate([NotNull] MySqlParser.BinaryComparasionPredicateContext context)
@@ -226,21 +199,15 @@ namespace PreTran.Listeners
                 }
                 _binaries.Add(tmpBinary);
             }
-            readyRules.Add(new BinaryComp(context.SourceInterval, context, context.GetText()));
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
+            
         }
         
         public override void EnterGroupByItem([NotNull] MySqlParser.GroupByItemContext context)
         {
-            if(_depth == _tmpDepth)
-            GroupByColumnsNames.Add(context.GetText());
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
+            if (_depth == _tmpDepth)
+            {
+                GroupByColumnsNames.Add(context.GetText());
+            }
         }
 
         public override void EnterOrderByExpression([NotNull] MySqlParser.OrderByExpressionContext context)
@@ -259,30 +226,47 @@ namespace PreTran.Listeners
 
                 OrderByList.Add(tmpOrder);
             }
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
-        }
-
-        public override void EnterSubqueryExpessionAtom([NotNull] MySqlParser.SubqueryExpessionAtomContext context)
-        {
-            _depth++;
-            MainListener tmpSubListener = new MainListener(_depth);
-            tmpSubListener.ID = _id;
-            ParseTreeWalker walker = new ParseTreeWalker();
-            walker.Walk(tmpSubListener, context.selectStatement());
-            SubQueryListeners.Add(tmpSubListener);
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
             
         }
 
-        public override void ExitSubqueryExpessionAtom([NotNull] MySqlParser.SubqueryExpessionAtomContext context)
+        //public override void EnterSubqueryExpessionAtom([NotNull] MySqlParser.SubqueryExpessionAtomContext context)
+        //{
+        //    _depth++;
+        //    MainListener tmpSubListener = new MainListener(_depth);
+        //    tmpSubListener.ID = _id;
+        //    ParseTreeWalker walker = new ParseTreeWalker();
+        //    walker.Walk(tmpSubListener, context.selectStatement());
+        //    SubQueryListeners.Add(tmpSubListener);
+        //}
+
+        //public override void ExitSubqueryExpessionAtom([NotNull] MySqlParser.SubqueryExpessionAtomContext context)
+        //{
+        //    _depth--;
+        //}
+
+        public override void EnterQuerySpecification(MySqlParser.QuerySpecificationContext context)
         {
-            _depth--;
+            if (!_isFirst)
+            {
+                _depth++;
+                MainListener tmpSubListener = new MainListener(_depth);
+                tmpSubListener.ID = _id;
+                ParseTreeWalker walker = new ParseTreeWalker();
+                walker.Walk(tmpSubListener, context.Payload);
+                SubQueryListeners.Add(tmpSubListener);
+            }
+            else
+            {
+                _isFirst = false;
+            }
+        }
+
+        public override void ExitQuerySpecification(MySqlParser.QuerySpecificationContext context)
+        {
+            if (!_isFirst)
+            {
+                _isFirst = true;
+            }
         }
 
         public override void EnterLikePredicate([NotNull] MySqlParser.LikePredicateContext context)
@@ -296,32 +280,8 @@ namespace PreTran.Listeners
                 }
                 _likeList.Add(tmpLike);
             }
-            TmpListenerFortTerminalNodes tmpListener = new TmpListenerFortTerminalNodes();
-            ParseTreeWalker tempWalker = new ParseTreeWalker();
-            tempWalker.Walk(tmpListener, context);
-            ReadyTerminalNodes.AddRange(tmpListener.TerminalNodes);
+           
         }
 
-        public override void EnterEveryRule([NotNull] ParserRuleContext context)
-        {
-            if (context.ChildCount > 1)
-            {
-                _baseRules.Add(new BaseRule(context.SourceInterval, context, context.GetText()));
-                //_return += ruleNames[context.RuleIndex] + " {" + context.SourceInterval + "} " + Environment.NewLine;
-                planeRulesInterval.Add(context.SourceInterval);
-            }
-            allRules.Add(new BaseRule(context.SourceInterval, context, context.GetText()));
-        }
-
-        public override void VisitTerminal([NotNull] ITerminalNode node)
-        {
-           // _return += "TERMINAL: " + Vocabulary.GetDisplayName(node.Symbol.Type) + " {" + node.SourceInterval + "} " + ": " + node.Symbol.Text + Environment.NewLine;
-            AllTerminalNodes.Add(node);
-        }
-
-        public override void VisitErrorNode([NotNull] IErrorNode node)
-        {
-            _return += "ERROR: " + Vocabulary.GetDisplayName(node.Symbol.Type) + " {" + node.SourceInterval + "} " + ": " + node.Symbol.Text + Environment.NewLine;
-        }
     }
 }

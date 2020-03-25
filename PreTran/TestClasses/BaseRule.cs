@@ -10,7 +10,7 @@ namespace PreTran
 {
     class BaseRule
     {
-        private Interval _soureceInterval;
+        private Interval _sourceInterval;
         private ParserRuleContext _context;
         private string _text;
         private string _ruleType;
@@ -19,7 +19,7 @@ namespace PreTran
 
         public BaseRule(Interval ruleInterval, ParserRuleContext context, string text)
         {
-            _soureceInterval = ruleInterval;
+            _sourceInterval = ruleInterval;
             _context = context;
             _text = text;
             if (context != null)
@@ -74,9 +74,23 @@ namespace PreTran
                 if (_rules.Count > 0)
                 {
                     _text = "";
-                    foreach (var baseRule in _rules)
+                    if (_rules.Count > 1)
                     {
-                        _text += baseRule.Text + " ";
+                        foreach (var baseRule in _rules)
+                        {
+                            if (baseRule != _rules.Last())
+                            {
+                                _text += baseRule.Text + " ";
+                            }
+                            else
+                            {
+                                _text += baseRule.Text;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _text += _rules[0].Text;
                     }
 
                     return _text;
@@ -88,7 +102,7 @@ namespace PreTran
             }
             set => _text = value; }
 
-        public Interval SourceInterval => _soureceInterval;
+        public Interval SourceInterval => _sourceInterval;
 
         public string RuleType
         {
@@ -119,6 +133,27 @@ namespace PreTran
             }
 
             return outList;
+        }
+
+        public BaseRule GetRuleBySourceInterval(Interval sourceInterval)
+        {
+            BaseRule outRule = new BaseRule(sourceInterval, Context, "ERROR");
+            if (_sourceInterval.a == sourceInterval.a && _sourceInterval.b == sourceInterval.b)
+            {
+                outRule = this;
+            }
+            else
+            {
+                foreach (BaseRule rule in Rules)
+                {
+                    if (rule.SourceInterval.a <= sourceInterval.a && rule.SourceInterval.b >= sourceInterval.b)
+                    {
+                        outRule = rule.GetRuleBySourceInterval(sourceInterval);
+                    }
+                }
+            }
+
+            return outRule;
         }
 
         private bool CheckRealize()

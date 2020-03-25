@@ -20,7 +20,15 @@ namespace PreTran.TestClasses.Rules
             Rules = _listener.Rules;
             foreach (var rule in Rules)
             {
-                rule.Text += " ";
+                switch (rule.Text)
+                {
+                    case "FROM" :
+                        rule.Text = rule.Text + Environment.NewLine; break;
+                    case "WHERE" : rule.Text = Environment.NewLine + rule.Text + Environment.NewLine; break;
+                    case "GROUP" : rule.Text = Environment.NewLine + rule.Text; break;
+                    case "BY" : rule.Text += Environment.NewLine; break; 
+                    default: break;
+                }
             }
         }
     }

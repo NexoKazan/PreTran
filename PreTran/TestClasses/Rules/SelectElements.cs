@@ -35,9 +35,9 @@ namespace PreTran.TestClasses.Rules
 
                     foreach (var baseRule in Rules)
                     {
-                        if (baseRule.Text != ",")
+                        if (baseRule.Text == ",")
                         {
-                            _text += Environment.NewLine + baseRule.Text;
+                            _text += baseRule.Text + Environment.NewLine;
                         }
                         else
                         {

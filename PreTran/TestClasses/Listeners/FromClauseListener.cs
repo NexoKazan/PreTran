@@ -27,11 +27,11 @@ namespace PreTran.TestClasses.Listeners
                 TerminalRule terminal = new TerminalRule(node.SourceInterval, node.GetText(), node.Parent);
                 switch (node.GetText())
                 {
-                    case "FROM" :
-                        terminal.Text = Environment.NewLine + terminal.Text + Environment.NewLine; break;
-                    case "WHERE" : terminal.Text = Environment.NewLine + terminal.Text + Environment.NewLine; break;
-                    case "GROUP" : terminal.Text = Environment.NewLine + terminal.Text; break;
-                    case "BY" : terminal.Text += Environment.NewLine; break; 
+                    //case "FROM" :
+                    //    terminal.Text = Environment.NewLine + terminal.Text + Environment.NewLine; break;
+                    //case "WHERE" : terminal.Text = Environment.NewLine + terminal.Text + Environment.NewLine; break;
+                    //case "GROUP" : terminal.Text = Environment.NewLine + terminal.Text; break;
+                    //case "BY" : terminal.Text += Environment.NewLine; break; 
                     default: break;
                 }
                 Rules.Add(terminal);

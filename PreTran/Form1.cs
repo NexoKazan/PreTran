@@ -20,6 +20,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms.VisualStyles;
+using Antlr4.Runtime.Misc;
 using ClusterixN.Common.Data;
 using ClusterixN.Common.Data.Query;
 using ClusterixN.Common.Data.Query.Relation;
@@ -34,6 +35,7 @@ using PreTran.Q_Part_Structures;
 using PreTran.Q_Structures;
 using PreTran.TestClasses;
 using PreTran.TestClasses.Listeners;
+using PreTran.TestClasses.Rules;
 using PreTran.Visual;
 
 
@@ -110,7 +112,6 @@ namespace MySQL_Clear_standart
             _walker = new ParseTreeWalker();
             _listener = new MainListener(0); 
             _listener.Vocabulary = _mySqlParser.Vocabulary;
-            _listener.ruleNames = _mySqlParser.RuleNames;
             _walker.Walk(_listener, _tree);
 
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
@@ -135,6 +136,22 @@ namespace MySQL_Clear_standart
 
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
 
+        }
+
+        private BaseRule GetMainRule(string inputQuery)
+        {
+            AntlrInputStream inputStream = new AntlrInputStream(inputQuery);
+            MySqlLexer mySqlLexer = new MySqlLexer(inputStream);
+            CommonTokenStream commonTokenStream = new CommonTokenStream(mySqlLexer);
+            MySqlParser mySqlParser = new MySqlParser(commonTokenStream);
+            mySqlParser.BuildParseTree = true;
+            IParseTree tree = mySqlParser.sqlStatements();
+            ParseTreeWalker walker = new ParseTreeWalker();
+            SqlStatsmentsListener qListener = new SqlStatsmentsListener();
+            walker.Walk(qListener, tree);
+            QuerySpecification mainRule = qListener.queries[0];
+            
+            return mainRule;
         }
 
         private void FillScheme()
@@ -1514,38 +1531,6 @@ namespace MySQL_Clear_standart
             _output = "";
             _output += "\r\n========Return================\r\n";
 
-            TemplateListener template = new TemplateListener(0);
-            GetTree(template);
-            List<BaseRule> outList = new List<BaseRule>();
-            bool isRemove;
-            foreach (var rule in template.AllRules)
-            {
-                isRemove = false;
-                foreach (var removeRule in template.RemoveRules)
-                {
-                    if (removeRule.SourceInterval.a == rule.SourceInterval.a && removeRule.SourceInterval.b == rule.SourceInterval.b)
-                    {
-                        outList.Add(removeRule);
-                        isRemove = true;
-                        break;
-                    }
-                }
-                if (!isRemove)
-                {
-                    outList.Add(rule);
-                }
-            }
-
-            List<BaseRule> getList = new List<BaseRule>();
-            foreach (var baseRule in outList)
-            {
-                getList.AddRange(baseRule.GetRulesByType("terminal"));
-            }
-
-            foreach (var rule in outList)
-            {
-                _output += rule.Text + " ";
-            }
             textBox_tab1_Query.Text = _output;
         }
         

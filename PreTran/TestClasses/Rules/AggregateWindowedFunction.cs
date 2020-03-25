@@ -21,7 +21,7 @@ namespace PreTran.TestClasses.Rules
             Rules = _listener.Rules;
             foreach (BaseRule rule in Rules)
             {
-                rule.Text += " ";
+                rule.Text += "";
             }
         }
     }
