@@ -17,6 +17,9 @@
  */
 #endregion
 
+using Antlr4.Runtime.Misc;
+using PreTran.TestClasses.Listeners;
+
 namespace PreTran.Q_Part_Structures
 {
     public enum PredicateType : int
@@ -40,11 +43,14 @@ namespace PreTran.Q_Part_Structures
 
         private string _comparisionSymphol;
 
-        public BinaryComparisionPredicateStructure(string leftString, string comparisionSymphol, string rightString)
+        private Interval _sourceInterval;
+
+        public BinaryComparisionPredicateStructure(string leftString, string comparisionSymphol, string rightString, Interval sourceInterval)
         {
             _leftString = leftString;
             _rightString = rightString;
             _comparisionSymphol = comparisionSymphol;
+            _sourceInterval = sourceInterval;
         }
 
         public int Type
@@ -88,5 +94,7 @@ namespace PreTran.Q_Part_Structures
             get { return _subQID; }
             set { _subQID = value; }
         }
+
+        public Interval SourceInterval { get => _sourceInterval; set => _sourceInterval = value; }
     }
 }

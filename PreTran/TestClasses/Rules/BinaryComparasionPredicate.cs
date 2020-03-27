@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Antlr4.Runtime;
@@ -16,36 +17,52 @@ namespace PreTran.TestClasses.Rules
         private List<BaseRule> _rules = new List<BaseRule>();
         private string _text = "";
 
-        public BinaryComparasionPredicate(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
+        public BinaryComparasionPredicate(Interval ruleInterval, ParserRuleContext context, string text) : base(
+            ruleInterval, context, text)
         {
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             _rules = _listener.Rules;
             Rules = _rules;
-            foreach (var rule in _rules)
-            {
-                rule.Text += "";
-            }
         }
 
-        public override string Text {
+        public override string Text
+        {
             get
             {
-                if (_rules.Count > 0)
+                if (!IsRealised)
                 {
-                    _text = "";
-                    foreach (var baseRule in _rules)
+                    if (_rules.Count > 0)
                     {
-                        _text += baseRule.Text + " ";
-                    }
+                        _text = "";
+                        foreach (var baseRule in _rules)
+                        {
+                            _text += baseRule.Text + " ";
 
-                    return _text + Environment.NewLine;
+                        }
+
+                        return _text + Environment.NewLine;
+                    }
+                    else
+                    {
+                        return _text + Environment.NewLine;
+                    }
                 }
                 else
                 {
                     return _text + Environment.NewLine;
                 }
             }
-            set => _text = value; }
+            set
+            {
+                if (!IsRealised)
+                {
+                    _text = value;
+                }
+            }
+        }
+
+
     }
 }
+

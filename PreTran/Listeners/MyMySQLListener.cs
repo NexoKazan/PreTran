@@ -80,7 +80,7 @@ namespace PreTran.Listeners
                     ParseTreeWalker wlk = new ParseTreeWalker();
                     wlk.Walk(asl, context);
                     AsList.Add(new AsStructure(asl.AsColumnList, asl._output, asl._functionOutput,
-                        context.uid().GetText(), asl._functionName));
+                        context.uid().GetText(), asl._functionName, context.SourceInterval));
                     ExprColumnNames.AddRange(asl.AsColumnList);
                 }
             }

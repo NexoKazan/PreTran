@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PreTran.DataBaseSchemeStructure;
 using PreTran.Q_Part_Structures;
+using PreTran.TestClasses.Rules;
 
 namespace PreTran.Q_Structures
 {
@@ -33,6 +34,7 @@ namespace PreTran.Q_Structures
         private static int _id = 0;
         private string _indexColumnName = null;
         private string _createTableColumnNames;
+        private BaseRule _sortRule;
         private TableStructure _inputTable;
         private List<WhereStructure> _whereList;
         private List<AsStructure> _asList;
@@ -40,13 +42,14 @@ namespace PreTran.Q_Structures
         private TableStructure _outTable;
         private ColumnStructure[] _outColumn;
         
-        public SelectStructure(string name, TableStructure table, List<WhereStructure> whereList, List<AsStructure> asList)
+        public SelectStructure(string name, TableStructure table, List<WhereStructure> whereList, List<AsStructure> asList, BaseRule sortRule)
         {
             _name = name;
             _tableName = table.Name;
             _inputTable = table;
             _whereList = whereList;
             _asList = asList;
+            _sortRule = sortRule;
         }
 
         public string Output
@@ -74,6 +77,12 @@ namespace PreTran.Q_Structures
         {
             get { return _createTableColumnNames; }
             set { _createTableColumnNames = value; }
+        }
+
+        public BaseRule SortRule
+        {
+            get { return _sortRule; }
+            set { _sortRule = value; }
         }
 
         public List<LikeStructure> LikeList
@@ -141,10 +150,10 @@ namespace PreTran.Q_Structures
                 {
                     
                    if (!commaPointer)
-                    {
-                        _output += "\r\n\t" + _inputTable.Columns[i].Name;
-                        commaPointer = true;
-                    }
+                   {
+                       _output += "\r\n\t" + _inputTable.Columns[i].Name;
+                       commaPointer = true;
+                   }
                    else
                    {
                        _output += ",\r\n\t" + _inputTable.Columns[i].Name;
@@ -164,6 +173,8 @@ namespace PreTran.Q_Structures
                 {
                     _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
                 }
+                _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text = asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.Name + ")" + " AS " + asStructure.AsRightColumn.OldName;
+                _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
             }
 
             _output += "\r\n" + "FROM " + "\r\n\t" + _tableName + "\r\n" ;
@@ -175,13 +186,16 @@ namespace PreTran.Q_Structures
                     if (whereStructure.Table == _tableName)
                     {
                         _output += "\r\n\t" + whereStructure.getWhereString;
+                        Console.WriteLine(_sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).Text);
+                        _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).Text = "";
+                        _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).IsRealised = true;
+                        
                     }
 
-                    if (whereStructure != _whereList.LastOrDefault() || (_likeList!=null && _likeList.Count>0))
+                    if (whereStructure != _whereList.LastOrDefault() || (_likeList != null && _likeList.Count>0))
                     {
                         _output += " AND ";
                     }
-
                 }
 
                 if (_likeList != null)

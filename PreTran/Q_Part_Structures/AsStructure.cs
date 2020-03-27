@@ -18,6 +18,7 @@
 #endregion
 
 using System.Collections.Generic;
+using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
 
 namespace PreTran.Q_Part_Structures
@@ -35,10 +36,11 @@ namespace PreTran.Q_Part_Structures
         private bool _isSortPart = false;
         private ColumnStructure[] _asColumns;
         private ColumnStructure _asRightColumn;
+        private Interval _sourceInterval;
         private List<string> _asColumnNames;
         private List<TableStructure> _asTables;
 
-        public AsStructure(List<string> asColumnsNames, string asString, string functionString, string asRightName, string aggregateFunctionName)
+        public AsStructure(List<string> asColumnsNames, string asString, string functionString, string asRightName, string aggregateFunctionName, Interval sourceInterval) 
         {
             _asColumnNames = asColumnsNames;
             _clearString = asString;
@@ -46,6 +48,7 @@ namespace PreTran.Q_Part_Structures
             _functionString = functionString;
             _asString = asString;
             _aggregateFunctionName = aggregateFunctionName;
+            _sourceInterval = sourceInterval;
         }
 
         public string OldTableName
@@ -85,6 +88,11 @@ namespace PreTran.Q_Part_Structures
         {
             get { return _asRightColumn; }
             set { _asRightColumn = value; }
+        }
+
+        public Interval SourceInterval
+        {
+            get { return _sourceInterval; }
         }
 
         public List<string> ColumnNames

@@ -18,10 +18,11 @@
 #endregion
 
 using System.Xml.Serialization;
+using Antlr4.Runtime.Misc;
 
 namespace PreTran.DataBaseSchemeStructure
 {
-    
+
     public class ColumnStructure
     {
         private string _name;
@@ -34,8 +35,11 @@ namespace PreTran.DataBaseSchemeStructure
         private bool _isRenamed = false;
         private S_Type _type;
         private TableStructure _table;
+        private Interval _sourceInterval;
 
-        public ColumnStructure() {}
+        public ColumnStructure()
+        {
+        }
 
         public ColumnStructure(string name, string typeID, int isPrimary)
         {
@@ -50,10 +54,16 @@ namespace PreTran.DataBaseSchemeStructure
             _name = name;
             _typeID = typeID;
         }
-        
+
         public ColumnStructure(string name)
         {
             _name = name;
+        }
+
+        public ColumnStructure(string name, Interval sourceInterval)
+        {
+            _name = name;
+            _sourceInterval = sourceInterval;
         }
 
         public ColumnStructure(ColumnStructure inColumn)
@@ -68,16 +78,19 @@ namespace PreTran.DataBaseSchemeStructure
             _isRenamed = inColumn.IsRenamed;
             _type = inColumn.Type;
             _table = inColumn.Table;
+            _sourceInterval = inColumn.SoureInterval;
         }
-        
+
         [XmlAttribute]
-        public int IsPrimary {
+        public int IsPrimary
+        {
             get { return _isPrimary; }
             set { _isPrimary = value; }
         }
 
         [XmlAttribute]
-        public string Name {
+        public string Name
+        {
             get { return _name; }
             set { _name = value; }
         }
@@ -137,6 +150,13 @@ namespace PreTran.DataBaseSchemeStructure
             get { return _table; }
             set { _table = value; }
 
+        }
+
+        [XmlIgnore]
+        public Interval SoureInterval
+        {
+            get { return _sourceInterval; }
+            set { _sourceInterval = value; }
         }
     }
 }

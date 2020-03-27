@@ -17,6 +17,7 @@
  */
 #endregion
 
+using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
 
 namespace PreTran.Q_Part_Structures
@@ -29,6 +30,7 @@ namespace PreTran.Q_Part_Structures
         private string _table;
         private string _comparisionOperator;
         private ColumnStructure _column;
+        private Interval _sourceInterval;
 
 
         public WhereStructure(string fullString, string leftColumn)
@@ -37,12 +39,13 @@ namespace PreTran.Q_Part_Structures
             _leftColumn = leftColumn;
         }
 
-        public WhereStructure(string leftColumn, string comparisionOperator, string rightColumn)
+        public WhereStructure(string leftColumn, string comparisionOperator, string rightColumn, Interval sourceInterval)
         {
             _comparisionOperator = comparisionOperator;
             _leftColumn = leftColumn;
             _rightExpr = rightColumn;
             _string = _leftColumn + " " + _comparisionOperator + " " + _rightExpr;
+            _sourceInterval = sourceInterval;
         }
 
         public string Table
@@ -71,6 +74,11 @@ namespace PreTran.Q_Part_Structures
         {
             get { return _comparisionOperator; }
             set { _comparisionOperator = value; }
+        }
+
+        public Interval SourceInterval
+        {
+            get { return _sourceInterval; }
         }
 
         public ColumnStructure Column

@@ -14,7 +14,7 @@ namespace PreTran
         private ParserRuleContext _context;
         private string _text;
         private string _ruleType;
-        private bool _isRealised;
+        private bool _isRealised = false;
         private List<BaseRule> _rules = new List<BaseRule>();
 
         public BaseRule(Interval ruleInterval, ParserRuleContext context, string text)
@@ -51,56 +51,62 @@ namespace PreTran
         {
             get
             {
-                _isRealised = CheckRealize();
                 return _isRealised;
             }
             set
             {
                 _isRealised = value;
-                if (value)
-                {
-                    foreach (var rule in _rules)
-                    {
-                        rule.IsRealised = true;
-                    }
-                }
-
             }
         }
 
         public virtual string Text {
             get
             {
-                if (_rules.Count > 0)
+                if (!_isRealised)
                 {
-                    _text = "";
-                    if (_rules.Count > 1)
+                    if (_rules.Count > 0)
                     {
-                        foreach (var baseRule in _rules)
+                        _text = "";
+                        if (_rules.Count > 1)
                         {
-                            if (baseRule != _rules.Last())
+                            foreach (var baseRule in _rules)
                             {
-                                _text += baseRule.Text + " ";
-                            }
-                            else
-                            {
-                                _text += baseRule.Text;
+                                if (baseRule != _rules.Last())
+                                {
+                                    _text += baseRule.Text + " ";
+                                }
+                                else
+                                {
+                                    _text += baseRule.Text;
+                                }
                             }
                         }
+                        else
+                        {
+                            _text += _rules[0].Text;
+                        }
+
+                        return _text;
                     }
                     else
                     {
-                        _text += _rules[0].Text;
+                        return _text;
                     }
-
-                    return _text;
                 }
                 else
                 {
                     return _text;
                 }
             }
-            set => _text = value; }
+            set
+            {
+                if (!_isRealised)
+                {
+                    _text = value;
+                }
+            }
+
+        }
 
         public Interval SourceInterval => _sourceInterval;
 
@@ -156,7 +162,7 @@ namespace PreTran
             return outRule;
         }
 
-        private bool CheckRealize()
+        public virtual bool CheckRealize()
         {
             bool output = true;
             if (_rules !=null && _rules.Count > 0)

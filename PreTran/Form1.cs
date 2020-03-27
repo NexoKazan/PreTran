@@ -75,6 +75,8 @@ namespace MySQL_Clear_standart
         private TreeVisitor _vTree;
         private ParseTreeWalker _walker;
         private MainListener _listener;
+
+        private BaseRule _sortRule;
        
        
         private SelectStructure[] _selectQuery;
@@ -98,6 +100,7 @@ namespace MySQL_Clear_standart
 
         private void GetTree()
         {
+            string oldInput = _inputString;
             FillScheme(); //странный баг.
             textBox_tab2_Query.Text = textBox_tab1_Query.Text;
             _inputString = textBox_tab1_Query.Text;
@@ -113,6 +116,10 @@ namespace MySQL_Clear_standart
             _listener = new MainListener(0); 
             _listener.Vocabulary = _mySqlParser.Vocabulary;
             _walker.Walk(_listener, _tree);
+            if (_sortRule == null || oldInput!=_inputString)
+            {
+                _sortRule = GetMainRule(_inputString);
+            }
 
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
 
@@ -411,6 +418,65 @@ namespace MySQL_Clear_standart
                     foreach (string subColumnName in inputColumnNames)
                     {
                         if (subColumnName == tmpTableColumn.Name)
+                        {
+                            tmpColumns.Add(tmpTableColumn);
+                            break;
+                            
+                        }
+                    }
+                }
+
+                tmpTable.Columns = tmpColumns.ToArray();
+            }
+            
+            subDataBase = new DataBaseStructure("sub_" + fullDataBase.Name ,tmpTables.ToArray(), fullDataBase.Types);
+            return subDataBase;
+        }
+
+        private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, string[] tableNames,
+            ColumnStructure[] columnNames)
+        {
+            DataBaseStructure subDataBase;
+            List<TableStructure> tmpTables = new List<TableStructure>();
+            List<ColumnStructure> tmpColumns;
+            ColumnStructure[] inputColumnNames = columnNames.Distinct().ToArray();
+            string[] inputTableNames = tableNames.Distinct().ToArray();
+
+
+            foreach (TableStructure fullTable in fullDataBase.Tables)
+            {
+                foreach ( ColumnStructure fullColumn in fullTable.Columns)
+                {
+                    foreach (var subColumn in columnNames)
+                    {
+                        if (fullColumn.Name == subColumn.Name)
+                        {
+                            fullColumn.UsageCounter++;
+                        }
+                    }
+                }
+            }
+            
+            foreach (TableStructure fullTable in fullDataBase.Tables)
+            {
+                foreach (string subTableName in inputTableNames)
+                {
+                    if (subTableName == fullTable.Name)
+                    {
+                        tmpTables.Add(new TableStructure(fullTable));
+                        break;
+                    }
+                }
+            }
+            
+            foreach (TableStructure tmpTable in tmpTables)
+            {
+                tmpColumns = new List<ColumnStructure>();
+                foreach (ColumnStructure tmpTableColumn in tmpTable.Columns)
+                {
+                    foreach (ColumnStructure subColumn in inputColumnNames)
+                    {
+                        if (subColumn.Name == tmpTableColumn.Name)
                         {
                             tmpColumns.Add(tmpTableColumn);
                             break;
@@ -929,7 +995,7 @@ namespace MySQL_Clear_standart
             {
                 if (binary.Type == 1)
                 {
-                    WhereStructure tmp = new WhereStructure(binary.LeftString, binary.ComparisionSymphol, binary.RightString);
+                    WhereStructure tmp = new WhereStructure(binary.LeftString, binary.ComparisionSymphol, binary.RightString, binary.SourceInterval);
                     tmpWhere.Add(tmp);
                 }
             }
@@ -942,7 +1008,7 @@ namespace MySQL_Clear_standart
             {
                 selectQueries[i] = new SelectStructure("S_" + listener.Depth + "_" + i, dataBase.Tables[i],
                     GetCorrectWhereStructure(tmpWhere, dataBase.Tables[i].Name),
-                    GetCorrectAsStructures(listener.AsList, dataBase.Tables[i])
+                    GetCorrectAsStructures(listener.AsList, dataBase.Tables[i]), _sortRule
                     );
             }
             foreach (SelectStructure select in selectQueries)
@@ -1531,6 +1597,10 @@ namespace MySQL_Clear_standart
             _output = "";
             _output += "\r\n========Return================\r\n";
 
+            BaseRule riRule = GetMainRule(textBox_tab1_Query.Text);
+            
+            _output = riRule.Text;
+            _output = riRule.GetRuleBySourceInterval(new Interval(42, 46)).Text;
             textBox_tab1_Query.Text = _output;
         }
         
@@ -1553,11 +1623,14 @@ namespace MySQL_Clear_standart
 
             if (_listener.SubQueryListeners.Count != 0)
             {
+                DataBaseStructure subQDB = CreateSubDatabase(_dbName,
+                    _listener.SubQueryListeners[0].TableNames.ToArray(),
+                    _listener.SubQueryListeners[0].ColumnNames.ToArray());
                 textBox_tab2_SelectResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
                     _subSelectQuery =
-                        MakeSelect(_queryDB, subQlistener);
+                        MakeSelect(subQDB, subQlistener);
                 }
 
                 foreach (SelectStructure subSelect in _subSelectQuery)
@@ -1598,13 +1671,13 @@ namespace MySQL_Clear_standart
         private void btn_CreateSort_Click(object sender, EventArgs e)
         {
             GetTree();
-            SelectStructure[] selects = MakeSelect(_queryDB, _listener);
-            _sortQuery = MakeSort(_queryDB, _listener, MakeJoin(_queryDB, _listener, selects), selects);
-            textBox_tab2_SortResult.Clear();
+            //SelectStructure[] selects = MakeSelect(_queryDB, _listener);
+            //_sortQuery = MakeSort(_queryDB, _listener, MakeJoin(_queryDB, _listener, selects), selects);
+            //textBox_tab2_SortResult.Clear();
 
-            textBox_tab2_SortResult.Text = "\r\n========" + _sortQuery.Name + "========\r\n" + _sortQuery.Output + "\r\n";
+            //textBox_tab2_SortResult.Text = "\r\n========" + _sortQuery.Name + "========\r\n" + _sortQuery.Output + "\r\n";
 
-            textBox_tab2_SortResult.Text += "\r\n========SUB_Q========================\r\n";
+            textBox_tab2_SortResult.Text = _sortRule.Text;
         }
         
         private void btn_CreateTest_Click(object sender, EventArgs e)

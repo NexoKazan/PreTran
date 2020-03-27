@@ -1,37 +1,18 @@
-﻿#region Copyright
-/*
- * Copyright 2019 Igor Kazantsev
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy
- * of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations
- * under the License.
- *
- */
-#endregion
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
-using PreTran.DataBaseSchemeStructure;
 using PreTran.Q_Part_Structures;
-using PreTran.TestClasses;
-using PreTran.TestClasses.Listeners;
 
 namespace PreTran.Listeners
 {
-    class MainListener : MySqlParserBaseListener
+    class Q_Listener : MySqlParserBaseListener
     {
+        
         
         private int _depth;
         private int _tmpDepth;
@@ -45,7 +26,6 @@ namespace PreTran.Listeners
         private List<string> _tableNames = new List<string>();
         private List<string> _selectColumnNames = new List<string>();
         private List<string> _groupByColumnsNames = new List<string>();
-        private List<ColumnStructure> _columns = new List<ColumnStructure>();
         private List<LikeStructure> _likeList = new List<LikeStructure>();
         private List<AsStructure> _asList = new List<AsStructure>();
         private List<OrderByStructure> _orderByList = new List<OrderByStructure>();   
@@ -53,7 +33,7 @@ namespace PreTran.Listeners
         private List<BaseRule> _baseRules = new List<BaseRule>();
         private List<BinaryComparisionPredicateStructure> _binaries = new List<BinaryComparisionPredicateStructure>();
        
-        public MainListener(int depth)
+        public Q_Listener(int depth)
         {
             _tmpDepth = depth;
             _depth = depth;
@@ -136,17 +116,11 @@ namespace PreTran.Listeners
         public override void EnterFullColumnName([NotNull] MySqlParser.FullColumnNameContext context)
         {
             _columnNames.Add(context.GetText());
-            //возможно не нужно.
-            _columns.Add(new ColumnStructure(context.GetText(), context.SourceInterval));
-            
         }
 
         public override void EnterTableName([NotNull] MySqlParser.TableNameContext context)
         {
-            if (_depth == _tmpDepth)
-            {
-                _tableNames.Add(context.GetText());
-            }
+            _tableNames.Add(context.GetText());
         }
 
         public override void EnterSelectColumnElement([NotNull] MySqlParser.SelectColumnElementContext context)
@@ -158,7 +132,7 @@ namespace PreTran.Listeners
         public override void EnterTableSourceBase([NotNull] MySqlParser.TableSourceBaseContext context)
         { 
             if(_depth == _tmpDepth)
-                TableNames.Add(context.GetText());
+            TableNames.Add(context.GetText());
             
         }
 
@@ -290,6 +264,5 @@ namespace PreTran.Listeners
             }
            
         }
-
     }
 }
