@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
 
 namespace PreTran.Q_Structures
@@ -35,6 +36,8 @@ namespace PreTran.Q_Structures
         private bool _isFirst = false;
         private bool _switched = false;
         private bool _isJoined = false;
+        private Interval _sourceInterval;
+        private BaseRule _sortRule;
         private ColumnStructure _leftColumn;
         private ColumnStructure _rightColumn;
         private TableStructure _outTable;
@@ -43,11 +46,13 @@ namespace PreTran.Q_Structures
         private JoinStructure _leftJoin;
         private List<ColumnStructure> _columns = new List<ColumnStructure>();
 
-        public JoinStructure(string leftColumn, string rightColumn, string comparisonOperator)
+        public JoinStructure(string leftColumn, string rightColumn, string comparisonOperator, Interval sourceInterval, BaseRule sortRule)
         {
             _leftColumnString = leftColumn;
             _rightColumnString = rightColumn;
             _comparisonOperator = comparisonOperator;
+            _sortRule = sortRule;
+            SourceInterval = sourceInterval;
         }
 
         #region Свойства
@@ -116,7 +121,10 @@ namespace PreTran.Q_Structures
 
         public string Output
         {
-            get { return _output; }
+            get
+            {
+                return _output;
+            }
             set { _output = value; }
         }
 
@@ -142,6 +150,12 @@ namespace PreTran.Q_Structures
         {
             get { return _isJoined; }
             set { _isJoined = value; }
+        }
+
+        public Interval SourceInterval
+        {
+            get => _sourceInterval;
+            set => _sourceInterval = value;
         }
 
         #endregion
@@ -277,9 +291,10 @@ namespace PreTran.Q_Structures
                     _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator + " " + _leftColumn.Name;
                 }
             }
-
             SetIndex();
             SetCreateTableColumnList();
+            _sortRule.GetRuleBySourceInterval(_sourceInterval).Text = "";
+            _sortRule.GetRuleBySourceInterval(_sourceInterval).IsRealised = true;
             _output += ";";
         }
 

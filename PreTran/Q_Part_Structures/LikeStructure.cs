@@ -17,6 +17,7 @@
  */
 #endregion
 
+using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
 
 namespace PreTran.Q_Part_Structures
@@ -26,13 +27,15 @@ namespace PreTran.Q_Part_Structures
         private string _columnName;
         private string _rightExpression;
         private bool _isNot = false;
+        private Interval _sourceInterval;
         private TableStructure _table;
         private ColumnStructure _leftColumn;
-
-        public LikeStructure(string rightExpression, string columnName)
+        
+        public LikeStructure(string rightExpression, string columnName, Interval sourceInterval)
         {
             _rightExpression = rightExpression;
             _columnName = columnName;
+            _sourceInterval = sourceInterval;
         }
         
         public string RightExpression
@@ -61,6 +64,12 @@ namespace PreTran.Q_Part_Structures
         {
             get { return _leftColumn; }
             set { _leftColumn = value; }
+        }
+
+        public Interval SourceInterval
+        {
+            get => _sourceInterval;
+            set => _sourceInterval = value;
         }
     }
 }

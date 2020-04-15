@@ -29,6 +29,7 @@ namespace PreTran.TestClasses.Rules
         {
             get
             {
+               
                 if (!IsRealised)
                 {
                     if (Rules.Count > 0)
@@ -36,7 +37,7 @@ namespace PreTran.TestClasses.Rules
                         _text = "";
                         if (_rules.Count > 1)
                         {
-                            
+
                             foreach (var baseRule in _rules)
                             {
                                 if (baseRule != _rules.Last())
@@ -53,17 +54,25 @@ namespace PreTran.TestClasses.Rules
                         {
                             _text += _rules[0].Text;
                         }
-                        return _text;
-                    }
-                    else
-                    {
-                        return _text;
                     }
                 }
-                else
+                
+                // не забыть заменить на "" при оканчательном варианте
+                if (_rules[0].Text == "\r\n" || _rules[0].Text == "")
                 {
-                    return _text;
+                    _text = _rules[2].Text;
                 }
+
+                if (_rules[2].Text == "\r\n" || _rules[2].Text == "")
+                {
+                    _text = _rules[0].Text;
+                }
+
+                if ((_rules[2].Text == "\r\n" || _rules[2].Text == "" ) && (_rules[0].Text == "\r\n" || _rules[0].Text == ""))
+                {
+                    _text = "";
+                }
+                return _text;
             }
             set
             {

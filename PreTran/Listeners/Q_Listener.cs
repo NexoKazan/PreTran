@@ -255,7 +255,7 @@ namespace PreTran.Listeners
         {
             if (_depth == _tmpDepth)
             {
-                LikeStructure tmpLike = new LikeStructure(context.Stop.Text, context.Start.Text);
+                LikeStructure tmpLike = new LikeStructure(context.Stop.Text, context.Start.Text, context.SourceInterval);
                 if (context.NOT()!=null)
                 {
                     tmpLike.IsNot = true;

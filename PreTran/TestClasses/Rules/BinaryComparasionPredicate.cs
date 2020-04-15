@@ -30,6 +30,7 @@ namespace PreTran.TestClasses.Rules
         {
             get
             {
+                //не забыть убрать /r/n в LigicalExpression при окончательном вырианте, при удалениие +Env.Newline в этом методе.
                 if (!IsRealised)
                 {
                     if (_rules.Count > 0)

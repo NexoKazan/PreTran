@@ -122,7 +122,7 @@ namespace MySQL_Clear_standart
             }
 
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
-
+            
         }
 
         private void GetTree(MySqlParserBaseListener listener)
@@ -433,6 +433,66 @@ namespace MySQL_Clear_standart
             return subDataBase;
         }
 
+        private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, TableStructure[] tableNames,
+           string[] columnNames)
+        {
+            DataBaseStructure subDataBase;
+            List<TableStructure> tmpTables = new List<TableStructure>();
+            List<ColumnStructure> tmpColumns;
+            string[] inputColumnNames = columnNames.Distinct().ToArray();
+            TableStructure[] inputTableNames = tableNames.Distinct().ToArray();
+
+
+            foreach (TableStructure fullTable in fullDataBase.Tables)
+            {
+                foreach (ColumnStructure fullColumn in fullTable.Columns)
+                {
+                    foreach (var subColumn in columnNames)
+                    {
+                        if (fullColumn.Name == subColumn)
+                        {
+                            fullColumn.UsageCounter++;
+                        }
+                    }
+                }
+            }
+
+            foreach (TableStructure fullTable in fullDataBase.Tables)
+            {
+                foreach (TableStructure subTableName in inputTableNames)
+                {
+                    if (subTableName.Name == fullTable.Name)
+                    {
+                        fullTable.SourceInterval = subTableName.SourceInterval;
+                        tmpTables.Add(new TableStructure(fullTable));
+                        break;
+                    }
+                }
+            }
+
+            foreach (TableStructure tmpTable in tmpTables)
+            {
+                tmpColumns = new List<ColumnStructure>();
+                foreach (ColumnStructure tmpTableColumn in tmpTable.Columns)
+                {
+                    foreach (string subColumnName in inputColumnNames)
+                    {
+                        if (subColumnName == tmpTableColumn.Name)
+                        {
+                            tmpColumns.Add(tmpTableColumn);
+                            break;
+
+                        }
+                    }
+                }
+
+                tmpTable.Columns = tmpColumns.ToArray();
+            }
+
+            subDataBase = new DataBaseStructure("sub_" + fullDataBase.Name, tmpTables.ToArray(), fullDataBase.Types);
+            return subDataBase;
+        }
+
         private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, string[] tableNames,
             ColumnStructure[] columnNames)
         {
@@ -492,10 +552,70 @@ namespace MySQL_Clear_standart
             return subDataBase;
         }
 
+        private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, TableStructure[] tableNames,
+            ColumnStructure[] columnNames)
+        {
+            DataBaseStructure subDataBase;
+            List<TableStructure> tmpTables = new List<TableStructure>();
+            List<ColumnStructure> tmpColumns;
+            ColumnStructure[] inputColumnNames = columnNames.Distinct().ToArray();
+            TableStructure[] inputTableNames = tableNames.Distinct().ToArray();
+
+
+            foreach (TableStructure fullTable in fullDataBase.Tables)
+            {
+                foreach (ColumnStructure fullColumn in fullTable.Columns)
+                {
+                    foreach (var subColumn in columnNames)
+                    {
+                        if (fullColumn.Name == subColumn.Name)
+                        {
+                            fullColumn.UsageCounter++;
+                        }
+                    }
+                }
+            }
+
+            foreach (TableStructure fullTable in fullDataBase.Tables)
+            {
+                foreach (TableStructure subTableName in inputTableNames)
+                {
+                    if (subTableName.Name == fullTable.Name)
+                    {
+                        fullTable.SourceInterval = subTableName.SourceInterval;
+                        tmpTables.Add(new TableStructure(fullTable));
+                        break;
+                    }
+                }
+            }
+
+            foreach (TableStructure tmpTable in tmpTables)
+            {
+                tmpColumns = new List<ColumnStructure>();
+                foreach (ColumnStructure tmpTableColumn in tmpTable.Columns)
+                {
+                    foreach (ColumnStructure subColumn in inputColumnNames)
+                    {
+                        if (subColumn.Name == tmpTableColumn.Name)
+                        {
+                            tmpColumns.Add(tmpTableColumn);
+                            break;
+
+                        }
+                    }
+                }
+
+                tmpTable.Columns = tmpColumns.ToArray();
+            }
+
+            subDataBase = new DataBaseStructure("sub_" + fullDataBase.Name, tmpTables.ToArray(), fullDataBase.Types);
+            return subDataBase;
+        }
+
         #endregion
 
         #region Методы Для Select
-        
+
         private void SetIsForSelectFlags(DataBaseStructure dataBase, List<string> isForSelectColumnNames)
         {
             foreach (TableStructure table in dataBase.Tables)
@@ -893,7 +1013,7 @@ namespace MySQL_Clear_standart
         private JoinStructure FindeJoin(string j1, string j2, List<JoinStructure> joinList)
         {
             //не должно быть ошибок
-            JoinStructure output = new JoinStructure("ERROR", "ERROR", "ERROR");
+            JoinStructure output = new JoinStructure("ERROR", "ERROR", "ERROR", new Interval(0,0), _sortRule);
             output.Name = "ERROR";
             foreach (JoinStructure structure in joinList)
             {
@@ -1034,7 +1154,7 @@ namespace MySQL_Clear_standart
             {
                 if (binary.Type == 2)
                 {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol);
+                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
                     tmpJoins.Add(tmp);
                 }
             }
@@ -1072,7 +1192,7 @@ namespace MySQL_Clear_standart
             {
                 if (binary.Type == 2)
                 {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol);
+                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
                     tmpJoins.Add(tmp);
                 }
             }
@@ -1238,7 +1358,7 @@ namespace MySQL_Clear_standart
             {
                 if (binary.Type == 2)
                 {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol);
+                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
                     tmpJoins.Add(tmp);
                 }
             }
@@ -1276,7 +1396,7 @@ namespace MySQL_Clear_standart
             {
                 if (binary.Type == 2)
                 {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol);
+                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
                     tmpJoins.Add(tmp);
                 }
             }
@@ -1585,6 +1705,7 @@ namespace MySQL_Clear_standart
         {
             Console.Clear();
             //GetQuerryTreesScreens(@"D:\!Studing\Скриншоты деревьев\Cцифрами\",1,14);
+            //GetQuerryTreesScreens(@"E:\Магистратура\!MainProject\Скриншоты деревьев\Сцифрами\", 1,14);
             //отладка
             pictureBox_tab1_Tree.Visible = false;
             richTextBox_tab1_Query.Visible = true;
@@ -1676,7 +1797,7 @@ namespace MySQL_Clear_standart
             //textBox_tab2_SortResult.Clear();
 
             //textBox_tab2_SortResult.Text = "\r\n========" + _sortQuery.Name + "========\r\n" + _sortQuery.Output + "\r\n";
-
+            Console.WriteLine(_sortRule.Text);
             textBox_tab2_SortResult.Text = _sortRule.Text;
         }
         
@@ -1729,7 +1850,7 @@ namespace MySQL_Clear_standart
                     sortQ = MakeSort(_queryDB, _listener, joinQ, selectQ);
                     subSelectQ = null;
                     subJoinQ = null;
-                    notFilledJoinForSort = new JoinStructure("ERROR", "ERROR", "ERROr");
+                    notFilledJoinForSort = new JoinStructure("ERROR", "ERROR", "ERROr", Interval.Invalid, _sortRule);
                 }
             }
 

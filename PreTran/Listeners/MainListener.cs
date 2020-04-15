@@ -42,7 +42,7 @@ namespace PreTran.Listeners
         private string _subSelectFunction;
         private IVocabulary _vocabulary;
         private List<string> _columnNames = new List<string>();
-        private List<string> _tableNames = new List<string>();
+        private List<TableStructure> _tableNames = new List<TableStructure>();
         private List<string> _selectColumnNames = new List<string>();
         private List<string> _groupByColumnsNames = new List<string>();
         private List<ColumnStructure> _columns = new List<ColumnStructure>();
@@ -83,7 +83,7 @@ namespace PreTran.Listeners
             get { return _columnNames; }
         }
 
-        public List<string> TableNames
+        public List<TableStructure> TableNames
         {
             get { return _tableNames; }
         }
@@ -145,7 +145,7 @@ namespace PreTran.Listeners
         {
             if (_depth == _tmpDepth)
             {
-                _tableNames.Add(context.GetText());
+                _tableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
             }
         }
 
@@ -158,7 +158,7 @@ namespace PreTran.Listeners
         public override void EnterTableSourceBase([NotNull] MySqlParser.TableSourceBaseContext context)
         { 
             if(_depth == _tmpDepth)
-                TableNames.Add(context.GetText());
+                TableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
             
         }
 
@@ -256,8 +256,8 @@ namespace PreTran.Listeners
         {
             if (!_isFirst)
             {
-                _depth++;
-                MainListener tmpSubListener = new MainListener(_depth);
+                _tmpDepth++;
+                MainListener tmpSubListener = new MainListener(_tmpDepth);
                 tmpSubListener.ID = _id;
                 ParseTreeWalker walker = new ParseTreeWalker();
                 walker.Walk(tmpSubListener, context.Payload);
@@ -274,6 +274,7 @@ namespace PreTran.Listeners
             if (!_isFirst)
             {
                 _isFirst = true;
+                _tmpDepth--;
             }
         }
 
@@ -281,7 +282,7 @@ namespace PreTran.Listeners
         {
             if (_depth == _tmpDepth)
             {
-                LikeStructure tmpLike = new LikeStructure(context.Stop.Text, context.Start.Text);
+                LikeStructure tmpLike = new LikeStructure(context.Stop.Text, context.Start.Text, context.SourceInterval);
                 if (context.NOT()!=null)
                 {
                     tmpLike.IsNot = true;

@@ -178,6 +178,9 @@ namespace PreTran.Q_Structures
             }
 
             _output += "\r\n" + "FROM " + "\r\n\t" + _tableName + "\r\n" ;
+            _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).Text = _name;
+            _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = true;
+
             if (_whereList.Count != 0 || _likeList != null)
             {
                 _output += "WHERE ";
@@ -186,7 +189,6 @@ namespace PreTran.Q_Structures
                     if (whereStructure.Table == _tableName)
                     {
                         _output += "\r\n\t" + whereStructure.getWhereString;
-                        Console.WriteLine(_sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).Text);
                         _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).Text = "";
                         _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).IsRealised = true;
                         
@@ -202,6 +204,8 @@ namespace PreTran.Q_Structures
                 {
                     foreach (LikeStructure like in _likeList)
                     {
+                        _sortRule.GetRuleBySourceInterval(like.SourceInterval).Text = "";
+                        _sortRule.GetRuleBySourceInterval(like.SourceInterval).IsRealised = true;
                         _output += Environment.NewLine + "\t" + like.LeftColumn.Name + " LIKE " + like.RightExpression;
                         if (like != _likeList.LastOrDefault())
                         {

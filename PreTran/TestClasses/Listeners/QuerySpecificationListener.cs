@@ -42,6 +42,22 @@ namespace PreTran.TestClasses.Listeners
 
         public override void EnterQuerySpecification(MySqlParser.QuerySpecificationContext context)
         {
+            if (!_isFirst)
+            {
+                if (_isOtherListener == 1)
+                {
+                    QuerySpecification querySpecification =
+                        new QuerySpecification(context.SourceInterval, context, context.GetText());
+                    if (Rules.Count > 0)
+                    {
+                        Rules.Remove(Rules[Rules.Count - 1]);
+                    }
+
+                    Rules.Add(querySpecification);
+                }
+
+                _isOtherListener++;
+            }
             if (_isOtherListener == 1 && Rules.Count > 0 && _isFirst)
             {
                 //ownRule = new QuerySpecification(context.SourceInterval, context, context.GetText());

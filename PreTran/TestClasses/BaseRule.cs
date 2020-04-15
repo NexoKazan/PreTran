@@ -64,14 +64,14 @@ namespace PreTran
             {
                 if (!_isRealised)
                 {
-                    if (_rules.Count > 0)
+                    if (Rules.Count > 0)
                     {
                         _text = "";
-                        if (_rules.Count > 1)
+                        if (Rules.Count > 1)
                         {
-                            foreach (var baseRule in _rules)
+                            foreach (var baseRule in Rules)
                             {
-                                if (baseRule != _rules.Last())
+                                if (baseRule != Rules.Last())
                                 {
                                     _text += baseRule.Text + " ";
                                 }
@@ -83,7 +83,7 @@ namespace PreTran
                         }
                         else
                         {
-                            _text += _rules[0].Text;
+                            _text += Rules[0].Text;
                         }
 
                         return _text;
@@ -125,7 +125,7 @@ namespace PreTran
                 outList.Add(this);
                 return outList;
             }
-            foreach (var rule in _rules)
+            foreach (var rule in Rules)
             {
                 if (rule.RuleType == ruleType)
                 {
@@ -165,9 +165,9 @@ namespace PreTran
         public virtual bool CheckRealize()
         {
             bool output = true;
-            if (_rules !=null && _rules.Count > 0)
+            if (Rules !=null && Rules.Count > 0)
             {
-                foreach (BaseRule rule in _rules)
+                foreach (BaseRule rule in Rules)
                 {
                     if (!rule.IsRealised)
                     {

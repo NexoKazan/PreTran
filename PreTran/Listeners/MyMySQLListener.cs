@@ -106,7 +106,7 @@ namespace PreTran.Listeners
                             ParseTreeWalker wlk = new ParseTreeWalker();
                             wlk.Walk(tmpJoinListener, context);
                             JoinStructures.Add(new JoinStructure(context.Start.Text, context.Stop.Text,
-                                tmpJoinListener.Output));
+                                tmpJoinListener.Output, context.SourceInterval, new BaseRule(context.SourceInterval, context, "ERRROOOORRR")));
                         }
                     }
                 }

@@ -18,6 +18,7 @@
 #endregion
 
 using System.Xml.Serialization;
+using Antlr4.Runtime.Misc;
 
 namespace PreTran.DataBaseSchemeStructure
 {
@@ -27,6 +28,7 @@ namespace PreTran.DataBaseSchemeStructure
         private ColumnStructure[] _columns;
         private string _name;
         private string _shortName;
+        private Interval _sourceInterval;
 
         public TableStructure() { }
 
@@ -40,11 +42,18 @@ namespace PreTran.DataBaseSchemeStructure
             }
         }
 
+        public TableStructure(string name, Interval sourceInterval)
+        {
+            _name = name;
+            _sourceInterval = sourceInterval;
+        }
+
         public TableStructure(TableStructure mainTable)
         {
             _columns = mainTable.Columns;
             _name = mainTable.Name;
             _shortName = mainTable.ShortName;
+            _sourceInterval = mainTable.SourceInterval;
         }
 
         [XmlArray]
@@ -67,6 +76,13 @@ namespace PreTran.DataBaseSchemeStructure
         {
             get { return _shortName; }
             set { _shortName = value; }
+        }
+
+        [XmlIgnore]
+        public Interval SourceInterval
+        {
+            get => _sourceInterval;
+            set => _sourceInterval = value;
         }
     }
 }
