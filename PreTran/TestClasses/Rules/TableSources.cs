@@ -20,13 +20,21 @@ namespace PreTran.TestClasses.Rules
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             Rules = _listener.Rules;
-            foreach (var rule in Rules)
+            for (var i = 0; i < Rules.Count; i++)
             {
-                if (rule.Text == ",")
+                if (Rules[i].Text == ",")
                 {
-                    rule.Text += Environment.NewLine;
+                    if (Rules[i-1].Text == Environment.NewLine && Rules[i-1].Text != "" && Rules[i-1].Text != "\t" && Rules[i-1].Text != " " && Rules[i-1].Text != "\r")
+                    {//костыль
+                    }
+                    else
+                    {
+                        Rules[i].Text = "";
+                        Rules[i].IsRealised = true;
+                    }
+
+                    Rules[i].Text += Environment.NewLine;
                 }
-                
             }
         }
     }

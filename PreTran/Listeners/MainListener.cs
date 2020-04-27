@@ -135,18 +135,21 @@ namespace PreTran.Listeners
 
         public override void EnterFullColumnName([NotNull] MySqlParser.FullColumnNameContext context)
         {
-            _columnNames.Add(context.GetText());
-            //возможно не нужно.
-            _columns.Add(new ColumnStructure(context.GetText(), context.SourceInterval));
-            
+            if (context.ChildCount < 2)
+            {
+                _columnNames.Add(context.GetText());
+                //возможно не нужно.
+                _columns.Add(new ColumnStructure(context.GetText(), context.SourceInterval));
+            }
+
         }
 
         public override void EnterTableName([NotNull] MySqlParser.TableNameContext context)
         {
-            if (_depth == _tmpDepth)
-            {
-                _tableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
-            }
+            //if (_depth == _tmpDepth)
+            //{
+            //    _tableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
+            //}
         }
 
         public override void EnterSelectColumnElement([NotNull] MySqlParser.SelectColumnElementContext context)
@@ -154,12 +157,17 @@ namespace PreTran.Listeners
             if(_depth == _tmpDepth)
                 _selectColumnNames.Add(context.GetText());
         }
+
         
-        public override void EnterTableSourceBase([NotNull] MySqlParser.TableSourceBaseContext context)
-        { 
-            if(_depth == _tmpDepth)
-                TableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
-            
+        public override void EnterAtomTableItem(MySqlParser.AtomTableItemContext context)
+        {
+            if (_depth == _tmpDepth)
+            {
+                if (context.ChildCount < 2)
+                {
+                    _tableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
+                }
+            }
         }
 
         public override void EnterSelectFunctionElement([NotNull] MySqlParser.SelectFunctionElementContext context)
@@ -193,7 +201,7 @@ namespace PreTran.Listeners
                     tmpBinary.Type = (int)PredicateType.simple;}
 
                 if (context.GetChild(2).GetChild(0).GetType().ToString()
-                    .Contains("FullColumnNameExpressionAtomContext"))
+                    .Contains("FullColumnNameExpressionAtomContext") && context.GetChild(2).GetChild(0).GetChild(0).ChildCount <2)
                 {
                     tmpBinary.Type = 2;
                 }

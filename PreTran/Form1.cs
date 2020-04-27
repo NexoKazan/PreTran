@@ -1152,6 +1152,7 @@ namespace MySQL_Clear_standart
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
             foreach (var binary in listener.Binaries) 
             {
+                Console.WriteLine(binary.LeftString + " " + binary.RightString + "\t" + binary.Type);
                 if (binary.Type == 2)
                 {
                     JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
@@ -1721,7 +1722,6 @@ namespace MySQL_Clear_standart
             BaseRule riRule = GetMainRule(textBox_tab1_Query.Text);
             
             _output = riRule.Text;
-            _output = riRule.GetRuleBySourceInterval(new Interval(42, 46)).Text;
             textBox_tab1_Query.Text = _output;
         }
         
@@ -1777,9 +1777,13 @@ namespace MySQL_Clear_standart
                 textBox_tab2_JoinResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
-                    _subJoinQuery = MakeJoin(CreateSubDatabase(_queryDB, subQlistener.TableNames.ToArray(), subQlistener.ColumnNames.ToArray()),
-                        subQlistener, MakeSelect(CreateSubDatabase(_queryDB, subQlistener.TableNames.ToArray(), subQlistener.ColumnNames.ToArray()), subQlistener)).ToList();
-
+                    //_subJoinQuery = MakeJoin(CreateSubDatabase(_queryDB, subQlistener.TableNames.ToArray(), subQlistener.ColumnNames.ToArray()),
+                    //  subQlistener, _subSelectQuery).ToList();
+                    _subJoinQuery = MakeJoin(CreateSubDatabase(_dbName,
+                            _listener.SubQueryListeners[0].TableNames.ToArray(),
+                            _listener.SubQueryListeners[0].ColumnNames.ToArray()),
+                      subQlistener, _subSelectQuery).ToList();
+                    //тут
                 }
 
                 foreach (var join in _subJoinQuery)
@@ -1797,7 +1801,6 @@ namespace MySQL_Clear_standart
             //textBox_tab2_SortResult.Clear();
 
             //textBox_tab2_SortResult.Text = "\r\n========" + _sortQuery.Name + "========\r\n" + _sortQuery.Output + "\r\n";
-            Console.WriteLine(_sortRule.Text);
             textBox_tab2_SortResult.Text = _sortRule.Text;
         }
         

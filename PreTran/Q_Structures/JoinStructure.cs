@@ -46,7 +46,8 @@ namespace PreTran.Q_Structures
         private JoinStructure _leftJoin;
         private List<ColumnStructure> _columns = new List<ColumnStructure>();
 
-        public JoinStructure(string leftColumn, string rightColumn, string comparisonOperator, Interval sourceInterval, BaseRule sortRule)
+        public JoinStructure(string leftColumn, string rightColumn, string comparisonOperator, Interval sourceInterval,
+            BaseRule sortRule)
         {
             _leftColumnString = leftColumn;
             _rightColumnString = rightColumn;
@@ -67,7 +68,7 @@ namespace PreTran.Q_Structures
         {
             get { return _leftColumnString; }
         }
-        
+
         public string RightColumnString
         {
             get { return _rightColumnString; }
@@ -95,12 +96,12 @@ namespace PreTran.Q_Structures
             get { return _rightColumn; }
             set { _rightColumn = value; }
         }
-       
+
         public TableStructure OutTable
         {
             get { return _outTable; }
         }
-        
+
         public SelectStructure LeftSelect
         {
             get { return _leftSelect; }
@@ -121,10 +122,7 @@ namespace PreTran.Q_Structures
 
         public string Output
         {
-            get
-            {
-                return _output;
-            }
+            get { return _output; }
             set { _output = value; }
         }
 
@@ -139,7 +137,7 @@ namespace PreTran.Q_Structures
             get { return _isFirst; }
             set { _isFirst = value; }
         }
-        
+
         public bool Switched
         {
             get { return _switched; }
@@ -284,15 +282,19 @@ namespace PreTran.Q_Structures
             {
                 if (!_switched)
                 {
-                    _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " + _comparisonOperator + " " + _rightColumn.Name;
+                    _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " + _comparisonOperator +
+                               " " + _rightColumn.Name;
                 }
                 else
                 {
-                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator + " " + _leftColumn.Name;
+                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator +
+                               " " + _leftColumn.Name;
                 }
             }
+
             SetIndex();
             SetCreateTableColumnList();
+            SetSortFrom();
             _sortRule.GetRuleBySourceInterval(_sourceInterval).Text = "";
             _sortRule.GetRuleBySourceInterval(_sourceInterval).IsRealised = true;
             _output += ";";
@@ -372,6 +374,7 @@ namespace PreTran.Q_Structures
             _output += "\r\nFROM\r\n\t";
 
             #region old4
+
             //if (_leftJoin != null)
             //{
             //    if (_leftSelect != null || _rightSelect != null)
@@ -418,18 +421,21 @@ namespace PreTran.Q_Structures
             //        _output += "\r\n";
             //    }
             //}
+
             #endregion
 
-            _output += left +", " +  Environment.NewLine + right;
+            _output += left + ", " + Environment.NewLine + right;
             if (_leftColumn != null && _rightColumn != null)
             {
                 if (!_switched)
                 {
-                    _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " + _comparisonOperator + " " + _rightColumn.Name;
+                    _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " + _comparisonOperator +
+                               " " + _rightColumn.Name;
                 }
                 else
                 {
-                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator + " " + _leftColumn.Name;
+                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator +
+                               " " + _leftColumn.Name;
                 }
             }
 
@@ -437,7 +443,6 @@ namespace PreTran.Q_Structures
             SetCreateTableColumnList();
             _output += ";";
         }
-
 
         private void SetIndex()
         {
@@ -449,13 +454,14 @@ namespace PreTran.Q_Structures
                     {
                         _leftJoin.IndexColumnName = column.Name;
                     }
+
                     if (column.Name == RightColumnString)
                     {
                         _leftJoin.IndexColumnName = column.Name;
                     }
-                    
+
                 }
-                
+
                 if (_switched)
                 {
                     if (_leftSelect != null)
@@ -475,7 +481,7 @@ namespace PreTran.Q_Structures
                             }
                         }
                     }
-                       
+
                 }
                 else
                 {
@@ -516,12 +522,12 @@ namespace PreTran.Q_Structures
                             }
                         }
                     }
-                   
+
                 }
 
                 if (_rightSelect != null)
                 {
-                   
+
                     foreach (ColumnStructure column in _rightSelect.OutColumn)
                     {
                         if (column.Name == LeftColumnString)
@@ -536,7 +542,7 @@ namespace PreTran.Q_Structures
                             }
                         }
                     }
-                 
+
                 }
             }
         }
@@ -551,7 +557,7 @@ namespace PreTran.Q_Structures
                     _createTableColumnNames += ",\r\n";
                 }
             }
-        
+
         }
 
         private void ColumnCounterDelete()
@@ -566,5 +572,65 @@ namespace PreTran.Q_Structures
                 _rightColumn.UsageCounter--;
             }
         }
+
+        private void SetSortFrom()
+        {
+            if (_leftJoin != null)
+            {
+                if (_leftJoin.LeftSelect != null)
+                {
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).IsRealised =
+                        false;
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).Text = "";
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).IsRealised = true;
+                }
+
+                if (_leftJoin.RightSelect != null)
+                {
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).IsRealised =
+                        false;
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).Text = "";
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).IsRealised =
+                        true;
+                }
+            }
+
+            if (_leftSelect != null)
+            {
+                _sortRule.GetRuleBySourceInterval(_leftSelect.InputTable.SourceInterval).IsRealised = false;
+                _sortRule.GetRuleBySourceInterval(_leftSelect.InputTable.SourceInterval).Text = "";
+                _sortRule.GetRuleBySourceInterval(_leftSelect.InputTable.SourceInterval).IsRealised = true;
+            }
+            if (_rightSelect != null)
+            {
+                _sortRule.GetRuleBySourceInterval(_rightSelect.InputTable.SourceInterval).IsRealised = false;
+                _sortRule.GetRuleBySourceInterval(_rightSelect.InputTable.SourceInterval).Text = _name;
+                _sortRule.GetRuleBySourceInterval(_rightSelect.InputTable.SourceInterval).IsRealised = true;
+            }
+
+            if (_leftJoin != null &&  _rightSelect == null && _leftSelect == null)
+            {
+                if (_leftJoin.RightSelect != null)
+                {
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).IsRealised =
+                        false;
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).Text = _name;
+                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).IsRealised =
+                        true;
+                }
+                else
+                {
+                    if (_leftJoin.LeftSelect != null)
+                    {
+                        _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).IsRealised =
+                            false;
+                        _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).Text = _name;
+                        _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).IsRealised =
+                            true;
+                    }
+                }
+            }
+        }
+
     }
 }

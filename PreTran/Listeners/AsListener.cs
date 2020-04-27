@@ -19,6 +19,7 @@
 
 using System.Collections.Generic;
 using Antlr4.Runtime.Misc;
+using PreTran.TestClasses.Rules;
 
 namespace PreTran.Listeners
 {
@@ -56,5 +57,10 @@ namespace PreTran.Listeners
             }
         }
 
+        public override void EnterExtractFunctionCall(MySqlParser.ExtractFunctionCallContext context)
+        {
+            ExtractFunctionCall extractFunctionCall = new ExtractFunctionCall(context.SourceInterval, context, context.GetText());
+            _output = extractFunctionCall.Text;
+        }
     }
 }

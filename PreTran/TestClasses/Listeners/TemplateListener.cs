@@ -28,9 +28,6 @@ namespace PreTran.TestClasses.Listeners
             {
                 TerminalRule terminal = new TerminalRule(node.SourceInterval, node.GetText(), node.Parent);
                 AllRules.Add(terminal);
-                
-
-                Console.WriteLine(node.GetText()+Environment.NewLine);
             }
         }
 

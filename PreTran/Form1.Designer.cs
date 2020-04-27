@@ -237,7 +237,7 @@
             this.comboBox_tab2_QueryNumber.Name = "comboBox_tab2_QueryNumber";
             this.comboBox_tab2_QueryNumber.Size = new System.Drawing.Size(33, 21);
             this.comboBox_tab2_QueryNumber.TabIndex = 8;
-            this.comboBox_tab2_QueryNumber.Text = "2";
+            this.comboBox_tab2_QueryNumber.Text = "7";
             // 
             // btn_tab2_SelectQuery
             // 
