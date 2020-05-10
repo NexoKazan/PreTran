@@ -17,6 +17,7 @@ namespace PreTran.TestClasses.Rules
         private SelectElementsListener _listener = new SelectElementsListener();
 
         private string _text;
+
         public SelectElements(Interval ruleInterval, MySqlParser.SelectElementsContext context, string text) : base(ruleInterval, context, text)
         {
             ParseTreeWalker walker = new ParseTreeWalker();
@@ -29,30 +30,40 @@ namespace PreTran.TestClasses.Rules
         {
             get
             {
-                _text = "";
-                if (this.Rules.Count > 0)
+                if (!IsRealised)
                 {
-
-                    foreach (var baseRule in Rules)
+                    _text = "";
+                    if (this.Rules.Count > 0)
                     {
-                        if (baseRule.Text == ",")
-                        {
-                            _text += baseRule.Text + Environment.NewLine;
-                        }
-                        else
-                        {
-                            _text += baseRule.Text;
-                        }
-                    }
 
-                    return _text;
+                        foreach (var baseRule in Rules)
+                        {
+                            if (baseRule.Text == ",")
+                            {
+                                _text += baseRule.Text + Environment.NewLine;
+                            }
+                            else
+                            {
+                                _text += baseRule.Text;
+                            }
+                        }
+
+                        return _text;
+                    }
+                    else
+                    {
+                        return _text;
+                    }
                 }
                 else
                 {
                     return _text;
                 }
             }
-            set { _text = value; } 
+            set
+            {
+                _text = value;
+            } 
         }
     }
 }

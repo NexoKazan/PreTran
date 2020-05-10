@@ -13,6 +13,8 @@ namespace PreTran.TestClasses.Rules
     class TableSources :BaseRule
     {
         private TableSourcesListener _listener = new TableSourcesListener();
+        private bool _isRealised = false;
+        private string _text;
 
         public TableSources(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context,
             text)
@@ -20,22 +22,94 @@ namespace PreTran.TestClasses.Rules
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             Rules = _listener.Rules;
-            for (var i = 0; i < Rules.Count; i++)
+            _text = text;
+        }
+
+        public override string Text
+        {
+            get
             {
-                if (Rules[i].Text == ",")
+                if (!_isRealised)
                 {
-                    if (Rules[i-1].Text == Environment.NewLine && Rules[i-1].Text != "" && Rules[i-1].Text != "\t" && Rules[i-1].Text != " " && Rules[i-1].Text != "\r")
-                    {//костыль
+                    if (Rules.Count > 0)
+                    {
+                        _text = "";
+                        if (Rules.Count > 1)
+                        {
+                            List<BaseRule> tmpList = new List<BaseRule>();
+                            foreach (BaseRule rule in Rules)
+                            {
+                                if (rule.Text != "")
+                                {
+                                    tmpList.Add(rule);
+                                }
+                            }
+
+                            Rules = tmpList;
+
+                            if (Rules[0].Text == ",")
+                            {
+                                //Rules[0].IsRealised = false;
+                                Rules[0].Text = "";
+                                Rules[0].IsRealised = true;
+                            }
+
+                            for (var i = 0; i < Rules.Count; i++)
+                            {
+                                if (Rules[i].Text == ",")
+                                {
+                                    if (Rules[i - 1].Text == Environment.NewLine && Rules[i - 1].Text != "" &&
+                                        Rules[i - 1].Text != "\t" && Rules[i - 1].Text != " " &&
+                                        Rules[i - 1].Text != "\r")
+                                    {
+                                        //костыль
+                                    }
+                                    else
+                                    {
+                                        Rules[i].IsRealised = false;
+                                        Rules[i].Text = "";
+                                        Rules[i].IsRealised = true;
+                                    }
+
+                                    Rules[i].Text += Environment.NewLine;
+                                }
+
+                                if (Rules[i] != Rules.Last())
+                                {
+                                    _text += Rules[i].Text + ", ";
+                                }
+                                else
+                                {
+                                    _text += Rules[i].Text;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _text = Rules[0].Text;
+                        }
+
+                        return _text;
                     }
                     else
                     {
-                        Rules[i].Text = "";
-                        Rules[i].IsRealised = true;
+                        return _text;
                     }
-
-                    Rules[i].Text += Environment.NewLine;
+                }
+                else
+                {
+                    return _text;
                 }
             }
+            set
+            {
+                if (!_isRealised)
+                {
+                    _text = value;
+                    _isRealised = true;
+                }
+            }
+
         }
     }
 }

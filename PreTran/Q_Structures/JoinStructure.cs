@@ -36,6 +36,7 @@ namespace PreTran.Q_Structures
         private bool _isFirst = false;
         private bool _switched = false;
         private bool _isJoined = false;
+        private bool _isFilled = true;       
         private Interval _sourceInterval;
         private BaseRule _sortRule;
         private ColumnStructure _leftColumn;
@@ -156,148 +157,176 @@ namespace PreTran.Q_Structures
             set => _sourceInterval = value;
         }
 
+        public bool IsFilled {
+            get
+            {
+                return _isFilled;
+            }
+            set
+            {
+                _isFilled = value;
+            }
+        }
+
         #endregion
 
         public void CreateQuerry()
         {
-            ColumnCounterDelete();
-            if (_leftJoin != null)
+            if (_isFilled)
             {
-                _columns.AddRange(_leftJoin.Columns);
-                if (_switched)
+                ColumnCounterDelete();
+                if (_leftJoin != null)
                 {
-                    if (_leftSelect != null)
-                        _columns.AddRange(_leftSelect.OutColumn);
-                }
-                else
-                {
-                    if (_rightSelect != null)
-                        _columns.AddRange(_rightSelect.OutColumn);
-                }
-            }
-            else
-            {
-                if (_leftSelect != null)
-                {
-                    _columns.AddRange(_leftSelect.OutColumn);
-                }
-
-                if (_rightSelect != null)
-                {
-                    _columns.AddRange(_rightSelect.OutColumn);
-
-                }
-            }
-
-            List<ColumnStructure> tmpColumns = new List<ColumnStructure>();
-            foreach (ColumnStructure column in _columns)
-            {
-                if (column.IsForSelect || column.UsageCounter > 0)
-                {
-                    tmpColumns.Add(column);
-                }
-                else
-                {
-                    if (_leftColumn != null && _rightColumn != null)
+                    _columns.AddRange(_leftJoin.Columns);
+                    if (_switched)
                     {
-                        if (column.Name != _leftColumn.Name && column.Name != _rightColumn.Name)
-                        {
-                            tmpColumns.Add(column);
-                        }
-                    }
-                }
-            }
-
-            _columns = tmpColumns;
-            _outTable = new TableStructure(_name + "_TB", _columns.ToArray());
-            _output = "SELECT";
-            bool commaPointer = false;
-            for (int i = 0; i < _columns.Count; i++)
-            {
-                if (_columns[i].UsageCounter > 0 || _columns[i].IsForSelect)
-                {
-
-                    if (!commaPointer)
-                    {
-                        _output += "\r\n\t" + _columns[i].Name;
-                        commaPointer = true;
+                        if (_leftSelect != null)
+                            _columns.AddRange(_leftSelect.OutColumn);
                     }
                     else
                     {
-                        _output += ",\r\n\t" + _columns[i].Name;
+                        if (_rightSelect != null)
+                            _columns.AddRange(_rightSelect.OutColumn);
                     }
                 }
-            }
-
-            _output += "\r\nFROM\r\n\t";
-
-            if (_leftJoin != null)
-            {
-                if (_leftSelect != null || _rightSelect != null)
-                {
-                    _output += _leftJoin.Name + ",\r\n\t";
-                }
                 else
-                {
-                    _output += _leftJoin.Name + "\r\n";
-                }
-
-                if (_switched)
                 {
                     if (_leftSelect != null)
                     {
-                        _output += _leftSelect.Name + "\r\n";
+                        _columns.AddRange(_leftSelect.OutColumn);
+                    }
+
+                    if (_rightSelect != null)
+                    {
+                        _columns.AddRange(_rightSelect.OutColumn);
+
+                    }
+                }
+
+                List<ColumnStructure> tmpColumns = new List<ColumnStructure>();
+                foreach (ColumnStructure column in _columns)
+                {
+                    if (column.IsForSelect || column.UsageCounter > 0)
+                    {
+                        tmpColumns.Add(column);
+                    }
+                    else
+                    {
+                        if (_leftColumn != null && _rightColumn != null)
+                        {
+                            if (column.Name != _leftColumn.Name && column.Name != _rightColumn.Name)
+                            {
+                                tmpColumns.Add(column);
+                            }
+                        }
+                    }
+                }
+
+                _columns = tmpColumns;
+                _outTable = new TableStructure(_name + "_TB", _columns.ToArray());
+                _output = "SELECT";
+                bool commaPointer = false;
+                for (int i = 0; i < _columns.Count; i++)
+                {
+                    if (_columns[i].UsageCounter > 0 || _columns[i].IsForSelect)
+                    {
+
+                        if (!commaPointer)
+                        {
+                            _output += "\r\n\t" + _columns[i].Name;
+                            commaPointer = true;
+                        }
+                        else
+                        {
+                            _output += ",\r\n\t" + _columns[i].Name;
+                        }
+                    }
+                }
+
+                _output += "\r\nFROM\r\n\t";
+
+                if (_leftJoin != null)
+                {
+                    if (_leftSelect != null || _rightSelect != null)
+                    {
+                        _output += _leftJoin.Name + ",\r\n\t";
+                    }
+                    else
+                    {
+                        _output += _leftJoin.Name + "\r\n";
+                    }
+
+                    if (_switched)
+                    {
+                        if (_leftSelect != null)
+                        {
+                            _output += _leftSelect.Name + "\r\n";
+                        }
+                    }
+                    else
+                    {
+                        if (_rightSelect != null)
+                        {
+                            _output += _rightSelect.Name + "\r\n";
+                        }
                     }
                 }
                 else
                 {
+                    if (_leftSelect != null)
+                    {
+                        _output += _leftSelect.Name + ",\r\n\t";
+                    }
+                    else
+                    {
+                        _output += "\r\n";
+                    }
+
                     if (_rightSelect != null)
                     {
                         _output += _rightSelect.Name + "\r\n";
                     }
+                    else
+                    {
+                        _output += "\r\n";
+                    }
                 }
+
+                if (_leftColumn != null && _rightColumn != null)
+                {
+                    if (!_switched)
+                    {
+                        _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " + _comparisonOperator +
+                                   " " + _rightColumn.Name;
+                    }
+                    else
+                    {
+                        _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator +
+                                   " " + _leftColumn.Name;
+                    }
+                }
+
+                SetIndex();
+                SetCreateTableColumnList();
+                SetSortFrom();
+                _sortRule.GetRuleBySourceInterval(_sourceInterval).Text = "";
+                _sortRule.GetRuleBySourceInterval(_sourceInterval).IsRealised = true;
+                _output += ";";
             }
-            else
+        }
+
+        public bool CheckIsFilled()
+        {
+            if (_leftColumnString == null || _rightColumnString == null || _comparisonOperator == null || _leftColumn == null || _rightColumn == null || _leftSelect == null || _rightSelect == null )
             {
-                if (_leftSelect != null)
-                {
-                    _output += _leftSelect.Name + ",\r\n\t";
-                }
-                else
-                {
-                    _output += "\r\n";
-                }
-
-                if (_rightSelect != null)
-                {
-                    _output += _rightSelect.Name + "\r\n";
-                }
-                else
-                {
-                    _output += "\r\n";
-                }
+                _isFilled = false;
             }
 
-            if (_leftColumn != null && _rightColumn != null)
+            if (_leftSelect == null && _leftJoin != null)
             {
-                if (!_switched)
-                {
-                    _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " + _comparisonOperator +
-                               " " + _rightColumn.Name;
-                }
-                else
-                {
-                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator +
-                               " " + _leftColumn.Name;
-                }
+                _isFirst = true;
             }
-
-            SetIndex();
-            SetCreateTableColumnList();
-            SetSortFrom();
-            _sortRule.GetRuleBySourceInterval(_sourceInterval).Text = "";
-            _sortRule.GetRuleBySourceInterval(_sourceInterval).IsRealised = true;
-            _output += ";";
+            return _isFilled;
         }
 
         public void CreateQuerry(string left, string right)

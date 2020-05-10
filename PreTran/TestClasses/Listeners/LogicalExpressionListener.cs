@@ -165,5 +165,22 @@ namespace PreTran.TestClasses.Listeners
         {
             _isOtherListener--;
         }
+
+        public override void EnterInPredicate(MySqlParser.InPredicateContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                InPredicate inPredicate =
+                    new InPredicate(context.SourceInterval, context, context.GetText());
+                Rules.Remove(Rules[Rules.Count - 1]);
+                Rules.Add(inPredicate);
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitInPredicate(MySqlParser.InPredicateContext context)
+        {
+            _isOtherListener--;
+        }
     }
 }

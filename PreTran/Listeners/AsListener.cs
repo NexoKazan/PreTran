@@ -25,6 +25,7 @@ namespace PreTran.Listeners
 {
     class AsListener: MySqlParserBaseListener
     {
+        private int _blocked = 1;
         public string _output;
         public string _functionOutput;
         public string _functionName;
@@ -34,7 +35,10 @@ namespace PreTran.Listeners
 
         public override void EnterFunctionArg([NotNull] MySqlParser.FunctionArgContext context)
         {
-            _output = context.GetText();
+            if (_blocked == 1)
+            {
+                _output = context.GetText();
+            }
         }
 
         public override void EnterFullColumnName([NotNull] MySqlParser.FullColumnNameContext context)
@@ -44,23 +48,58 @@ namespace PreTran.Listeners
 
         public override void EnterAggregateFunctionCall([NotNull] MySqlParser.AggregateFunctionCallContext context)
         {
-            _output = context.GetText();
-            _functionOutput = context.GetText();
-            _functionName = context.Start.Text;
+
+            if (_blocked == 1)
+            {
+                _output = context.GetText();
+                _functionOutput = context.GetText();
+                _functionName = context.Start.Text;
+            }
         }
 
         public override void EnterAggregateWindowedFunction([NotNull] MySqlParser.AggregateWindowedFunctionContext context)
         {
-            if (context.starArg != null)
+            if (_blocked == 1)
             {
-                _output = "*";
+
+                if (context.starArg != null)
+                {
+                    _output = "*";
+                }
             }
         }
 
         public override void EnterExtractFunctionCall(MySqlParser.ExtractFunctionCallContext context)
         {
-            ExtractFunctionCall extractFunctionCall = new ExtractFunctionCall(context.SourceInterval, context, context.GetText());
-            _output = extractFunctionCall.Text;
+            if (_blocked == 1)
+            {
+                ExtractFunctionCall extractFunctionCall =
+                    new ExtractFunctionCall(context.SourceInterval, context, context.GetText());
+                _output = extractFunctionCall.Text;
+            }
+
+            _blocked++;
+        }
+
+        public override void ExitExtractFunctionCall(MySqlParser.ExtractFunctionCallContext context)
+        {
+            _blocked--;
+        }
+
+        public override void EnterCaseFunctionCall(MySqlParser.CaseFunctionCallContext context)
+        {
+            if (_blocked == 1)
+            {
+                CaseFunctionCall caseFunctionCall =
+                    new CaseFunctionCall(context.SourceInterval, context, context.GetText());
+                _output = caseFunctionCall.Text;
+            }
+            _blocked++;
+        }
+
+        public override void ExitCaseFunctionCall(MySqlParser.CaseFunctionCallContext context)
+        {
+            _blocked--;
         }
     }
 }

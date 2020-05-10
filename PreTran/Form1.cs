@@ -118,31 +118,11 @@ namespace MySQL_Clear_standart
             _walker.Walk(_listener, _tree);
             if (_sortRule == null || oldInput!=_inputString)
             {
-                _sortRule = GetMainRule(_inputString);
+               _sortRule = GetMainRule(_inputString);
             }
 
-            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
+            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
             
-        }
-
-        private void GetTree(MySqlParserBaseListener listener)
-        {
-            FillScheme(); //странный баг.
-            textBox_tab2_Query.Text = textBox_tab1_Query.Text;
-            _inputString = textBox_tab1_Query.Text;
-            _inputStream = new AntlrInputStream(_inputString);
-            _mySqlLexer = new MySqlLexer(_inputStream);
-            _commonTokenStream = new CommonTokenStream(_mySqlLexer);
-            _mySqlParser = new MySqlParser(_commonTokenStream);
-            _mySqlParser.BuildParseTree = true;
-            _tree = _mySqlParser.root();
-            _treeNodeDrawable = new CommonNode(_tree);
-            _vTree = new TreeVisitor(_treeNodeDrawable);
-            _walker = new ParseTreeWalker();             
-            _walker.Walk(listener, _tree);
-
-            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray());
-
         }
 
         private BaseRule GetMainRule(string inputQuery)
@@ -174,7 +154,6 @@ namespace MySQL_Clear_standart
             SetTables(_dbName);
         }
         
-
         private void GetQuerryTreesScreens(string path, int start, int end)
         {
             for (int i = start; i < end + 1; i++)
@@ -434,7 +413,7 @@ namespace MySQL_Clear_standart
         }
 
         private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, TableStructure[] tableNames,
-           string[] columnNames)
+            string[] columnNames, string[] removeCounterColumnNames)
         {
             DataBaseStructure subDataBase;
             List<TableStructure> tmpTables = new List<TableStructure>();
@@ -456,6 +435,21 @@ namespace MySQL_Clear_standart
                     }
                 }
             }
+
+            foreach (TableStructure fullTable in fullDataBase.Tables)
+            {
+                foreach (ColumnStructure fullColumn in fullTable.Columns)
+                {
+                    foreach (var removeColumnName in removeCounterColumnNames)
+                    {
+                        if (fullColumn.Name == removeColumnName)
+                        {
+                            fullColumn.UsageCounter--;
+                        }
+                    }
+                }
+            }
+
 
             foreach (TableStructure fullTable in fullDataBase.Tables)
             {
@@ -1152,8 +1146,7 @@ namespace MySQL_Clear_standart
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
             foreach (var binary in listener.Binaries) 
             {
-                Console.WriteLine(binary.LeftString + " " + binary.RightString + "\t" + binary.Type);
-                if (binary.Type == 2)
+                if (binary.Type == 2 && binary.ComparisionSymphol == "=")
                 {
                     JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
                     tmpJoins.Add(tmp);
@@ -1162,11 +1155,12 @@ namespace MySQL_Clear_standart
             JoinStructure[] joinQueries = tmpJoins.ToArray();
             SelectStructure[] selectQueries = selects;
             FillJoins(joinQueries.ToList(), dataBase, selectQueries.ToList());
-
+          
             List<JoinStructure> tmpList = new List<JoinStructure>();
             foreach (JoinStructure join in joinQueries)
             {
-                if (join.LeftColumn!=null)
+                join.CheckIsFilled();
+                if (join.IsFilled)
                 {
                    tmpList.Add(join);
                 }
@@ -1177,7 +1171,7 @@ namespace MySQL_Clear_standart
             GetJoinSequence(joinQueries.ToList(), listener.Depth);
             joinQueries = SortJoin(joinQueries.ToList(), listener.Depth).ToArray();
             foreach (var join in joinQueries)
-            {
+            {                
                 join.CreateQuerry();
             }
 
@@ -1263,7 +1257,8 @@ namespace MySQL_Clear_standart
                 JoinStructure notFilledJoinForSort;
                 DataBaseStructure subDB = CreateSubDatabase(_queryDB,
                     listener.SubQueryListeners[0].TableNames.ToArray(),
-                    listener.SubQueryListeners[0].ColumnNames.ToArray());
+                    listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                    listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                 SelectStructure[] subSelects = MakeSelect(subDB, listener.SubQueryListeners[0]);
                 JoinStructure[] subJoins = MakeJoin(subDB, listener.SubQueryListeners[0], subSelects, out notFilledJoinForSort);
                 foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
@@ -1323,7 +1318,8 @@ namespace MySQL_Clear_standart
             {
                 DataBaseStructure subDB = CreateSubDatabase(_queryDB,
                     listener.SubQueryListeners[0].TableNames.ToArray(),
-                    listener.SubQueryListeners[0].ColumnNames.ToArray());
+                    listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                    listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                 SelectStructure[] subSelectsQ = subSelects;
                 JoinStructure[] subJoinsQ = subJoins;
                 foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
@@ -1467,7 +1463,8 @@ namespace MySQL_Clear_standart
                 JoinStructure notFilledJoinForSort;
                 DataBaseStructure subDB = CreateSubDatabase(_queryDB,
                     listener.SubQueryListeners[0].TableNames.ToArray(),
-                    listener.SubQueryListeners[0].ColumnNames.ToArray());
+                    listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                    listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                 SelectStructure[] subSelects = MakeSelect(subDB, listener.SubQueryListeners[0]);
                 JoinStructure[] subJoins = MakeJoin(subDB, listener.SubQueryListeners[0], subSelects, out notFilledJoinForSort);
                 foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
@@ -1527,7 +1524,8 @@ namespace MySQL_Clear_standart
             {
                 DataBaseStructure subDB = CreateSubDatabase(_queryDB,
                     listener.SubQueryListeners[0].TableNames.ToArray(),
-                    listener.SubQueryListeners[0].ColumnNames.ToArray());
+                    listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                    listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                 SelectStructure[] subSelectsQ = subSelects;
                 JoinStructure[] subJoinsQ = subJoins;
                 foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
@@ -1718,10 +1716,8 @@ namespace MySQL_Clear_standart
             GetTree();
             _output = "";
             _output += "\r\n========Return================\r\n";
-
-            BaseRule riRule = GetMainRule(textBox_tab1_Query.Text);
-            
-            _output = riRule.Text;
+         
+            _output = "5";
             textBox_tab1_Query.Text = _output;
         }
         
@@ -1746,7 +1742,8 @@ namespace MySQL_Clear_standart
             {
                 DataBaseStructure subQDB = CreateSubDatabase(_dbName,
                     _listener.SubQueryListeners[0].TableNames.ToArray(),
-                    _listener.SubQueryListeners[0].ColumnNames.ToArray());
+                    _listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                    _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                 textBox_tab2_SelectResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
@@ -1777,12 +1774,11 @@ namespace MySQL_Clear_standart
                 textBox_tab2_JoinResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
-                    //_subJoinQuery = MakeJoin(CreateSubDatabase(_queryDB, subQlistener.TableNames.ToArray(), subQlistener.ColumnNames.ToArray()),
-                    //  subQlistener, _subSelectQuery).ToList();
-                    _subJoinQuery = MakeJoin(CreateSubDatabase(_dbName,
-                            _listener.SubQueryListeners[0].TableNames.ToArray(),
-                            _listener.SubQueryListeners[0].ColumnNames.ToArray()),
-                      subQlistener, _subSelectQuery).ToList();
+                    DataBaseStructure subQDB = CreateSubDatabase(_dbName,
+                        subQlistener.TableNames.ToArray(),
+                        subQlistener.ColumnNames.ToArray(),
+                        subQlistener.RemoveCounterColumsNames.ToArray());
+                    _subJoinQuery = MakeJoin(subQDB, subQlistener, MakeSelect(subQDB, subQlistener)).ToList();
                     //тут
                 }
 
@@ -1796,11 +1792,8 @@ namespace MySQL_Clear_standart
         private void btn_CreateSort_Click(object sender, EventArgs e)
         {
             GetTree();
-            //SelectStructure[] selects = MakeSelect(_queryDB, _listener);
-            //_sortQuery = MakeSort(_queryDB, _listener, MakeJoin(_queryDB, _listener, selects), selects);
-            //textBox_tab2_SortResult.Clear();
-
-            //textBox_tab2_SortResult.Text = "\r\n========" + _sortQuery.Name + "========\r\n" + _sortQuery.Output + "\r\n";
+            _sortRule.Text += ";";
+            _sortRule.IsRealised = true;
             textBox_tab2_SortResult.Text = _sortRule.Text;
         }
         
@@ -1822,7 +1815,8 @@ namespace MySQL_Clear_standart
                 {
                     DataBaseStructure subDb = CreateSubDatabase(_queryDB,
                         _listener.SubQueryListeners[0].TableNames.ToArray(),
-                        _listener.SubQueryListeners[0].ColumnNames.ToArray());
+                        _listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                        _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                     subSelectQ = MakeSelect( subDb, _listener.SubQueryListeners[0]); //Добавить foreach
                     subJoinQ = MakeJoin( subDb, _listener.SubQueryListeners[0], subSelectQ, out notFilledJoinForSort, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
                     sortQ = MakeSort(_queryDB, _listener, joinQ, selectQ, subSelectQ, subJoinQ, notFilledJoinForSort, Constants.RelationNameTag);
@@ -1843,7 +1837,8 @@ namespace MySQL_Clear_standart
                 {
                     DataBaseStructure subDb = CreateSubDatabase(_queryDB,
                         _listener.SubQueryListeners[0].TableNames.ToArray(),
-                        _listener.SubQueryListeners[0].ColumnNames.ToArray());
+                        _listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                        _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                     subSelectQ = MakeSelect( subDb, _listener.SubQueryListeners[0]); //Добавить foreach
                     subJoinQ = MakeJoin( subDb, _listener.SubQueryListeners[0], subSelectQ, out notFilledJoinForSort);
                     sortQ = MakeSort(_queryDB, _listener, joinQ, selectQ, subSelectQ, subJoinQ, notFilledJoinForSort);

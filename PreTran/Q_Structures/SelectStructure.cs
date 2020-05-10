@@ -173,11 +173,14 @@ namespace PreTran.Q_Structures
                 {
                     _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
                 }
+                //_sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = false;
                 _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text = asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.Name + ")" + " AS " + asStructure.AsRightColumn.OldName;
                 _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
             }
 
             _output += "\r\n" + "FROM " + "\r\n\t" + _tableName + "\r\n" ;
+
+            _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
             _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).Text = _name;
             _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = true;
 
@@ -189,6 +192,7 @@ namespace PreTran.Q_Structures
                     if (whereStructure.Table == _tableName)
                     {
                         _output += "\r\n\t" + whereStructure.getWhereString;
+                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
                         _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).Text = "";
                         _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).IsRealised = true;
                         
@@ -204,6 +208,7 @@ namespace PreTran.Q_Structures
                 {
                     foreach (LikeStructure like in _likeList)
                     {
+                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
                         _sortRule.GetRuleBySourceInterval(like.SourceInterval).Text = "";
                         _sortRule.GetRuleBySourceInterval(like.SourceInterval).IsRealised = true;
                         _output += Environment.NewLine + "\t" + like.LeftColumn.Name + " LIKE " + like.RightExpression;

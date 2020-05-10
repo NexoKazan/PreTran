@@ -38,6 +38,8 @@ namespace PreTran.Listeners
         private int _id;
         private bool _triggerEnterSelectFunctionElemenAsExist = false;
         private bool _isFirst = true;
+        private bool _caseBlock = false; //только для бинарок в кейзе и лайке
+        private bool _outerJoinBlock = false;
         public string _return = "Return:\r\n";
         private string _subSelectFunction;
         private IVocabulary _vocabulary;
@@ -45,6 +47,7 @@ namespace PreTran.Listeners
         private List<TableStructure> _tableNames = new List<TableStructure>();
         private List<string> _selectColumnNames = new List<string>();
         private List<string> _groupByColumnsNames = new List<string>();
+        private List<string> _removeCounterColumsNames = new List<string>();
         private List<ColumnStructure> _columns = new List<ColumnStructure>();
         private List<LikeStructure> _likeList = new List<LikeStructure>();
         private List<AsStructure> _asList = new List<AsStructure>();
@@ -131,6 +134,12 @@ namespace PreTran.Listeners
 
         internal List<BaseRule> BaseRules { get => _baseRules; set => _baseRules = value; }
 
+        public List<string> RemoveCounterColumsNames
+        {
+            get => _removeCounterColumsNames;
+            set => _removeCounterColumsNames = value;
+        }
+
         #endregion
 
         public override void EnterFullColumnName([NotNull] MySqlParser.FullColumnNameContext context)
@@ -142,6 +151,10 @@ namespace PreTran.Listeners
                 _columns.Add(new ColumnStructure(context.GetText(), context.SourceInterval));
             }
 
+            if (_tmpDepth != _depth && context.ChildCount < 2)
+            {
+                _removeCounterColumsNames.Add(context.GetText());
+            }
         }
 
         public override void EnterTableName([NotNull] MySqlParser.TableNameContext context)
@@ -157,7 +170,6 @@ namespace PreTran.Listeners
             if(_depth == _tmpDepth)
                 _selectColumnNames.Add(context.GetText());
         }
-
         
         public override void EnterAtomTableItem(MySqlParser.AtomTableItemContext context)
         {
@@ -192,30 +204,38 @@ namespace PreTran.Listeners
 
         public override void EnterBinaryComparasionPredicate([NotNull] MySqlParser.BinaryComparasionPredicateContext context)
         {
-            //Console.WriteLine(ruleNames[context.RuleIndex]);
-            if (_depth == _tmpDepth)
+            if (!_caseBlock && !_outerJoinBlock)
             {
-                BinaryComparisionPredicateStructure tmpBinary = new BinaryComparisionPredicateStructure(context.left.GetText(), context.comparisonOperator().GetText(), context.right.GetText(), context.SourceInterval);
-                if (context.GetChild(2).GetChild(0).GetType().ToString().Contains("ConstantExpressionAtomContext") || context.GetChild(2).GetChild(0).GetType().ToString().Contains("MathExpressionAtomContext"))
+                if (_depth == _tmpDepth)
                 {
-                    tmpBinary.Type = (int)PredicateType.simple;}
+                    BinaryComparisionPredicateStructure tmpBinary =
+                        new BinaryComparisionPredicateStructure(context.left.GetText(),
+                            context.comparisonOperator().GetText(), context.right.GetText(), context.SourceInterval);
+                    if (context.GetChild(2).GetChild(0).GetType().ToString()
+                        .Contains("ConstantExpressionAtomContext") || context.GetChild(2).GetChild(0).GetType()
+                        .ToString().Contains("MathExpressionAtomContext"))
+                    {
+                        tmpBinary.Type = (int) PredicateType.simple;
+                    }
 
-                if (context.GetChild(2).GetChild(0).GetType().ToString()
-                    .Contains("FullColumnNameExpressionAtomContext") && context.GetChild(2).GetChild(0).GetChild(0).ChildCount <2)
-                {
-                    tmpBinary.Type = 2;
+                    if (context.GetChild(2).GetChild(0).GetType().ToString()
+                            .Contains("FullColumnNameExpressionAtomContext") &&
+                        context.GetChild(2).GetChild(0).GetChild(0).ChildCount < 2)
+                    {
+                        tmpBinary.Type = 2;
+                    }
+
+                    if (context.GetChild(2).GetChild(0).GetType().ToString().Contains("SubqueryExpessionAtomContext"))
+                    {
+                        tmpBinary.Type = 3;
+                        _id++;
+                        tmpBinary.SubQid = _id;
+
+                    }
+
+                    _binaries.Add(tmpBinary);
                 }
-
-                if (context.GetChild(2).GetChild(0).GetType().ToString().Contains("SubqueryExpessionAtomContext"))
-                {
-                    tmpBinary.Type = 3;
-                    _id++;
-                    tmpBinary.SubQid = _id;
-
-                }
-                _binaries.Add(tmpBinary);
             }
-            
         }
         
         public override void EnterGroupByItem([NotNull] MySqlParser.GroupByItemContext context)
@@ -288,17 +308,40 @@ namespace PreTran.Listeners
 
         public override void EnterLikePredicate([NotNull] MySqlParser.LikePredicateContext context)
         {
-            if (_depth == _tmpDepth)
+            if (!_caseBlock && !_outerJoinBlock)
             {
-                LikeStructure tmpLike = new LikeStructure(context.Stop.Text, context.Start.Text, context.SourceInterval);
-                if (context.NOT()!=null)
+                if (_depth == _tmpDepth)
                 {
-                    tmpLike.IsNot = true;
+                    LikeStructure tmpLike =
+                        new LikeStructure(context.Stop.Text, context.Start.Text, context.SourceInterval);
+                    if (context.NOT() != null)
+                    {
+                        tmpLike.IsNot = true;
+                    }
+
+                    _likeList.Add(tmpLike);
                 }
-                _likeList.Add(tmpLike);
             }
-           
         }
 
+        public override void EnterCaseFunctionCall(MySqlParser.CaseFunctionCallContext context)
+        {
+            _caseBlock = true;
+        }
+
+        public override void ExitCaseFunctionCall(MySqlParser.CaseFunctionCallContext context)
+        {
+            _caseBlock = false;
+        }
+
+        public override void EnterOuterJoin(MySqlParser.OuterJoinContext context)
+        {
+            _outerJoinBlock = true;
+        }
+
+        public override void ExitOuterJoin(MySqlParser.OuterJoinContext context)
+        {
+            _outerJoinBlock = false;
+        }
     }
 }

@@ -22,7 +22,7 @@ namespace PreTran.TestClasses.Listeners
 
         public override void VisitTerminal(ITerminalNode node)
         {
-            if (_isOtherListener==1)
+            if (_isOtherListener == 1 )
             {
                 TerminalRule terminal = new TerminalRule(node.SourceInterval, node.GetText(), node.Parent);
                 Rules.Add(terminal);
@@ -76,8 +76,9 @@ namespace PreTran.TestClasses.Listeners
                 MathExpressionAtom mathExpressionAtom =
                     new MathExpressionAtom(context.SourceInterval, context, context.GetText());
                 Rules.Add(mathExpressionAtom);
-                _isOtherListener++;
+                
             }
+            _isOtherListener++;
         }
 
         public override void ExitMathExpressionAtom(MySqlParser.MathExpressionAtomContext context)
@@ -122,6 +123,24 @@ namespace PreTran.TestClasses.Listeners
         }
 
         public override void ExitFullColumnName(MySqlParser.FullColumnNameContext context)
+        {
+            _isOtherListener--;
+        }
+
+        public override void EnterAggregateWindowedFunction(MySqlParser.AggregateWindowedFunctionContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                Rules.Remove(Rules[Rules.Count - 1]);
+
+                AggregateWindowedFunction aggregateWindowedFunction =
+                    new AggregateWindowedFunction(context.SourceInterval, context, context.GetText());
+                Rules.Add(aggregateWindowedFunction);
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitAggregateWindowedFunction(MySqlParser.AggregateWindowedFunctionContext context)
         {
             _isOtherListener--;
         }
