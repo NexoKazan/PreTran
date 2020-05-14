@@ -470,6 +470,9 @@ namespace PreTran.Q_Structures
 
             SetIndex();
             SetCreateTableColumnList();
+            SetSortFrom();
+            _sortRule.GetRuleBySourceInterval(_sourceInterval).Text = "";
+            _sortRule.GetRuleBySourceInterval(_sourceInterval).IsRealised = true;
             _output += ";";
         }
 

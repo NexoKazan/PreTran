@@ -118,11 +118,12 @@ namespace MySQL_Clear_standart
             _listener = new MainListener(0); 
             _listener.Vocabulary = _mySqlParser.Vocabulary;
             _walker.Walk(_listener, _tree);
-            if (_sortRule == null || oldInput!=_inputString)
+            if (_sortRule == null || oldInput != _inputString)
             {
-               _sortRule = GetMainRule(_inputString);
+                _sortRule = GetMainRule(_inputString);
             }
-
+            //_sortRule = new BaseRule(new Interval(1, 1), new ParserRuleContext(), "ERROR");
+            //_sortRule = GetMainRule(_inputString);
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
             
         }
@@ -148,7 +149,8 @@ namespace MySQL_Clear_standart
             {
                 _sortRule = GetMainRule(_inputString);
             }
-
+            //_sortRule = new BaseRule(new Interval(1,1), new ParserRuleContext(), "ERROR"  );
+            //_sortRule = GetMainRule(_inputString);
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
 
         }
@@ -1231,8 +1233,27 @@ namespace MySQL_Clear_standart
             return joinQueries;
         }
         
-        private NewSortStructure MakeSort(DataBaseStructure dataBase, BaseRule sortRule)
+        private NewSortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, BaseRule sortRule)
         {
+            SelectStructure[] selects = MakeSelect(dataBase, listener);
+            SelectStructure[] subSelects;
+            JoinStructure[] joins = MakeJoin(dataBase, listener, selects);
+            JoinStructure[] subJoins;
+            if (_listener.SubQueryListeners.Count != 0)
+            {
+                DataBaseStructure subQDB = CreateSubDatabase(_dbName,
+                    _listener.SubQueryListeners[0].TableNames.ToArray(),
+                    _listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                    _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
+                foreach (var subQlistener in _listener.SubQueryListeners)
+                {
+                    subSelects =
+                        MakeSelect(subQDB, subQlistener);
+
+                    _subJoinQuery = MakeJoin(subQDB, subQlistener, subSelects).ToList();
+                }
+
+            }
             NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase);
             #region OLD
 
@@ -1341,7 +1362,7 @@ namespace MySQL_Clear_standart
             return joinQueries;
         }
 
-        private NewSortStructure MakeSort(DataBaseStructure dataBase, BaseRule sortRule, string tag)
+        private NewSortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, BaseRule sortRule,  string tag)
         {
             #region OLD
 
@@ -1404,7 +1425,26 @@ namespace MySQL_Clear_standart
             //CreateScheme(sortQuery);
 
             #endregion
-            NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase);
+            SelectStructure[] selects = MakeSelect(dataBase, listener);
+            SelectStructure[] subSelects;
+            JoinStructure[] joins = MakeJoin(dataBase, listener, selects);
+            JoinStructure[] subJoins;
+            if (_listener.SubQueryListeners.Count != 0)
+            {
+                DataBaseStructure subQDB = CreateSubDatabase(_dbName,
+                    _listener.SubQueryListeners[0].TableNames.ToArray(),
+                    _listener.SubQueryListeners[0].ColumnNames.ToArray(),
+                    _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
+                foreach (var subQlistener in _listener.SubQueryListeners)
+                {
+                    subSelects =
+                        MakeSelect(subQDB, subQlistener);
+
+                    _subJoinQuery = MakeJoin(subQDB, subQlistener, subSelects).ToList();
+                }
+
+            }
+            NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase, tag);
             CreateScheme(sortQuery);
             return sortQuery;
         }
@@ -1664,8 +1704,9 @@ namespace MySQL_Clear_standart
         {
             GetTree(textBox_tab2_Query.Text);
             _sortRule.Text += ";";
-            _sortRule.IsRealised = true;
-            textBox_tab2_SortResult.Text = _sortRule.Text;
+            NewSortStructure sortQ = MakeSort(_queryDB, _listener, _sortRule);
+            //_sortRule.IsRealised = true;
+            textBox_tab2_SortResult.Text = sortQ.Output;
         }
         
         private void btn_CreateTest_Click(object sender, EventArgs e)
@@ -1679,7 +1720,7 @@ namespace MySQL_Clear_standart
                 selectQ = MakeSelect(_queryDB, _listener);
                 joinQ = MakeJoin(_queryDB, _listener, selectQ, Constants.LeftRelationNameTag,
                     Constants.RightRelationNameTag);
-                sortQ = MakeSort(_queryDB, _sortRule, Constants.RelationNameTag);
+                sortQ = MakeSort(_queryDB, _listener, _sortRule, Constants.RelationNameTag);
 
                 if (_listener.SubQueryListeners.Count > 0)
                 {
@@ -1690,7 +1731,7 @@ namespace MySQL_Clear_standart
                         subSelectQ = MakeSelect(subQDB, _listener.SubQueryListeners[0]); //Добавить foreach
                         subJoinQ = MakeJoin(subQDB, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
                     
-                    sortQ = MakeSort(_queryDB, _sortRule, Constants.RelationNameTag);
+                    sortQ = MakeSort(_queryDB, _listener, _sortRule, Constants.RelationNameTag);
                 }
                 else
                 {
@@ -1711,11 +1752,11 @@ namespace MySQL_Clear_standart
                         _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                         subSelectQ = MakeSelect(subQDB, _listener.SubQueryListeners[0]); //Добавить foreach
                         subJoinQ = MakeJoin(subQDB, _listener.SubQueryListeners[0], subSelectQ);
-                        sortQ = MakeSort(_queryDB, _sortRule);
+                        sortQ = MakeSort(_queryDB, _listener, _sortRule);
                 }
                 else
                 {
-                    sortQ = MakeSort(_queryDB, _sortRule);
+                    sortQ = MakeSort(_queryDB, _listener, _sortRule);
                     subSelectQ = null;
                     subJoinQ = null;
                 }
@@ -1813,13 +1854,13 @@ namespace MySQL_Clear_standart
                     connectJoins[i] = joinQ[i];
                 }
             }
-            if(checkBox_Tab2_ClusterXNEnable.Checked)
-                if (subJoinQ != null)
-                    TryConnect(connectJoins, sortQ, subJoinQ.Length - 1, _connectionIP);
-                else
-                {
-                    TryConnect(connectJoins,sortQ,-1, _connectionIP);
-                }
+            //if(checkBox_Tab2_ClusterXNEnable.Checked)
+            //    if (subJoinQ != null)
+            //        TryConnect(connectJoins, sortQ, subJoinQ.Length - 1, _connectionIP);
+            //    else
+            //    {
+            //        TryConnect(connectJoins,sortQ,-1, _connectionIP);
+            //    }
         }
 
         private void btn_SelectQuerry_tab2_Click(object sender, EventArgs e)
