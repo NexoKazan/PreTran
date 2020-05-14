@@ -20,6 +20,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms.VisualStyles;
+using System.Xml;
 using Antlr4.Runtime.Misc;
 using ClusterixN.Common.Data;
 using ClusterixN.Common.Data.Query;
@@ -33,6 +34,7 @@ using PreTran.Listeners;
 using PreTran.Network;
 using PreTran.Q_Part_Structures;
 using PreTran.Q_Structures;
+using PreTran.SchemeCreator;
 using PreTran.TestClasses;
 using PreTran.TestClasses.Listeners;
 using PreTran.TestClasses.Rules;
@@ -123,6 +125,56 @@ namespace MySQL_Clear_standart
 
             _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
             
+        }
+
+        private void GetTree(string queryText)
+        {
+            string oldInput = _inputString;
+            FillScheme(); //странный баг.
+            _inputString = queryText;
+            _inputStream = new AntlrInputStream(_inputString);
+            _mySqlLexer = new MySqlLexer(_inputStream);
+            _commonTokenStream = new CommonTokenStream(_mySqlLexer);
+            _mySqlParser = new MySqlParser(_commonTokenStream);
+            _mySqlParser.BuildParseTree = true;
+            _tree = _mySqlParser.root();
+            _treeNodeDrawable = new CommonNode(_tree);
+            _vTree = new TreeVisitor(_treeNodeDrawable);
+            _walker = new ParseTreeWalker();
+            _listener = new MainListener(0);
+            _listener.Vocabulary = _mySqlParser.Vocabulary;
+            _walker.Walk(_listener, _tree);
+            if (_sortRule == null || oldInput != _inputString)
+            {
+                _sortRule = GetMainRule(_inputString);
+            }
+
+            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
+
+        }
+
+        private void GetTree(string queryText, MySqlParserBaseListener listener)
+        {
+            string oldInput = _inputString;
+            FillScheme(); //странный баг.
+            _inputString = queryText;
+            _inputStream = new AntlrInputStream(_inputString);
+            _mySqlLexer = new MySqlLexer(_inputStream);
+            _commonTokenStream = new CommonTokenStream(_mySqlLexer);
+            _mySqlParser = new MySqlParser(_commonTokenStream);
+            _mySqlParser.BuildParseTree = true;
+            _tree = _mySqlParser.root();
+            _treeNodeDrawable = new CommonNode(_tree);
+            _vTree = new TreeVisitor(_treeNodeDrawable);
+            _walker = new ParseTreeWalker();
+            _walker.Walk(listener, _tree);
+            if (_sortRule == null || oldInput != _inputString)
+            {
+                _sortRule = GetMainRule(_inputString);
+            }
+
+            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
+
         }
 
         private BaseRule GetMainRule(string inputQuery)
@@ -347,7 +399,7 @@ namespace MySQL_Clear_standart
                 output += table.Name + Environment.NewLine;
                 foreach (ColumnStructure column in table.Columns)
                 {
-                    output += "\t" + column.Name + "\t\t" + column.Table.Name + "\t\t" + column.UsageCounter + Environment.NewLine;
+                    output += "\t" + column.Name + "\t\t" + column.Size + "\t\t" + column.Type.Name + Environment.NewLine;
                 }
             }
             return output;
@@ -1082,11 +1134,11 @@ namespace MySQL_Clear_standart
             }
         }
 
-        private void CreateScheme(SortStructure sortQuerry)
+        private void CreateScheme(NewSortStructure sortQuerry)
         {
             List<TableStructure> outTables = new List<TableStructure>();
-            outTables.Add(sortQuerry.OutTable);
-            DataBaseStructure outDB = new DataBaseStructure("SORT_OUT_DB", outTables.ToArray());
+            outTables.Add(sortQuerry.OutDataBase.Tables[0]);
+            DataBaseStructure outDB = sortQuerry.OutDataBase;
             MatchColumns(_dbName, outDB);
             outDB.Name = _dbName.Name + "_Sort";
             outDB.Types = _dbName.Types;
@@ -1178,171 +1230,75 @@ namespace MySQL_Clear_standart
             CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
-
-        private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects, out JoinStructure notFilled)
-        {
-            notFilled = null;
-            List<JoinStructure> tmpJoins = new List<JoinStructure>();
-            foreach (var binary in listener.Binaries) 
-            {
-                if (binary.Type == 2)
-                {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
-                    tmpJoins.Add(tmp);
-                }
-            }
-            JoinStructure[] joinQueries = tmpJoins.ToArray();
-            SelectStructure[] selectQueries = selects;
-            FillJoins(joinQueries.ToList(), dataBase, selectQueries.ToList());
-
-            List<JoinStructure> tmpList = new List<JoinStructure>();
-            foreach (JoinStructure join in joinQueries)
-            {
-                if (join.LeftColumn!=null)
-                {
-                    tmpList.Add(join);
-                }
-                else
-                {
-                    notFilled = join;
-                }
-            }
-
-            joinQueries = tmpList.ToArray();
-
-            GetJoinSequence(joinQueries.ToList(), listener.Depth);
-            joinQueries = SortJoin(joinQueries.ToList(), listener.Depth).ToArray();
-            foreach (var join in joinQueries)
-            {
-                join.CreateQuerry();
-            }
-
-            CreateScheme(joinQueries.ToList());
-            return joinQueries;
-        }
         
-        private SortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, JoinStructure[] joins, SelectStructure[] selects)
+        private NewSortStructure MakeSort(DataBaseStructure dataBase, BaseRule sortRule)
         {
-            SelectStructure[] select = selects;
-            JoinStructure[] join = joins;
-            SortStructure sortQuery = new SortStructure("So_1");
-            List<OrderByStructure> orderByStructures = listener.OrderByList;
-            List<ColumnStructure> inputColumns;
+            NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase);
+            #region OLD
 
-            if (join.Length != 0)
-            {
-                inputColumns = join.LastOrDefault().Columns;
-            }
-            else
-            {
-                inputColumns = select.LastOrDefault().OutColumn.ToList();
-            }
+            //SelectStructure[] select = selects;
+            //JoinStructure[] join = joins;
+            //SortStructure sortQuery = new SortStructure("So_1");
+            //List<OrderByStructure> orderByStructures = listener.OrderByList;
+            //List<ColumnStructure> inputColumns;
 
-            if (orderByStructures != null)
-                foreach (OrderByStructure orderByStructure in orderByStructures)
-                {
-                    orderByStructure.Column =
-                        GetCorrectOrderByColumn(inputColumns, orderByStructure.ColumnName);
-                }
+            //if (join.Length != 0)
+            //{
+            //    inputColumns = join.LastOrDefault().Columns;
+            //}
+            //else
+            //{
+            //    inputColumns = select.LastOrDefault().OutColumn.ToList();
+            //}
 
-            sortQuery.Select = select.LastOrDefault();
-            sortQuery.Join = join.LastOrDefault();
-            FillAsStructures(dataBase, listener.AsList);
-            sortQuery.AsSortList = listener.AsList;
-            sortQuery.GroupByColumnList = listener.GroupByColumnsNames;
-            sortQuery.OrderByStructures = orderByStructures;
+            //if (orderByStructures != null)
+            //    foreach (OrderByStructure orderByStructure in orderByStructures)
+            //    {
+            //        orderByStructure.Column =
+            //            GetCorrectOrderByColumn(inputColumns, orderByStructure.ColumnName);
+            //    }
 
-            if (listener.SubQueryListeners.Count>0)
-            {
-                JoinStructure notFilledJoinForSort;
-                DataBaseStructure subDB = CreateSubDatabase(_queryDB,
-                    listener.SubQueryListeners[0].TableNames.ToArray(),
-                    listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                    listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
-                SelectStructure[] subSelects = MakeSelect(subDB, listener.SubQueryListeners[0]);
-                JoinStructure[] subJoins = MakeJoin(subDB, listener.SubQueryListeners[0], subSelects, out notFilledJoinForSort);
-                foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
-                {
-                    if (binary.Type == 3)
-                    {
-                        sortQuery.ConnectBinary = binary;
-                    }
-                }
+            //sortQuery.Select = select.LastOrDefault();
+            //sortQuery.Join = join.LastOrDefault();
+            //FillAsStructures(dataBase, listener.AsList);
+            //sortQuery.AsSortList = listener.AsList;
+            //sortQuery.GroupByColumnList = listener.GroupByColumnsNames;
+            //sortQuery.OrderByStructures = orderByStructures;
 
-                sortQuery.NotFilledJoin = notFilledJoinForSort;
-                sortQuery.SubJoin = subJoins.LastOrDefault();
-                sortQuery.SubSelect = subSelects.LastOrDefault();
-                sortQuery.SelectString = _listener.SubQueryListeners[0].SubSelectFunction;
+            //if (listener.SubQueryListeners.Count>0)
+            //{
+            //    JoinStructure notFilledJoinForSort;
+            //    DataBaseStructure subDB = CreateSubDatabase(_queryDB,
+            //        listener.SubQueryListeners[0].TableNames.ToArray(),
+            //        listener.SubQueryListeners[0].ColumnNames.ToArray(),
+            //        listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
+            //    SelectStructure[] subSelects = MakeSelect(subDB, listener.SubQueryListeners[0]);
+            //    JoinStructure[] subJoins = MakeJoin(subDB, listener.SubQueryListeners[0], subSelects, out notFilledJoinForSort);
+            //    foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
+            //    {
+            //        if (binary.Type == 3)
+            //        {
+            //            sortQuery.ConnectBinary = binary;
+            //        }
+            //    }
 
-            }
+            //    sortQuery.NotFilledJoin = notFilledJoinForSort;
+            //    sortQuery.SubJoin = subJoins.LastOrDefault();
+            //    sortQuery.SubSelect = subSelects.LastOrDefault();
+            //    sortQuery.SelectString = _listener.SubQueryListeners[0].SubSelectFunction;
+
+            //}
 
 
 
-            sortQuery.CreateQuerry();
+            //sortQuery.CreateQuerry();
+            //CreateScheme(sortQuery);
+
+            #endregion
             CreateScheme(sortQuery);
             return sortQuery;
         }
         
-        private SortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, JoinStructure[] joins, SelectStructure[] selects, SelectStructure[] subSelects, JoinStructure[] subJoins, JoinStructure notFilledJoin)
-        {
-            SelectStructure[] select = selects;
-            JoinStructure[] join = joins;
-            SortStructure sortQuery = new SortStructure("So_1");
-            List<OrderByStructure> orderByStructures = listener.OrderByList;
-            List<ColumnStructure> inputColumns;
-
-            if (join.Length != 0)
-            {
-                inputColumns = join.LastOrDefault().Columns;
-            }
-            else
-            {
-                inputColumns = select.LastOrDefault().OutColumn.ToList();
-            }
-
-            if (orderByStructures != null)
-                foreach (OrderByStructure orderByStructure in orderByStructures)
-                {
-                    orderByStructure.Column =
-                        GetCorrectOrderByColumn(inputColumns, orderByStructure.ColumnName);
-                }
-
-            sortQuery.Select = select.LastOrDefault();
-            sortQuery.Join = join.LastOrDefault();
-            FillAsStructures(dataBase, listener.AsList);
-            sortQuery.AsSortList = listener.AsList;
-            sortQuery.GroupByColumnList = listener.GroupByColumnsNames;
-            sortQuery.OrderByStructures = orderByStructures;
-
-            if (listener.SubQueryListeners.Count>0)
-            {
-                DataBaseStructure subDB = CreateSubDatabase(_queryDB,
-                    listener.SubQueryListeners[0].TableNames.ToArray(),
-                    listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                    listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
-                SelectStructure[] subSelectsQ = subSelects;
-                JoinStructure[] subJoinsQ = subJoins;
-                foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
-                {
-                    if (binary.Type == 3)
-                    {
-                        sortQuery.ConnectBinary = binary;
-                    }
-                }
-
-                sortQuery.NotFilledJoin = notFilledJoin;
-                sortQuery.SubJoin = subJoins.LastOrDefault();
-                sortQuery.SubSelect = subSelects.LastOrDefault();
-                sortQuery.SelectString = _listener.SubQueryListeners[0].SubSelectFunction;
-
-            }
-
-
-
-            sortQuery.CreateQuerry();
-            CreateScheme(sortQuery);
-            return sortQuery;
-        }
         #endregion
 
         #region Make-методы со string
@@ -1385,171 +1341,75 @@ namespace MySQL_Clear_standart
             return joinQueries;
         }
 
-        private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects, out JoinStructure notFilled, string left, string right)
+        private NewSortStructure MakeSort(DataBaseStructure dataBase, BaseRule sortRule, string tag)
         {
-            notFilled = null;
-            List<JoinStructure> tmpJoins = new List<JoinStructure>();
-            foreach (var binary in listener.Binaries) 
-            {
-                if (binary.Type == 2)
-                {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
-                    tmpJoins.Add(tmp);
-                }
-            }
-            JoinStructure[] joinQueries = tmpJoins.ToArray();
-            SelectStructure[] selectQueries = selects;
-            FillJoins(joinQueries.ToList(), dataBase, selectQueries.ToList());
+            #region OLD
 
-            List<JoinStructure> tmpList = new List<JoinStructure>();
-            foreach (JoinStructure join in joinQueries)
-            {
-                if (join.LeftColumn!=null)
-                {
-                    tmpList.Add(join);
-                }
-                else
-                {
-                    notFilled = join;
-                }
-            }
+            //SelectStructure[] select = selects;
+            //JoinStructure[] join = joins;
+            //SortStructure sortQuery = new SortStructure("So_1");
+            //List<OrderByStructure> orderByStructures = listener.OrderByList;
+            //List<ColumnStructure> inputColumns;
 
-            joinQueries = tmpList.ToArray();
+            //if (join.Length != 0)
+            //{
+            //    inputColumns = join.LastOrDefault().Columns;
+            //}
+            //else
+            //{
+            //    inputColumns = select.LastOrDefault().OutColumn.ToList();
+            //}
 
-            GetJoinSequence(joinQueries.ToList(), listener.Depth);
-            joinQueries = SortJoin(joinQueries.ToList(), listener.Depth).ToArray();
-            foreach (var join in joinQueries)
-            {
-                join.CreateQuerry(left, right);
-            }
+            //if (orderByStructures != null)
+            //    foreach (OrderByStructure orderByStructure in orderByStructures)
+            //    {
+            //        orderByStructure.Column =
+            //            GetCorrectOrderByColumn(inputColumns, orderByStructure.ColumnName);
+            //    }
 
-            CreateScheme(joinQueries.ToList());
-            return joinQueries;
-        }
-        
-        private SortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, JoinStructure[] joins, SelectStructure[] selects, string tag)
-        {
-            SelectStructure[] select = selects;
-            JoinStructure[] join = joins;
-            SortStructure sortQuery = new SortStructure("So_1");
-            List<OrderByStructure> orderByStructures = listener.OrderByList;
-            List<ColumnStructure> inputColumns;
+            //sortQuery.Select = select.LastOrDefault();
+            //sortQuery.Join = join.LastOrDefault();
+            //FillAsStructures(dataBase, listener.AsList);
+            //sortQuery.AsSortList = listener.AsList;
+            //sortQuery.GroupByColumnList = listener.GroupByColumnsNames;
+            //sortQuery.OrderByStructures = orderByStructures;
 
-            if (join.Length != 0)
-            {
-                inputColumns = join.LastOrDefault().Columns;
-            }
-            else
-            {
-                inputColumns = select.LastOrDefault().OutColumn.ToList();
-            }
+            //if (listener.SubQueryListeners.Count>0)
+            //{
+            //    JoinStructure notFilledJoinForSort;
+            //    DataBaseStructure subDB = CreateSubDatabase(_queryDB,
+            //        listener.SubQueryListeners[0].TableNames.ToArray(),
+            //        listener.SubQueryListeners[0].ColumnNames.ToArray(),
+            //        listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
+            //    SelectStructure[] subSelects = MakeSelect(subDB, listener.SubQueryListeners[0]);
+            //    JoinStructure[] subJoins = MakeJoin(subDB, listener.SubQueryListeners[0], subSelects, out notFilledJoinForSort);
+            //    foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
+            //    {
+            //        if (binary.Type == 3)
+            //        {
+            //            sortQuery.ConnectBinary = binary;
+            //        }
+            //    }
 
-            if (orderByStructures != null)
-                foreach (OrderByStructure orderByStructure in orderByStructures)
-                {
-                    orderByStructure.Column =
-                        GetCorrectOrderByColumn(inputColumns, orderByStructure.ColumnName);
-                }
+            //    sortQuery.NotFilledJoin = notFilledJoinForSort;
+            //    sortQuery.SubJoin = subJoins.LastOrDefault();
+            //    sortQuery.SubSelect = subSelects.LastOrDefault();
+            //    sortQuery.SelectString = _listener.SubQueryListeners[0].SubSelectFunction;
 
-            sortQuery.Select = select.LastOrDefault();
-            sortQuery.Join = join.LastOrDefault();
-            FillAsStructures(dataBase, listener.AsList);
-            sortQuery.AsSortList = listener.AsList;
-            sortQuery.GroupByColumnList = listener.GroupByColumnsNames;
-            sortQuery.OrderByStructures = orderByStructures;
-
-            if (listener.SubQueryListeners.Count>0)
-            {
-                JoinStructure notFilledJoinForSort;
-                DataBaseStructure subDB = CreateSubDatabase(_queryDB,
-                    listener.SubQueryListeners[0].TableNames.ToArray(),
-                    listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                    listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
-                SelectStructure[] subSelects = MakeSelect(subDB, listener.SubQueryListeners[0]);
-                JoinStructure[] subJoins = MakeJoin(subDB, listener.SubQueryListeners[0], subSelects, out notFilledJoinForSort);
-                foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
-                {
-                    if (binary.Type == 3)
-                    {
-                        sortQuery.ConnectBinary = binary;
-                    }
-                }
-
-                sortQuery.NotFilledJoin = notFilledJoinForSort;
-                sortQuery.SubJoin = subJoins.LastOrDefault();
-                sortQuery.SubSelect = subSelects.LastOrDefault();
-                sortQuery.SelectString = _listener.SubQueryListeners[0].SubSelectFunction;
-
-            }
+            //}
 
 
 
-            sortQuery.CreateQuerry(tag);
+            //sortQuery.CreateQuerry(tag);
+            //CreateScheme(sortQuery);
+
+            #endregion
+            NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase);
             CreateScheme(sortQuery);
             return sortQuery;
         }
          
-        private SortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, JoinStructure[] joins, SelectStructure[] selects, SelectStructure[] subSelects, JoinStructure[] subJoins, JoinStructure notFilledJoin,string tag)
-        {
-            SelectStructure[] select = selects;
-            JoinStructure[] join = joins;
-            SortStructure sortQuery = new SortStructure("So_1");
-            List<OrderByStructure> orderByStructures = listener.OrderByList;
-            List<ColumnStructure> inputColumns;
-
-            if (join.Length != 0)
-            {
-                inputColumns = join.LastOrDefault().Columns;
-            }
-            else
-            {
-                inputColumns = select.LastOrDefault().OutColumn.ToList();
-            }
-
-            if (orderByStructures != null)
-                foreach (OrderByStructure orderByStructure in orderByStructures)
-                {
-                    orderByStructure.Column =
-                        GetCorrectOrderByColumn(inputColumns, orderByStructure.ColumnName);
-                }
-
-            sortQuery.Select = select.LastOrDefault();
-            sortQuery.Join = join.LastOrDefault();
-            FillAsStructures(dataBase, listener.AsList);
-            sortQuery.AsSortList = listener.AsList;
-            sortQuery.GroupByColumnList = listener.GroupByColumnsNames;
-            sortQuery.OrderByStructures = orderByStructures;
-
-            if (listener.SubQueryListeners.Count>0)
-            {
-                DataBaseStructure subDB = CreateSubDatabase(_queryDB,
-                    listener.SubQueryListeners[0].TableNames.ToArray(),
-                    listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                    listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
-                SelectStructure[] subSelectsQ = subSelects;
-                JoinStructure[] subJoinsQ = subJoins;
-                foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
-                {
-                    if (binary.Type == 3)
-                    {
-                        sortQuery.ConnectBinary = binary;
-                    }
-                }
-
-                sortQuery.NotFilledJoin = notFilledJoin;
-                sortQuery.SubJoin = subJoins.LastOrDefault();
-                sortQuery.SubSelect = subSelects.LastOrDefault();
-                sortQuery.SelectString = _listener.SubQueryListeners[0].SubSelectFunction;
-
-            }
-
-
-
-            sortQuery.CreateQuerry(tag);
-            CreateScheme(sortQuery);
-            return sortQuery;
-        }
-       #endregion
+         #endregion
 
         #endregion
 
@@ -1716,8 +1576,19 @@ namespace MySQL_Clear_standart
             GetTree();
             _output = "";
             _output += "\r\n========Return================\r\n";
-         
-            _output = "5";
+
+            tabControl_main.SelectTab(1);
+            btn_tab2_CreateSelect.PerformClick();
+            btn_tab2_CreateJoin.PerformClick();
+            btn_tab2_CreateSort.PerformClick();
+            tabControl_main.SelectTab(0);
+
+           
+            NewSortStructure tmpSortStructure = new NewSortStructure("TEST", _sortRule, _dbName);
+            _output = tmpSortStructure.Output;
+            _output += Environment.NewLine + "/////////////////////////////////////////////" + Environment.NewLine;
+            //_output += ShowDataBase(tmpSortStructure.OutDataBase);
+            //_output += tmpSortStructure.CreateTableColumnNames;
             textBox_tab1_Query.Text = _output;
         }
         
@@ -1730,7 +1601,7 @@ namespace MySQL_Clear_standart
             //составление запросов SELECT
             
             textBox_tab2_SelectResult.Clear();
-            GetTree();
+            GetTree( textBox_tab2_Query.Text);
             _selectQuery = MakeSelect(_queryDB, _listener);
             for (int i = 0; i < _selectQuery.Length; i++)
             {
@@ -1761,7 +1632,7 @@ namespace MySQL_Clear_standart
 
         private void btn_CreateJoin_Click(object sender, EventArgs e)
         {
-            GetTree();
+            GetTree(textBox_tab2_Query.Text);
             _joinQuery =
                 MakeJoin(_queryDB, _listener, MakeSelect(_queryDB, _listener)).ToList();
             textBox_tab2_JoinResult.Clear();
@@ -1779,7 +1650,7 @@ namespace MySQL_Clear_standart
                         subQlistener.ColumnNames.ToArray(),
                         subQlistener.RemoveCounterColumsNames.ToArray());
                     _subJoinQuery = MakeJoin(subQDB, subQlistener, MakeSelect(subQDB, subQlistener)).ToList();
-                    //тут
+                    
                 }
 
                 foreach (var join in _subJoinQuery)
@@ -1791,7 +1662,7 @@ namespace MySQL_Clear_standart
         
         private void btn_CreateSort_Click(object sender, EventArgs e)
         {
-            GetTree();
+            GetTree(textBox_tab2_Query.Text);
             _sortRule.Text += ";";
             _sortRule.IsRealised = true;
             textBox_tab2_SortResult.Text = _sortRule.Text;
@@ -1799,27 +1670,27 @@ namespace MySQL_Clear_standart
         
         private void btn_CreateTest_Click(object sender, EventArgs e)
         {
-            GetTree();
+            GetTree(textBox_tab2_Query.Text);
             SelectStructure[] selectQ, subSelectQ;
             JoinStructure[] joinQ, subJoinQ;
-            SortStructure sortQ;
+            NewSortStructure sortQ;
             if (checkBox_Tab2_ClusterXNEnable.Checked)
             {
                 selectQ = MakeSelect(_queryDB, _listener);
                 joinQ = MakeJoin(_queryDB, _listener, selectQ, Constants.LeftRelationNameTag,
                     Constants.RightRelationNameTag);
-                sortQ = MakeSort(_queryDB, _listener, joinQ, selectQ, Constants.RelationNameTag);
-                JoinStructure notFilledJoinForSort;
+                sortQ = MakeSort(_queryDB, _sortRule, Constants.RelationNameTag);
 
                 if (_listener.SubQueryListeners.Count > 0)
                 {
-                    DataBaseStructure subDb = CreateSubDatabase(_queryDB,
+                    DataBaseStructure subQDB = CreateSubDatabase(_dbName,
                         _listener.SubQueryListeners[0].TableNames.ToArray(),
                         _listener.SubQueryListeners[0].ColumnNames.ToArray(),
                         _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
-                    subSelectQ = MakeSelect( subDb, _listener.SubQueryListeners[0]); //Добавить foreach
-                    subJoinQ = MakeJoin( subDb, _listener.SubQueryListeners[0], subSelectQ, out notFilledJoinForSort, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
-                    sortQ = MakeSort(_queryDB, _listener, joinQ, selectQ, subSelectQ, subJoinQ, notFilledJoinForSort, Constants.RelationNameTag);
+                        subSelectQ = MakeSelect(subQDB, _listener.SubQueryListeners[0]); //Добавить foreach
+                        subJoinQ = MakeJoin(subQDB, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
+                    
+                    sortQ = MakeSort(_queryDB, _sortRule, Constants.RelationNameTag);
                 }
                 else
                 {
@@ -1829,26 +1700,24 @@ namespace MySQL_Clear_standart
             }
             else
             {
-                JoinStructure notFilledJoinForSort;
                 selectQ = MakeSelect(_queryDB, _listener);
                 joinQ = MakeJoin(_queryDB, _listener, selectQ);
                 
                 if (_listener.SubQueryListeners.Count > 0)
                 {
-                    DataBaseStructure subDb = CreateSubDatabase(_queryDB,
+                    DataBaseStructure subQDB = CreateSubDatabase(_dbName,
                         _listener.SubQueryListeners[0].TableNames.ToArray(),
                         _listener.SubQueryListeners[0].ColumnNames.ToArray(),
                         _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
-                    subSelectQ = MakeSelect( subDb, _listener.SubQueryListeners[0]); //Добавить foreach
-                    subJoinQ = MakeJoin( subDb, _listener.SubQueryListeners[0], subSelectQ, out notFilledJoinForSort);
-                    sortQ = MakeSort(_queryDB, _listener, joinQ, selectQ, subSelectQ, subJoinQ, notFilledJoinForSort);
+                        subSelectQ = MakeSelect(subQDB, _listener.SubQueryListeners[0]); //Добавить foreach
+                        subJoinQ = MakeJoin(subQDB, _listener.SubQueryListeners[0], subSelectQ);
+                        sortQ = MakeSort(_queryDB, _sortRule);
                 }
                 else
                 {
-                    sortQ = MakeSort(_queryDB, _listener, joinQ, selectQ);
+                    sortQ = MakeSort(_queryDB, _sortRule);
                     subSelectQ = null;
                     subJoinQ = null;
-                    notFilledJoinForSort = new JoinStructure("ERROR", "ERROR", "ERROr", Interval.Invalid, _sortRule);
                 }
             }
 
@@ -1984,7 +1853,7 @@ namespace MySQL_Clear_standart
        
         #region Актуальные методы(в разработке)
 
-        private void TryConnect(JoinStructure[] joinQ, SortStructure sortQ, int subJoinIndex, string address)
+        private void TryConnect(JoinStructure[] joinQ, NewSortStructure sortQ, int subJoinIndex, string address)
         {
             QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text));
 
@@ -2079,7 +1948,7 @@ namespace MySQL_Clear_standart
 
             if (subJoinIndex > -1) //ПАЧИНИТЬ
             {
-                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutTable.Columns
+                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
                             .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                             .ToList(),
                         new List<Index>()
@@ -2089,7 +1958,7 @@ namespace MySQL_Clear_standart
             }
             else
             {
-                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutTable.Columns
+                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
                             .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                             .ToList(),
                         new List<Index>()

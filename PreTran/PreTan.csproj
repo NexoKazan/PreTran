@@ -72,7 +72,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Listeners\SortRuleListener.cs" />
+    <Compile Include="SchemeCreator\SchemeAsListener.cs" />
+    <Compile Include="SchemeCreator\SchemeAsStructure.cs" />
+    <Compile Include="SchemeCreator\SortRuleListener.cs" />
     <Compile Include="Q_Structures\NewSortStructure.cs" />
     <Compile Include="TestClasses\BaseRule.cs" />
     <Compile Include="Listeners\BetweenPredicateListener.cs" />
@@ -91,7 +93,6 @@
     <Compile Include="Listeners\MyMySQLListener.cs" />
     <Compile Include="Network\ClusterixClient.cs" />
     <Compile Include="Pares.cs" />
-    <Compile Include="SchemeCreator.cs" />
     <Compile Include="Q_Structures\SelectStructure.cs" />
     <Compile Include="Q_Structures\SortStructure.cs" />
     <Compile Include="DataBaseSchemeStructure\S_Type.cs" />

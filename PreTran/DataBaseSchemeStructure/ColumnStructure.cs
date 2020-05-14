@@ -55,6 +55,12 @@ namespace PreTran.DataBaseSchemeStructure
             _typeID = typeID;
         }
 
+        public ColumnStructure(string name, S_Type type)
+        {
+            _name = name;
+            _type = type;
+        }
+
         public ColumnStructure(string name)
         {
             _name = name;

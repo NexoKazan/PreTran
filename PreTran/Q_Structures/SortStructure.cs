@@ -95,8 +95,6 @@ namespace PreTran.Q_Structures
             get { return _createTableColumnNames; }
         }
 
-        
-        
         public JoinStructure NotFilledJoin
         {
             get { return _notFilledJoin; }
