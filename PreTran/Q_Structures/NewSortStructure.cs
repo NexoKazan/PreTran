@@ -24,6 +24,8 @@ namespace PreTran.Q_Structures
         {
             _name = name;
             _sortRule = sortRule;
+            _sortRule.Text += ";";
+            _sortRule.IsRealised = true;
             _inDataBase = fullDataBase;
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, sortRule.Context);
@@ -101,12 +103,26 @@ namespace PreTran.Q_Structures
                     _createTableColumnNames += ",\r\n";
                 }
             }
+            //List<BaseRule> columns = _sortRule.GetRulesByType("fullcolumnname");
+            //foreach (BaseRule rule in columns)
+            //{
+            //    if (rule.Rules.Count > 1)
+            //    {
+            //        string tmpName = rule.Text.Replace(".", "");
+            //        rule.IsRealised = false;
+            //        rule.Text = tmpName;
+            //        rule.IsRealised = true;
+            //        Console.WriteLine(tmpName);
+            //    }
+            //}
         }
 
         public NewSortStructure(string name, BaseRule sortRule, DataBaseStructure fullDataBase, string tag)
         {
             _name = name;
             _sortRule = sortRule;
+            _sortRule.Text += ";";
+            _sortRule.IsRealised = true;
             _inDataBase = fullDataBase;
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, sortRule.Context);
@@ -126,11 +142,18 @@ namespace PreTran.Q_Structures
                         }
                     }
                 }
-
-                //if (tmpColumnList.Count > 0)
-                //{
-                //    tmpTableList.Add(new TableStructure(inTable.Name, tmpColumnList.ToArray()));
-                //}
+                List<BaseRule> columns = _sortRule.GetRulesByType("fullcolumnname");
+                foreach (BaseRule rule in columns)
+                {
+                    if (rule.Rules.Count > 1)
+                    {
+                        string tmpName = rule.Text.Replace(".", "");
+                        rule.IsRealised = false;
+                        rule.Text = tmpName;
+                        rule.IsRealised = true;
+                        Console.WriteLine(tmpName);
+                    }
+                }
             }
 
             foreach (string columnName in _listener.SelectAsRightColumns)

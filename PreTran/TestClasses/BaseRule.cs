@@ -13,6 +13,7 @@ namespace PreTran
         private Interval _sourceInterval;
         private ParserRuleContext _context;
         private string _text;
+        private string _divideSym;
         private string _ruleType;
         private bool _isRealised = false;
         private List<BaseRule> _rules = new List<BaseRule>();
@@ -22,6 +23,7 @@ namespace PreTran
             _sourceInterval = ruleInterval;
             _context = context;
             _text = text;
+            _divideSym = " ";
             if (context != null)
             {
                 _ruleType = context.GetType().ToString().ToLower().Replace("context", "").Replace("mysqlparser+", "");
@@ -73,7 +75,7 @@ namespace PreTran
                             {
                                 if (baseRule != Rules.Last())
                                 {
-                                    _text += baseRule.Text + " ";
+                                    _text += baseRule.Text + _divideSym;
                                 }
                                 else
                                 {
@@ -113,6 +115,12 @@ namespace PreTran
         public string RuleType
         {
             get => _ruleType;
+        }
+
+        public string DivideSym
+        {
+            get => _divideSym;
+            set => _divideSym = value;
         }
 
         #endregion

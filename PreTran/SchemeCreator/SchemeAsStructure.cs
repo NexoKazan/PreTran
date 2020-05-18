@@ -12,6 +12,7 @@ namespace PreTran.SchemeCreator
     class SchemeAsStructure
     {
         private string _asRightColumnName;
+        private bool _isExtract = false;
         private List<string> _columnNames = new List<string>();
 
         //private DataBaseStructure _database;
@@ -28,6 +29,10 @@ namespace PreTran.SchemeCreator
             _context = context;
             _columnNames = _listener.ColumnNames;
             _asRightColumnName = context.children.Last().GetText();
+            if (context.Start.Text.ToLower() == "extract")
+            {
+                _isExtract = true;
+            }
         }
 
         public ColumnStructure AsRightColumn
@@ -76,11 +81,31 @@ namespace PreTran.SchemeCreator
             {
                 _asRightColumn = new ColumnStructure(_asRightColumnName, FindeByName(dataBase, "INT"));
             }
+
+            if (_isExtract)
+            {
+                if (FindeByName(dataBase, "INT") == null)
+                {
+                    _asRightColumn.Type = new S_Type("INT", 6, (dataBase.Types.Length + 1).ToString());
+                    List<S_Type> tmpTypes = new List<S_Type>();
+                    foreach (S_Type type in dataBase.Types)
+                    {
+                        tmpTypes.Add(type);
+                    }
+
+                    tmpTypes.Add(new S_Type("INT", 6, (dataBase.Types.Length + 1).ToString()));
+                    dataBase.Types = tmpTypes.ToArray();
+                }
+                else
+                {
+                    _asRightColumn.Type = FindeByName(dataBase, "INT");
+                }
+            }
         }
 
         private S_Type FindeByName(DataBaseStructure inDb, string typeName)
         {
-            S_Type output = new S_Type();
+            S_Type output = null;
             foreach (S_Type type in inDb.Types)
             {
                 if (type.Name == typeName)
@@ -122,6 +147,25 @@ namespace PreTran.SchemeCreator
             else
             {
                 _asRightColumn = new ColumnStructure(_asRightColumnName, FindeByName(dataBase, "INT"));
+            }
+            if (_isExtract)
+            {
+                if (FindeByName(dataBase, "INT") == null)
+                {
+                    _asRightColumn.Type = new S_Type("INT", 6, (dataBase.Types.Length + 1).ToString());
+                    List<S_Type> tmpTypes = new List<S_Type>();
+                    foreach (S_Type type in dataBase.Types)
+                    {
+                        tmpTypes.Add(type);
+                    }
+
+                    tmpTypes.Add(new S_Type("INT", 6, (dataBase.Types.Length + 1).ToString()));
+                    dataBase.Types = tmpTypes.ToArray();
+                }
+                else
+                {
+                    _asRightColumn.Type = FindeByName(dataBase, "INT");
+                }
             }
         }
     }

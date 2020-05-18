@@ -17,6 +17,7 @@
  */
 #endregion
 
+using System.Collections.Generic;
 using System.Xml.Serialization;
 using Antlr4.Runtime.Misc;
 
@@ -28,6 +29,7 @@ namespace PreTran.DataBaseSchemeStructure
         private string _name;
         private string _typeID;
         private string _oldName;
+        private string _dotTableID;
         private int _size;
         private int _isPrimary; // 0-не ключ 1-единичный ключ, 2-составной ключ, 3-другое
         private int _usageCounter;
@@ -35,7 +37,7 @@ namespace PreTran.DataBaseSchemeStructure
         private bool _isRenamed = false;
         private S_Type _type;
         private TableStructure _table;
-        private Interval _sourceInterval;
+        private List<Interval> _sourceInterval;
 
         public ColumnStructure()
         {
@@ -66,7 +68,7 @@ namespace PreTran.DataBaseSchemeStructure
             _name = name;
         }
 
-        public ColumnStructure(string name, Interval sourceInterval)
+        public ColumnStructure(string name, List<Interval> sourceInterval)
         {
             _name = name;
             _sourceInterval = sourceInterval;
@@ -85,6 +87,7 @@ namespace PreTran.DataBaseSchemeStructure
             _type = inColumn.Type;
             _table = inColumn.Table;
             _sourceInterval = inColumn.SoureInterval;
+            _dotTableID = inColumn.DotTableId;
         }
 
         [XmlAttribute]
@@ -159,10 +162,17 @@ namespace PreTran.DataBaseSchemeStructure
         }
 
         [XmlIgnore]
-        public Interval SoureInterval
+        public List<Interval> SoureInterval
         {
             get { return _sourceInterval; }
             set { _sourceInterval = value; }
+        }
+
+        [XmlIgnore]
+        public string DotTableId
+        {
+            get => _dotTableID;
+            set => _dotTableID = value;
         }
     }
 }

@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
 using PreTran.Q_Part_Structures;
 using PreTran.TestClasses.Rules;
@@ -142,22 +143,42 @@ namespace PreTran.Q_Structures
             }
             _outTable = new TableStructure(_name + "_TB", _outColumn.ToArray());
 
+           
             _output = "SELECT ";
             bool commaPointer = false;
             for (int i = 0; i < _inputTable.Columns.Length; i++)
             {
                 if (_inputTable.Columns[i].UsageCounter > 0 || _inputTable.Columns[i].IsForSelect)
                 {
-                    
-                   if (!commaPointer)
-                   {
-                       _output += "\r\n\t" + _inputTable.Columns[i].Name;
-                       commaPointer = true;
-                   }
-                   else
-                   {
-                       _output += ",\r\n\t" + _inputTable.Columns[i].Name;
-                   }
+
+                    if (!commaPointer)
+                    {
+                        if (_inputTable.Columns[i].DotTableId == null)
+                        {
+                            _output += "\r\n\t" + _inputTable.Columns[i].Name;
+                            commaPointer = true;
+                        }
+                        else
+                        {
+                            _output += "\r\n\t" + _inputTable.Columns[i].Name + " AS " + _inputTable.Columns[i].DotTableId + _inputTable.Columns[i].Name;
+                            _inputTable.Columns[i].Name =
+                                _inputTable.Columns[i].DotTableId + _inputTable.Columns[i].Name;
+                            commaPointer = true;
+                        }
+                    }
+                    else
+                    {
+                        if (_inputTable.Columns[i].DotTableId == null)
+                        {
+                            _output += ",\r\n\t" + _inputTable.Columns[i].Name;
+                        }
+                        else
+                        {
+                            _output += ",\r\n\t" + _inputTable.Columns[i].Name + " AS " + _inputTable.Columns[i].DotTableId + _inputTable.Columns[i].Name;
+                            _inputTable.Columns[i].Name =
+                                _inputTable.Columns[i].DotTableId + _inputTable.Columns[i].Name;
+                        }
+                    }
                 }
             }
 
@@ -174,8 +195,23 @@ namespace PreTran.Q_Structures
                     _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
                 }
                 //_sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = false;
-                _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text = asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.Name + ")" + " AS " + asStructure.AsRightColumn.OldName;
-                _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
+                if (asStructure.AggregateFunctionName != null)
+                {
+                    if (asStructure.AggregateFunctionName.ToLower() != "extract")
+                    {
+                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
+                            asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.Name + ")" + " AS " +
+                            asStructure.AsRightColumn.OldName;
+                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
+                    }
+                    else
+                    {
+                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
+                            asStructure.AsRightColumn.Name + " AS " +
+                            asStructure.AsRightColumn.OldName;
+                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
+                    }
+                }
             }
 
             _output += "\r\n" + "FROM " + "\r\n\t" + _tableName + "\r\n" ;
@@ -229,6 +265,21 @@ namespace PreTran.Q_Structures
                 }
             }
             _output += ";";
+
+            foreach (ColumnStructure column in _outTable.Columns)
+            {
+                if (column.DotTableId != null)
+                {
+                    List<BaseRule> tmpRules = new List<BaseRule>();
+                    foreach (Interval sourceInterval in column.SoureInterval)
+                    {
+                        tmpRules.Add(_sortRule.GetRuleBySourceInterval(sourceInterval));
+                        _sortRule.GetRuleBySourceInterval(sourceInterval).IsRealised = false;
+                        _sortRule.GetRuleBySourceInterval(sourceInterval).Text = column.Name;
+                        _sortRule.GetRuleBySourceInterval(sourceInterval).IsRealised = true;
+                    }
+                }
+            }
         }
 
         private void ColumnCounterDelete()
@@ -256,7 +307,10 @@ namespace PreTran.Q_Structures
 
             foreach (ColumnStructure column in _inputTable.Columns)
             {
-                //column.UsageCounter--;
+                if( !column.IsForSelect)
+                {
+                    //column.UsageCounter--;
+                }
             }
         }
     }

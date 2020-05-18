@@ -28,7 +28,7 @@ namespace PreTran.Listeners
         private int _blocked = 1;
         public string _output;
         public string _functionOutput;
-        public string _functionName;
+        public string _functionName ;
         public List<string> _selectFunctions;
 
         public List<string> AsColumnList= new List<string>();
@@ -76,6 +76,7 @@ namespace PreTran.Listeners
                 ExtractFunctionCall extractFunctionCall =
                     new ExtractFunctionCall(context.SourceInterval, context, context.GetText());
                 _output = extractFunctionCall.Text;
+                _functionName = context.Start.Text;
             }
 
             _blocked++;
@@ -100,6 +101,16 @@ namespace PreTran.Listeners
         public override void ExitCaseFunctionCall(MySqlParser.CaseFunctionCallContext context)
         {
             _blocked--;
+        }
+
+        public override void EnterSelectExpressionElement(MySqlParser.SelectExpressionElementContext context)
+        {
+            if (_blocked == 1)
+            {
+                _output = context.children[0].GetText();
+                _functionOutput = context.children[0].GetText();
+                _functionName = "";
+            }
         }
     }
 }

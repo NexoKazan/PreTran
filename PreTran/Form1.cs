@@ -64,7 +64,7 @@ namespace MySQL_Clear_standart
         #region Глобальные переменные
 
         private DataBaseStructure _dbName;
-        private DataBaseStructure _queryDB;
+        //private DataBaseStructure _queryDB;
         // объявляются переменный для построения дерева
         private string _output = " ";
         private string _inputString;
@@ -124,7 +124,7 @@ namespace MySQL_Clear_standart
             }
             //_sortRule = new BaseRule(new Interval(1, 1), new ParserRuleContext(), "ERROR");
             //_sortRule = GetMainRule(_inputString);
-            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
+            //_queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
             
         }
 
@@ -149,10 +149,6 @@ namespace MySQL_Clear_standart
             {
                 _sortRule = GetMainRule(_inputString);
             }
-            //_sortRule = new BaseRule(new Interval(1,1), new ParserRuleContext(), "ERROR"  );
-            //_sortRule = GetMainRule(_inputString);
-            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
-
         }
 
         private void GetTree(string queryText, MySqlParserBaseListener listener)
@@ -175,7 +171,7 @@ namespace MySQL_Clear_standart
                 _sortRule = GetMainRule(_inputString);
             }
 
-            _queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
+            //_queryDB = CreateSubDatabase(_dbName, _listener.TableNames.ToArray(), _listener.ColumnNames.ToArray(), _listener.RemoveCounterColumsNames.ToArray());
 
         }
 
@@ -406,259 +402,100 @@ namespace MySQL_Clear_standart
             }
             return output;
         }
-    
-        private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, string[] tableNames,
-            string[] columnNames)
+
+        private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, MainListener listener)
         {
             DataBaseStructure subDataBase;
-            List<TableStructure> tmpTables = new List<TableStructure>();
-            List<ColumnStructure> tmpColumns;
-            string[] inputColumnNames = columnNames.Distinct().ToArray();
-            string[] inputTableNames = tableNames.Distinct().ToArray();
+            List<TableStructure> inputMainTables = new List<TableStructure>();
+            List<ColumnStructure> notSubColumns = new List<ColumnStructure>();
 
-
-            foreach (TableStructure fullTable in fullDataBase.Tables)
+            foreach (ColumnStructure subColumn in listener.SubColumns)
             {
-                foreach ( ColumnStructure fullColumn in fullTable.Columns)
+                foreach (TableStructure subTable in listener.SubTables) 
                 {
-                    foreach (var subColumn in columnNames)
+                    foreach (TableStructure fullTable in fullDataBase.Tables)
                     {
-                        if (fullColumn.Name == subColumn)
+                        if (fullTable.Name == subTable.Name)
                         {
-                            fullColumn.UsageCounter++;
-                        }
-                    }
-                }
-            }
-            
-            foreach (TableStructure fullTable in fullDataBase.Tables)
-            {
-                foreach (string subTableName in inputTableNames)
-                {
-                    if (subTableName == fullTable.Name)
-                    {
-                        tmpTables.Add(new TableStructure(fullTable));
-                        break;
-                    }
-                }
-            }
-            
-            foreach (TableStructure tmpTable in tmpTables)
-            {
-                tmpColumns = new List<ColumnStructure>();
-                foreach (ColumnStructure tmpTableColumn in tmpTable.Columns)
-                {
-                    foreach (string subColumnName in inputColumnNames)
-                    {
-                        if (subColumnName == tmpTableColumn.Name)
-                        {
-                            tmpColumns.Add(tmpTableColumn);
-                            break;
-                            
+                            foreach (ColumnStructure fullColumn in fullTable.Columns)
+                            {
+                                if (fullColumn.Name == subColumn.Name && subTable.DotedId == subColumn.DotTableId)
+                                {
+                                    subColumn.UsageCounter++;
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
 
-                tmpTable.Columns = tmpColumns.ToArray();
+                if (subColumn.UsageCounter > 0)
+                {
+                    subColumn.UsageCounter = 0;
+                }
+                else
+                {
+                    notSubColumns.Add(subColumn);
+                }
             }
-            
-            subDataBase = new DataBaseStructure("sub_" + fullDataBase.Name ,tmpTables.ToArray(), fullDataBase.Types);
+
+            foreach (TableStructure mainTable in listener.MainTables)
+            {
+                List<ColumnStructure> tmpColumns = new List<ColumnStructure>();
+                TableStructure tmpTable;
+                foreach (TableStructure fullTable in fullDataBase.Tables)
+                {
+                    if (mainTable.Name == fullTable.Name)
+                    {
+                        
+                        foreach (ColumnStructure fullColumn in fullTable.Columns)
+                        {
+                            ColumnStructure tmpColumn = new ColumnStructure(fullColumn);
+                            tmpColumn.SoureInterval = new List<Interval>();
+
+                            foreach (ColumnStructure mainColumn in listener.MainColumns)
+                            {
+                                if (fullColumn.Name == mainColumn.Name && mainColumn.DotTableId == mainTable.DotedId)
+                                {
+                                    tmpColumn.DotTableId = mainColumn.DotTableId;
+                                    tmpColumn.SoureInterval.AddRange(mainColumn.SoureInterval);
+                                    tmpColumn.UsageCounter++;
+                                }
+                            }
+
+                            foreach (ColumnStructure notSubColumn in notSubColumns)
+                            {
+                                if (fullColumn.Name == notSubColumn.Name && notSubColumn.DotTableId == mainTable.DotedId)
+                                {
+                                    tmpColumn.DotTableId = notSubColumn.DotTableId;
+                                    tmpColumn.SoureInterval.AddRange(notSubColumn.SoureInterval);
+                                    tmpColumn.UsageCounter++;
+                                }
+                            }
+
+                            if (tmpColumn.UsageCounter > 0)
+                            {
+                                tmpColumns.Add(tmpColumn);
+                            }
+                        }
+
+                        if (tmpColumns.Count > 0)
+                        {
+                            tmpTable = new TableStructure(fullTable);
+                            tmpTable.DotedId = mainTable.DotedId;
+                            tmpTable.SourceInterval = mainTable.SourceInterval;
+                            tmpTable.Columns = tmpColumns.ToArray();
+                            inputMainTables.Add(tmpTable);
+                        }
+                    }
+                }
+            }
+
+
+            subDataBase = new DataBaseStructure("sub_" + listener.Depth + "_" + fullDataBase.Name, inputMainTables.ToArray(), fullDataBase.Types);
             return subDataBase;
         }
 
-        private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, TableStructure[] tableNames,
-            string[] columnNames, string[] removeCounterColumnNames)
-        {
-            DataBaseStructure subDataBase;
-            List<TableStructure> tmpTables = new List<TableStructure>();
-            List<ColumnStructure> tmpColumns;
-            string[] inputColumnNames = columnNames.Distinct().ToArray();
-            TableStructure[] inputTableNames = tableNames.Distinct().ToArray();
-
-
-            foreach (TableStructure fullTable in fullDataBase.Tables)
-            {
-                foreach (ColumnStructure fullColumn in fullTable.Columns)
-                {
-                    foreach (var subColumn in columnNames)
-                    {
-                        if (fullColumn.Name == subColumn)
-                        {
-                            fullColumn.UsageCounter++;
-                        }
-                    }
-                }
-            }
-
-            foreach (TableStructure fullTable in fullDataBase.Tables)
-            {
-                foreach (ColumnStructure fullColumn in fullTable.Columns)
-                {
-                    foreach (var removeColumnName in removeCounterColumnNames)
-                    {
-                        if (fullColumn.Name == removeColumnName)
-                        {
-                            fullColumn.UsageCounter--;
-                        }
-                    }
-                }
-            }
-
-
-            foreach (TableStructure fullTable in fullDataBase.Tables)
-            {
-                foreach (TableStructure subTableName in inputTableNames)
-                {
-                    if (subTableName.Name == fullTable.Name)
-                    {
-                        fullTable.SourceInterval = subTableName.SourceInterval;
-                        tmpTables.Add(new TableStructure(fullTable));
-                        break;
-                    }
-                }
-            }
-
-            foreach (TableStructure tmpTable in tmpTables)
-            {
-                tmpColumns = new List<ColumnStructure>();
-                foreach (ColumnStructure tmpTableColumn in tmpTable.Columns)
-                {
-                    foreach (string subColumnName in inputColumnNames)
-                    {
-                        if (subColumnName == tmpTableColumn.Name)
-                        {
-                            tmpColumns.Add(tmpTableColumn);
-                            break;
-
-                        }
-                    }
-                }
-
-                tmpTable.Columns = tmpColumns.ToArray();
-            }
-
-            subDataBase = new DataBaseStructure("sub_" + fullDataBase.Name, tmpTables.ToArray(), fullDataBase.Types);
-            return subDataBase;
-        }
-
-        private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, string[] tableNames,
-            ColumnStructure[] columnNames)
-        {
-            DataBaseStructure subDataBase;
-            List<TableStructure> tmpTables = new List<TableStructure>();
-            List<ColumnStructure> tmpColumns;
-            ColumnStructure[] inputColumnNames = columnNames.Distinct().ToArray();
-            string[] inputTableNames = tableNames.Distinct().ToArray();
-
-
-            foreach (TableStructure fullTable in fullDataBase.Tables)
-            {
-                foreach ( ColumnStructure fullColumn in fullTable.Columns)
-                {
-                    foreach (var subColumn in columnNames)
-                    {
-                        if (fullColumn.Name == subColumn.Name)
-                        {
-                            fullColumn.UsageCounter++;
-                        }
-                    }
-                }
-            }
-            
-            foreach (TableStructure fullTable in fullDataBase.Tables)
-            {
-                foreach (string subTableName in inputTableNames)
-                {
-                    if (subTableName == fullTable.Name)
-                    {
-                        tmpTables.Add(new TableStructure(fullTable));
-                        break;
-                    }
-                }
-            }
-            
-            foreach (TableStructure tmpTable in tmpTables)
-            {
-                tmpColumns = new List<ColumnStructure>();
-                foreach (ColumnStructure tmpTableColumn in tmpTable.Columns)
-                {
-                    foreach (ColumnStructure subColumn in inputColumnNames)
-                    {
-                        if (subColumn.Name == tmpTableColumn.Name)
-                        {
-                            tmpColumns.Add(tmpTableColumn);
-                            break;
-                            
-                        }
-                    }
-                }
-
-                tmpTable.Columns = tmpColumns.ToArray();
-            }
-            
-            subDataBase = new DataBaseStructure("sub_" + fullDataBase.Name ,tmpTables.ToArray(), fullDataBase.Types);
-            return subDataBase;
-        }
-
-        private DataBaseStructure CreateSubDatabase(DataBaseStructure fullDataBase, TableStructure[] tableNames,
-            ColumnStructure[] columnNames)
-        {
-            DataBaseStructure subDataBase;
-            List<TableStructure> tmpTables = new List<TableStructure>();
-            List<ColumnStructure> tmpColumns;
-            ColumnStructure[] inputColumnNames = columnNames.Distinct().ToArray();
-            TableStructure[] inputTableNames = tableNames.Distinct().ToArray();
-
-
-            foreach (TableStructure fullTable in fullDataBase.Tables)
-            {
-                foreach (ColumnStructure fullColumn in fullTable.Columns)
-                {
-                    foreach (var subColumn in columnNames)
-                    {
-                        if (fullColumn.Name == subColumn.Name)
-                        {
-                            fullColumn.UsageCounter++;
-                        }
-                    }
-                }
-            }
-
-            foreach (TableStructure fullTable in fullDataBase.Tables)
-            {
-                foreach (TableStructure subTableName in inputTableNames)
-                {
-                    if (subTableName.Name == fullTable.Name)
-                    {
-                        fullTable.SourceInterval = subTableName.SourceInterval;
-                        tmpTables.Add(new TableStructure(fullTable));
-                        break;
-                    }
-                }
-            }
-
-            foreach (TableStructure tmpTable in tmpTables)
-            {
-                tmpColumns = new List<ColumnStructure>();
-                foreach (ColumnStructure tmpTableColumn in tmpTable.Columns)
-                {
-                    foreach (ColumnStructure subColumn in inputColumnNames)
-                    {
-                        if (subColumn.Name == tmpTableColumn.Name)
-                        {
-                            tmpColumns.Add(tmpTableColumn);
-                            break;
-
-                        }
-                    }
-                }
-
-                tmpTable.Columns = tmpColumns.ToArray();
-            }
-
-            subDataBase = new DataBaseStructure("sub_" + fullDataBase.Name, tmpTables.ToArray(), fullDataBase.Types);
-            return subDataBase;
-        }
 
         #endregion
 
@@ -738,6 +575,40 @@ namespace MySQL_Clear_standart
                             asStructure.AsRightColumn.Size = type.Size;
                             asStructure.AsRightColumn.TypeID = type.ID;
                         }
+                    }
+                }
+
+                if (asStructure.AggregateFunctionName != null)
+                {
+                    if (asStructure.AggregateFunctionName.ToLower() == "extract")
+                    {
+                        S_Type tmpType = null;
+                        foreach (S_Type type in dataBase.Types)
+                        {
+                            if (type.Name == "INT")
+                            {
+                                tmpType = type;
+                                break;
+
+                            }
+                        }
+
+                        if (tmpType == null)
+                        {
+                            tmpType = new S_Type("INT", 6, (dataBase.Types.Length + 1).ToString());
+                            List<S_Type> tmpTypes = new List<S_Type>();
+                            foreach (S_Type type in dataBase.Types)
+                            {
+                                tmpTypes.Add(type);
+                            }
+
+                            tmpTypes.Add(tmpType);
+                            dataBase.Types = tmpTypes.ToArray();
+                        }
+
+                        asStructure.AsRightColumn.Type = tmpType;
+                        asStructure.AsRightColumn.Size = tmpType.Size;
+                        asStructure.AsRightColumn.TypeID = tmpType.ID;
                     }
                 }
             }
@@ -827,12 +698,12 @@ namespace MySQL_Clear_standart
                 {
                     foreach (ColumnStructure column in table.Columns)
                     {
-                        if (join.LeftColumnString == column.Name)
+                        if (join.LeftColumnString == column.Name  || join.LeftColumnString.Replace(".","") == column.DotTableId + column.Name)
                         {
                             join.LeftColumn = column;
                             foreach (SelectStructure select in selectQueries)
                             {
-                                if (select.TableName == table.Name)
+                                if (select.TableName == table.Name && select.InputTable.DotedId == table.DotedId)
                                 {
                                     join.LeftSelect = select;
                                     break;
@@ -848,12 +719,12 @@ namespace MySQL_Clear_standart
                 {
                     foreach (ColumnStructure column in table.Columns)
                     {
-                        if (join.RightColumnString == column.Name)
+                        if (join.RightColumnString == column.Name || join.RightColumnString.Replace(".", "") == column.DotTableId + column.Name)
                         {
                             join.RightColumn = column;
                             foreach (SelectStructure select in selectQueries)
                             {
-                                if (select.TableName == table.Name)
+                                if (select.TableName == table.Name && select.InputTable.DotedId == table.DotedId)
                                 {
                                     join.RightSelect = select;
                                     break;
@@ -1155,8 +1026,9 @@ namespace MySQL_Clear_standart
         
         private SelectStructure[] MakeSelect(DataBaseStructure dataBase, MainListener listener)
         {
-            SetIsForSelectFlags(dataBase, listener.SelectColumnNames);
-            SelectStructure[] selectQueries = new SelectStructure[dataBase.Tables.Length];
+            DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
+            SetIsForSelectFlags(queryDB, listener.SelectColumnNames);
+            SelectStructure[] selectQueries = new SelectStructure[queryDB.Tables.Length];
             List<WhereStructure> tmpWhere = new List<WhereStructure>();
             
             foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
@@ -1168,15 +1040,15 @@ namespace MySQL_Clear_standart
                 }
             }
 
-            FindeWhereStructureTable(tmpWhere, dataBase);
-            FillAsStructures(dataBase, listener.AsList);
-            FillLikeStructures(dataBase, listener.LkeList);
+            FindeWhereStructureTable(tmpWhere, queryDB);
+            FillAsStructures(queryDB, listener.AsList);
+            FillLikeStructures(queryDB, listener.LkeList);
 
-            for (var i = 0; i < dataBase.Tables.Length; i++)
+            for (var i = 0; i < queryDB.Tables.Length; i++)
             {
-                selectQueries[i] = new SelectStructure("S_" + listener.Depth + "_" + i, dataBase.Tables[i],
-                    GetCorrectWhereStructure(tmpWhere, dataBase.Tables[i].Name),
-                    GetCorrectAsStructures(listener.AsList, dataBase.Tables[i]), _sortRule
+                selectQueries[i] = new SelectStructure("S_" + listener.Depth + "_" + i, queryDB.Tables[i],
+                    GetCorrectWhereStructure(tmpWhere, queryDB.Tables[i].Name),
+                    GetCorrectAsStructures(listener.AsList, queryDB.Tables[i]), _sortRule
                     );
             }
             foreach (SelectStructure select in selectQueries)
@@ -1197,6 +1069,7 @@ namespace MySQL_Clear_standart
         
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects)
         {
+            DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
             foreach (var binary in listener.Binaries) 
             {
@@ -1208,7 +1081,7 @@ namespace MySQL_Clear_standart
             }
             JoinStructure[] joinQueries = tmpJoins.ToArray();
             SelectStructure[] selectQueries = selects;
-            FillJoins(joinQueries.ToList(), dataBase, selectQueries.ToList());
+            FillJoins(joinQueries.ToList(), queryDB, selectQueries.ToList());
           
             List<JoinStructure> tmpList = new List<JoinStructure>();
             foreach (JoinStructure join in joinQueries)
@@ -1241,16 +1114,10 @@ namespace MySQL_Clear_standart
             JoinStructure[] subJoins;
             if (_listener.SubQueryListeners.Count != 0)
             {
-                DataBaseStructure subQDB = CreateSubDatabase(_dbName,
-                    _listener.SubQueryListeners[0].TableNames.ToArray(),
-                    _listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                    _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
-                    subSelects =
-                        MakeSelect(subQDB, subQlistener);
-
-                    _subJoinQuery = MakeJoin(subQDB, subQlistener, subSelects).ToList();
+                    subSelects = MakeSelect(dataBase, subQlistener);
+                    _subJoinQuery = MakeJoin(dataBase, subQlistener, subSelects).ToList();
                 }
 
             }
@@ -1327,6 +1194,7 @@ namespace MySQL_Clear_standart
         
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects, string left, string right)
         {
+            DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
             foreach (var binary in listener.Binaries) 
             {
@@ -1338,7 +1206,7 @@ namespace MySQL_Clear_standart
             }
             JoinStructure[] joinQueries = tmpJoins.ToArray();
             SelectStructure[] selectQueries = selects;
-            FillJoins(joinQueries.ToList(), dataBase, selectQueries.ToList());
+            FillJoins(joinQueries.ToList(), queryDB, selectQueries.ToList());
 
             List<JoinStructure> tmpList = new List<JoinStructure>();
             foreach (JoinStructure join in joinQueries)
@@ -1425,16 +1293,14 @@ namespace MySQL_Clear_standart
             //CreateScheme(sortQuery);
 
             #endregion
-            SelectStructure[] selects = MakeSelect(dataBase, listener);
+            DataBaseStructure qDB = CreateSubDatabase(dataBase, listener);
+            SelectStructure[] selects = MakeSelect(qDB, listener);
             SelectStructure[] subSelects;
-            JoinStructure[] joins = MakeJoin(dataBase, listener, selects);
+            JoinStructure[] joins = MakeJoin(qDB, listener, selects);
             JoinStructure[] subJoins;
             if (_listener.SubQueryListeners.Count != 0)
             {
-                DataBaseStructure subQDB = CreateSubDatabase(_dbName,
-                    _listener.SubQueryListeners[0].TableNames.ToArray(),
-                    _listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                    _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
+                DataBaseStructure subQDB = CreateSubDatabase(dataBase,listener.SubQueryListeners[0]);
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
                     subSelects =
@@ -1628,7 +1494,7 @@ namespace MySQL_Clear_standart
             _output = tmpSortStructure.Output;
             _output += Environment.NewLine + "/////////////////////////////////////////////" + Environment.NewLine;
             //_output += ShowDataBase(tmpSortStructure.OutDataBase);
-            //_output += tmpSortStructure.CreateTableColumnNames;
+            _output += tmpSortStructure.CreateTableColumnNames;
             textBox_tab1_Query.Text = _output;
         }
         
@@ -1642,7 +1508,7 @@ namespace MySQL_Clear_standart
             
             textBox_tab2_SelectResult.Clear();
             GetTree( textBox_tab2_Query.Text);
-            _selectQuery = MakeSelect(_queryDB, _listener);
+            _selectQuery = MakeSelect(_dbName, _listener);
             for (int i = 0; i < _selectQuery.Length; i++)
             {
                 textBox_tab2_SelectResult.Text += "\r\n=======" + _selectQuery[i].Name + "=========\r\n";
@@ -1651,15 +1517,11 @@ namespace MySQL_Clear_standart
 
             if (_listener.SubQueryListeners.Count != 0)
             {
-                DataBaseStructure subQDB = CreateSubDatabase(_dbName,
-                    _listener.SubQueryListeners[0].TableNames.ToArray(),
-                    _listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                    _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
                 textBox_tab2_SelectResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
                     _subSelectQuery =
-                        MakeSelect(subQDB, subQlistener);
+                        MakeSelect(_dbName, subQlistener);
                 }
 
                 foreach (SelectStructure subSelect in _subSelectQuery)
@@ -1674,7 +1536,7 @@ namespace MySQL_Clear_standart
         {
             GetTree(textBox_tab2_Query.Text);
             _joinQuery =
-                MakeJoin(_queryDB, _listener, MakeSelect(_queryDB, _listener)).ToList();
+                MakeJoin(_dbName, _listener, MakeSelect(_dbName, _listener)).ToList();
             textBox_tab2_JoinResult.Clear();
             foreach (var join in _joinQuery)
             {
@@ -1685,12 +1547,7 @@ namespace MySQL_Clear_standart
                 textBox_tab2_JoinResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
-                    DataBaseStructure subQDB = CreateSubDatabase(_dbName,
-                        subQlistener.TableNames.ToArray(),
-                        subQlistener.ColumnNames.ToArray(),
-                        subQlistener.RemoveCounterColumsNames.ToArray());
-                    _subJoinQuery = MakeJoin(subQDB, subQlistener, MakeSelect(subQDB, subQlistener)).ToList();
-                    
+                    _subJoinQuery = MakeJoin(_dbName, subQlistener, MakeSelect(_dbName, subQlistener)).ToList();
                 }
 
                 foreach (var join in _subJoinQuery)
@@ -1703,9 +1560,7 @@ namespace MySQL_Clear_standart
         private void btn_CreateSort_Click(object sender, EventArgs e)
         {
             GetTree(textBox_tab2_Query.Text);
-            _sortRule.Text += ";";
-            NewSortStructure sortQ = MakeSort(_queryDB, _listener, _sortRule);
-            //_sortRule.IsRealised = true;
+            NewSortStructure sortQ = MakeSort(_dbName, _listener, _sortRule);
             textBox_tab2_SortResult.Text = sortQ.Output;
         }
         
@@ -1715,23 +1570,22 @@ namespace MySQL_Clear_standart
             SelectStructure[] selectQ, subSelectQ;
             JoinStructure[] joinQ, subJoinQ;
             NewSortStructure sortQ;
+            if (_connectionIP == null)
+            {
+                _connectionIP = comboBox_tab2_IP.Text;
+            }
             if (checkBox_Tab2_ClusterXNEnable.Checked)
             {
-                selectQ = MakeSelect(_queryDB, _listener);
-                joinQ = MakeJoin(_queryDB, _listener, selectQ, Constants.LeftRelationNameTag,
+                selectQ = MakeSelect(_dbName, _listener);
+                joinQ = MakeJoin(_dbName, _listener, selectQ, Constants.LeftRelationNameTag,
                     Constants.RightRelationNameTag);
-                sortQ = MakeSort(_queryDB, _listener, _sortRule, Constants.RelationNameTag);
+                sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
 
                 if (_listener.SubQueryListeners.Count > 0)
                 {
-                    DataBaseStructure subQDB = CreateSubDatabase(_dbName,
-                        _listener.SubQueryListeners[0].TableNames.ToArray(),
-                        _listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                        _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
-                        subSelectQ = MakeSelect(subQDB, _listener.SubQueryListeners[0]); //Добавить foreach
-                        subJoinQ = MakeJoin(subQDB, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
-                    
-                    sortQ = MakeSort(_queryDB, _listener, _sortRule, Constants.RelationNameTag);
+                    subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
+                        subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
+                        sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
                 }
                 else
                 {
@@ -1741,22 +1595,18 @@ namespace MySQL_Clear_standart
             }
             else
             {
-                selectQ = MakeSelect(_queryDB, _listener);
-                joinQ = MakeJoin(_queryDB, _listener, selectQ);
+                selectQ = MakeSelect(_dbName, _listener);
+                joinQ = MakeJoin(_dbName, _listener, selectQ);
                 
                 if (_listener.SubQueryListeners.Count > 0)
                 {
-                    DataBaseStructure subQDB = CreateSubDatabase(_dbName,
-                        _listener.SubQueryListeners[0].TableNames.ToArray(),
-                        _listener.SubQueryListeners[0].ColumnNames.ToArray(),
-                        _listener.SubQueryListeners[0].RemoveCounterColumsNames.ToArray());
-                        subSelectQ = MakeSelect(subQDB, _listener.SubQueryListeners[0]); //Добавить foreach
-                        subJoinQ = MakeJoin(subQDB, _listener.SubQueryListeners[0], subSelectQ);
-                        sortQ = MakeSort(_queryDB, _listener, _sortRule);
+                    subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
+                    subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ);
+                    sortQ = MakeSort(_dbName, _listener, _sortRule);
                 }
                 else
                 {
-                    sortQ = MakeSort(_queryDB, _listener, _sortRule);
+                    sortQ = MakeSort(_dbName, _listener, _sortRule);
                     subSelectQ = null;
                     subJoinQ = null;
                 }
@@ -1854,13 +1704,13 @@ namespace MySQL_Clear_standart
                     connectJoins[i] = joinQ[i];
                 }
             }
-            //if(checkBox_Tab2_ClusterXNEnable.Checked)
-            //    if (subJoinQ != null)
-            //        TryConnect(connectJoins, sortQ, subJoinQ.Length - 1, _connectionIP);
-            //    else
-            //    {
-            //        TryConnect(connectJoins,sortQ,-1, _connectionIP);
-            //    }
+            if (checkBox_Tab2_ClusterXNEnable.Checked)
+                if (subJoinQ != null)
+                    TryConnect(connectJoins, sortQ, subJoinQ.Length - 1, _connectionIP);
+                else
+                {
+                    TryConnect(connectJoins, sortQ, -1, _connectionIP);
+                }
         }
 
         private void btn_SelectQuerry_tab2_Click(object sender, EventArgs e)

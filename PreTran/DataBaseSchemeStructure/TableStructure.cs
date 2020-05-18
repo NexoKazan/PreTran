@@ -28,6 +28,7 @@ namespace PreTran.DataBaseSchemeStructure
         private ColumnStructure[] _columns;
         private string _name;
         private string _shortName;
+        private string _dotedID;
         private Interval _sourceInterval;
 
         public TableStructure() { }
@@ -54,6 +55,7 @@ namespace PreTran.DataBaseSchemeStructure
             _name = mainTable.Name;
             _shortName = mainTable.ShortName;
             _sourceInterval = mainTable.SourceInterval;
+            _dotedID = mainTable.DotedId;
         }
 
         [XmlArray]
@@ -83,6 +85,13 @@ namespace PreTran.DataBaseSchemeStructure
         {
             get => _sourceInterval;
             set => _sourceInterval = value;
+        }
+
+        [XmlIgnore]
+        public string DotedId
+        {
+            get => _dotedID;
+            set => _dotedID = value;
         }
     }
 }

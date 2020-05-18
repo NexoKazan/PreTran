@@ -14,7 +14,7 @@ namespace PreTran.TestClasses.Rules
     {
         private FullColumnNameListener _listener = new FullColumnNameListener();
         private string _text;
-        private bool _isRealised = false;
+        //private bool _isRealised = false;
 
         public FullColumnName(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
         {
@@ -28,7 +28,7 @@ namespace PreTran.TestClasses.Rules
         {
             get
             {
-                if (!_isRealised)
+                if (!IsRealised)
                 {
                     if (Rules.Count > 0)
                     {
@@ -66,7 +66,7 @@ namespace PreTran.TestClasses.Rules
             }
             set
             {
-                if (!_isRealised)
+                if (!IsRealised)
                 {
                     _text = value;
                 }

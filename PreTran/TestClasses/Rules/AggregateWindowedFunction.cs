@@ -12,6 +12,8 @@ namespace PreTran.TestClasses.Rules
 {
     class AggregateWindowedFunction : BaseRule
     {
+        private bool _isRealised = false;
+        private string _text;
         private AggregateWindowedFunctionListener _listener = new AggregateWindowedFunctionListener();
 
         public AggregateWindowedFunction(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
@@ -19,10 +21,57 @@ namespace PreTran.TestClasses.Rules
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             Rules = _listener.Rules;
-            foreach (BaseRule rule in Rules)
+            _text = text;
+        }
+
+        public override string Text
+        {
+            get
             {
-                rule.Text += "";
+                if (!_isRealised)
+                {
+                    if (Rules.Count > 0)
+                    {
+                        _text = "";
+                        if (Rules.Count > 1)
+                        {
+                            foreach (var baseRule in Rules)
+                            {
+                                if (baseRule != Rules.Last())
+                                {
+                                    _text += baseRule.Text;
+                                }
+                                else
+                                {
+                                    _text += baseRule.Text;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _text += Rules[0].Text;
+                        }
+
+                        return _text;
+                    }
+                    else
+                    {
+                        return _text;
+                    }
+                }
+                else
+                {
+                    return _text;
+                }
             }
+            set
+            {
+                if (!_isRealised)
+                {
+                    _text = value;
+                }
+            }
+
         }
     }
 }

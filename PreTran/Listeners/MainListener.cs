@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
@@ -43,12 +44,19 @@ namespace PreTran.Listeners
         public string _return = "Return:\r\n";
         private string _subSelectFunction;
         private IVocabulary _vocabulary;
-        private List<string> _columnNames = new List<string>();
-        private List<TableStructure> _tableNames = new List<TableStructure>();
+
+        //private List<string> _columnNames = new List<string>();
+        //private List<TableStructure> _tableNames = new List<TableStructure>();
         private List<string> _selectColumnNames = new List<string>();
-        private List<string> _groupByColumnsNames = new List<string>();
-        private List<string> _removeCounterColumsNames = new List<string>();
-        private List<ColumnStructure> _columns = new List<ColumnStructure>();
+        //private List<string> _groupByColumnsNames = new List<string>();
+        //private List<string> _removeCounterColumsNames = new List<string>();
+        //private List<ColumnStructure> _columns = new List<ColumnStructure>();
+        
+        private List<ColumnStructure> _mainColumns = new List<ColumnStructure>();
+        private List<ColumnStructure> _subColumns = new List<ColumnStructure>();
+        private List<TableStructure> _mainTables = new List<TableStructure>();
+        private List<TableStructure> _subTables = new List<TableStructure>();
+
         private List<LikeStructure> _likeList = new List<LikeStructure>();
         private List<AsStructure> _asList = new List<AsStructure>();
         private List<OrderByStructure> _orderByList = new List<OrderByStructure>();   
@@ -81,14 +89,24 @@ namespace PreTran.Listeners
             set { _vocabulary = value; }
         }
 
-        public List<string> ColumnNames
+        public List<ColumnStructure> MainColumns
         {
-            get { return _columnNames; }
+            get { return _mainColumns; }
         }
 
-        public List<TableStructure> TableNames
+        public List<ColumnStructure> SubColumns
         {
-            get { return _tableNames; }
+            get { return _subColumns; }
+        }
+
+        public List<TableStructure> MainTables
+        {
+            get { return _mainTables; }
+        }
+
+        public List<TableStructure> SubTables
+        {
+            get { return _subTables; }
         }
 
         public List<string> SelectColumnNames
@@ -101,11 +119,11 @@ namespace PreTran.Listeners
             get { return _binaries; }
         }
 
-        public List<string> GroupByColumnsNames
-        {
-            get { return _groupByColumnsNames; }
-            set { _groupByColumnsNames = value; }
-        }
+        //public List<string> GroupByColumnsNames
+        //{
+        //    get { return _groupByColumnsNames; }
+        //    set { _groupByColumnsNames = value; }
+        //}
 
         public List<AsStructure> AsList
         {
@@ -134,26 +152,59 @@ namespace PreTran.Listeners
 
         internal List<BaseRule> BaseRules { get => _baseRules; set => _baseRules = value; }
 
-        public List<string> RemoveCounterColumsNames
-        {
-            get => _removeCounterColumsNames;
-            set => _removeCounterColumsNames = value;
-        }
+        //public List<string> RemoveCounterColumsNames
+        //{
+        //    get => _removeCounterColumsNames;
+        //    set => _removeCounterColumsNames = value;
+        //}
 
         #endregion
 
         public override void EnterFullColumnName([NotNull] MySqlParser.FullColumnNameContext context)
         {
-            if (context.ChildCount < 2)
+            if (_tmpDepth == _depth)
             {
-                _columnNames.Add(context.GetText());
-                //возможно не нужно.
-                _columns.Add(new ColumnStructure(context.GetText(), context.SourceInterval));
+                if (context.ChildCount < 2)
+                {
+                    //_columnNames.Add(context.GetText());
+                    //возможно не нужно.
+                    List<Interval> tmp = new List<Interval>();
+                    tmp.Add(context.SourceInterval);
+                    _mainColumns.Add(new ColumnStructure(context.GetText(), tmp));
+                }
+                else
+                {
+                    string columnName = context.children[1].GetText();
+                    columnName = columnName.Remove(0, 1);
+                    List<Interval> tmp = new List<Interval>();
+                    tmp.Add(context.SourceInterval);
+                    ColumnStructure tmpColumn = new ColumnStructure(columnName, tmp);
+                    tmpColumn.DotTableId = context.children[0].GetText();
+                    //_columnNames.Add(columnName);
+                    //возможно не нужно.
+                    _mainColumns.Add(tmpColumn);
+                }
             }
-
-            if (_tmpDepth != _depth && context.ChildCount < 2)
+            else
             {
-                _removeCounterColumsNames.Add(context.GetText());
+                if (context.ChildCount < 2)
+                {
+                    List<Interval> tmp = new List<Interval>();
+                    tmp.Add(context.SourceInterval);
+                    _subColumns.Add(new ColumnStructure(context.GetText(), tmp));
+                }
+                else
+                {
+                    string columnName = context.children[1].GetText();
+                    columnName = columnName.Remove(0, 1);
+                    List<Interval> tmp = new List<Interval>();
+                    tmp.Add(context.SourceInterval);
+                    ColumnStructure tmpColumn = new ColumnStructure(columnName, tmp);
+                    tmpColumn.DotTableId = context.children[0].GetText();
+                    //_columnNames.Add(columnName);
+                    //возможно не нужно.
+                    _subColumns.Add(tmpColumn);
+                }
             }
         }
 
@@ -177,9 +228,38 @@ namespace PreTran.Listeners
             {
                 if (context.ChildCount < 2)
                 {
-                    _tableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
+                    MainTables.Add(new TableStructure(context.GetText(), context.SourceInterval));
+                }
+                else
+                {
+                    TableStructure tmpTable = new TableStructure(context.children[0].GetText(), context.SourceInterval);
+                    tmpTable.DotedId = context.children.Last().GetText();
+                    MainTables.Add(tmpTable);
                 }
             }
+            else
+            {
+                if (context.ChildCount < 2)
+                {
+                    SubTables.Add(new TableStructure(context.GetText(), context.SourceInterval));
+                }
+                else
+                {
+                    TableStructure tmpTable = new TableStructure(context.children[0].GetText(), context.children[0].SourceInterval);
+                    tmpTable.DotedId = context.children.Last().GetText();
+                    SubTables.Add(tmpTable);
+                }
+            }
+
+            //if (context.ChildCount < 2)
+            //{
+            //    _tableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
+            //}
+            //else
+            //{
+            //    _tableNames.Add(new TableStructure(context.children[0].GetText(), context.children[0].SourceInterval));
+            //}
+
         }
 
         public override void EnterSelectFunctionElement([NotNull] MySqlParser.SelectFunctionElementContext context)
@@ -202,6 +282,25 @@ namespace PreTran.Listeners
            
         }
 
+        public override void EnterSelectExpressionElement(MySqlParser.SelectExpressionElementContext context)
+        {
+            if (_depth == _tmpDepth)
+            {
+                if (context.AS() != null)
+                {
+                    AsListener asl = new AsListener();
+                    ParseTreeWalker wlk = new ParseTreeWalker();
+                    wlk.Walk(asl, context);
+                    AsList.Add(new AsStructure(asl.AsColumnList, asl._output, asl._functionOutput,
+                        context.uid().GetText(), asl._functionName, context.SourceInterval));
+                }
+                else
+                {
+                    _subSelectFunction = context.GetText();
+                }
+            }
+        }
+
         public override void EnterBinaryComparasionPredicate([NotNull] MySqlParser.BinaryComparasionPredicateContext context)
         {
             if (!_caseBlock && !_outerJoinBlock)
@@ -219,8 +318,9 @@ namespace PreTran.Listeners
                     }
 
                     if (context.GetChild(2).GetChild(0).GetType().ToString()
-                            .Contains("FullColumnNameExpressionAtomContext") &&
-                        context.GetChild(2).GetChild(0).GetChild(0).ChildCount < 2)
+                            .Contains("FullColumnNameExpressionAtomContext"))
+                        //&&
+                        //context.GetChild(2).GetChild(0).GetChild(0).ChildCount < 2)
                     {
                         tmpBinary.Type = 2;
                     }
@@ -240,10 +340,10 @@ namespace PreTran.Listeners
         
         public override void EnterGroupByItem([NotNull] MySqlParser.GroupByItemContext context)
         {
-            if (_depth == _tmpDepth)
-            {
-                GroupByColumnsNames.Add(context.GetText());
-            }
+            //if (_depth == _tmpDepth)
+            //{
+            //    GroupByColumnsNames.Add(context.GetText());
+            //}
         }
 
         public override void EnterOrderByExpression([NotNull] MySqlParser.OrderByExpressionContext context)
