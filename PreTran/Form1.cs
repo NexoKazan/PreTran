@@ -1117,7 +1117,7 @@ namespace MySQL_Clear_standart
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
                     subSelects = MakeSelect(dataBase, subQlistener);
-                    _subJoinQuery = MakeJoin(dataBase, subQlistener, subSelects).ToList();
+                    subJoins = MakeJoin(dataBase, subQlistener, subSelects);
                 }
 
             }
@@ -1306,11 +1306,23 @@ namespace MySQL_Clear_standart
                     subSelects =
                         MakeSelect(subQDB, subQlistener);
 
-                    _subJoinQuery = MakeJoin(subQDB, subQlistener, subSelects).ToList();
+                    subJoins = MakeJoin(subQDB, subQlistener, subSelects);
                 }
 
             }
+            //List<BaseRule> fromList = sortRule.GetRulesByType("tablesourcebase");
+            //foreach (BaseRule rule in sortRule.GetRulesByType("tablesourcebase"))
+            //{
+            //    if (rule.Text != "")
+            //    {
+            //        rule.IsRealised = false;
+            //        rule.Text = tag;
+            //        rule.IsRealised = true;
+            //    }
+            //}
+           
             NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase, tag);
+
             CreateScheme(sortQuery);
             return sortQuery;
         }
@@ -1537,6 +1549,7 @@ namespace MySQL_Clear_standart
             GetTree(textBox_tab2_Query.Text);
             _joinQuery =
                 MakeJoin(_dbName, _listener, MakeSelect(_dbName, _listener)).ToList();
+
             textBox_tab2_JoinResult.Clear();
             foreach (var join in _joinQuery)
             {
@@ -1579,19 +1592,19 @@ namespace MySQL_Clear_standart
                 selectQ = MakeSelect(_dbName, _listener);
                 joinQ = MakeJoin(_dbName, _listener, selectQ, Constants.LeftRelationNameTag,
                     Constants.RightRelationNameTag);
-                sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
 
                 if (_listener.SubQueryListeners.Count > 0)
                 {
                     subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
                         subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
-                        sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
                 }
                 else
                 {
                     subSelectQ = null;
                     subJoinQ = null;
                 }
+
+                sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
             }
             else
             {
@@ -1612,7 +1625,7 @@ namespace MySQL_Clear_standart
                 }
             }
 
-            string dropSyntax =Environment.NewLine + "DROP TABLE {0};" + Environment.NewLine;
+            string dropSyntax = Environment.NewLine + "DROP TABLE {0};" + Environment.NewLine;
             string createTableSyntax = "CREATE TABLE {0} (\r\n{1} {2} ) ENGINE=MEMORY\r\n\r\n";
             string createIndexSyntax = ",\r\n INDEX {0} ( {2} ) \r\n\r\n";
             string querSyntax = "{0}\r\n";
@@ -1704,13 +1717,32 @@ namespace MySQL_Clear_standart
                     connectJoins[i] = joinQ[i];
                 }
             }
+
             if (checkBox_Tab2_ClusterXNEnable.Checked)
-                if (subJoinQ != null)
-                    TryConnect(connectJoins, sortQ, subJoinQ.Length - 1, _connectionIP);
+            {
+                if (connectJoins.Length > 0)
+                {
+                    if (subJoinQ != null)
+                    {
+                        TryConnect(connectJoins, sortQ, subJoinQ.Length - 1, _connectionIP);
+                    }
+                    else
+                    {
+                        TryConnect(connectJoins, sortQ, -1, _connectionIP);
+                    }
+                }
                 else
                 {
-                    TryConnect(connectJoins, sortQ, -1, _connectionIP);
+                    List<SelectStructure> cSelects = new List<SelectStructure>();
+                    cSelects.AddRange(selectQ);
+                    if (subSelectQ != null)
+                    {
+                        cSelects.AddRange(subSelectQ);
+                    }
+
+                    TryConnect(cSelects.ToArray(), sortQ, _connectionIP);
                 }
+            }
         }
 
         private void btn_SelectQuerry_tab2_Click(object sender, EventArgs e)
@@ -1746,7 +1778,8 @@ namespace MySQL_Clear_standart
 
         private void TryConnect(JoinStructure[] joinQ, NewSortStructure sortQ, int subJoinIndex, string address)
         {
-            QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text));
+            QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text) - 1);
+            bool isNoMainjoin = joinQ.Length == subJoinIndex + 1;
 
             var c_join = new JoinQuery[joinQ.Length];
 
@@ -1771,7 +1804,7 @@ namespace MySQL_Clear_standart
                     qb.AddSelectQuery(select2);
 
                     leftRelation = qb.CreateRelation(
-                        select2, "a",//joinQ[index].LeftSelect.Name,
+                        select2,"a", //joinQ[index].LeftSelect.Name,
                         qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                                 .ToList(),
@@ -1794,7 +1827,7 @@ namespace MySQL_Clear_standart
                 {
                     rightRelation =
                         qb.CreateRelation(
-                            select,"a",//joinQ[index].RightSelect.Name,
+                            select, "b", //joinQ[index].RightSelect.Name,
                             qb.CreateRelationSchema(joinQ[index].RightSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                                     .ToList(),
@@ -1811,7 +1844,7 @@ namespace MySQL_Clear_standart
                 {
                     rightRelation =
                         qb.CreateRelation(
-                            select, "a",//joinQ[index].LeftSelect.Name,
+                            select, "c", //joinQ[index].LeftSelect.Name,
                             qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                                     .ToList(),
@@ -1832,29 +1865,67 @@ namespace MySQL_Clear_standart
                             joinQ[index].OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
                             joinQ[index].IndexColumnName != null ? new List<Index>()
-                                {new Index() {FieldNames = new List<string>() {joinQ[index].IndexColumnName}, Name = $"INDEX_{joinQ[index].IndexColumnName}"}} : 
+                                    {new Index() {FieldNames = new List<string>() {joinQ[index].IndexColumnName}, Name = $"INDEX_{joinQ[index].IndexColumnName}"}} : 
                                 new List<Index>()), 0,
                         leftRelation, rightRelation));
             }
 
+            string resultSelect = "SELECT";
+            if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
+            {
+                foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
+                {
+                    if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
+                    {
+                        resultSelect += column.Name + ", ";
+                    }
+                    else
+                    {
+                        resultSelect += column.Name;
+                    }
+                }
+            }
+            else
+            {
+                resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
+            }
+
+            //resultSelect += "FROM" + Constants.RelationNameTag + ";";
+            resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
             if (subJoinIndex > -1) //ПАЧИНИТЬ
             {
-                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
-                            .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
+
+                if (!isNoMainjoin)
+                {
+                    
+                    qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                                .Columns
+                                .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
+                                .ToList(),
+                            new List<Index>()
+                            {
+                            }), 0, resultSelect, qb.CreateRelation(c_join.Last()),
+                        qb.CreateRelation(c_join[subJoinIndex])));
+                }
+                else
+                {
+                    qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                            .Columns
+                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
                             .ToList(),
                         new List<Index>()
                         {
-                        }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", qb.CreateRelation(c_join.Last()),
-                    qb.CreateRelation(c_join[subJoinIndex])));
+                        }), 0, resultSelect , qb.CreateRelation(c_join[subJoinIndex])));
+                }
             }
             else
             {
                 qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
-                            .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                            .ToList(),
-                        new List<Index>()
-                        {
-                        }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", qb.CreateRelation(c_join.Last())));
+                        .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
+                        .ToList(),
+                    new List<Index>()
+                    {
+                    }), 0, resultSelect, qb.CreateRelation(c_join.Last())));
             
             }
 
@@ -1877,7 +1948,57 @@ namespace MySQL_Clear_standart
             Console.WriteLine(debug);
         }
 
+        private void TryConnect(SelectStructure[] selectQ, NewSortStructure sortQ, string address)
+        {
+            QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text) - 1);
+            List<Relation> relations = new List<Relation>();
+            foreach (SelectStructure select in selectQ)
+            {
+                var cSelect = new SelectQuery();
+                cSelect = qb.CreateSelectQuery(select.Output, 0);
+                qb.AddSelectQuery(cSelect);
+                
+                var cRelation = qb.CreateRelation(cSelect, select.Name,
+                    qb.CreateRelationSchema(
+                        select.OutColumn.Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
+                        new List<Index>()));
 
+                relations.Add(cRelation);
+            }
+
+            qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                        .Columns
+                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                        .ToList(),
+                    new List<Index>()
+                    {
+                    }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", relations.ToArray() ));
+
+            //qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+            //            .Columns
+            //            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+            //            .ToList(),
+            //        new List<Index>()
+            //        {
+            //        }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", qb.CreateRelation(c_join.Last()),
+            //    qb.CreateRelation(c_join[subJoinIndex])));
+
+            var query = qb.GetQuery();
+            query.Save(query.Number + ".xml");
+
+            var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
+            clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
+        }
+
+        private void TryConnect(SelectStructure[] selects, SelectStructure[] subSelects, JoinStructure[] joins, JoinStructure[] subJoins, string address)
+        {
+            QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text) - 1);
+
+            foreach (SelectStructure select in selects)
+            {
+
+            }
+        }
 
         #endregion
 

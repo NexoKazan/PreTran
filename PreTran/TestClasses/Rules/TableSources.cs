@@ -13,7 +13,7 @@ namespace PreTran.TestClasses.Rules
     class TableSources :BaseRule
     {
         private TableSourcesListener _listener = new TableSourcesListener();
-        private bool _isRealised = false;
+        
         private string _text;
 
         public TableSources(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context,
@@ -29,7 +29,7 @@ namespace PreTran.TestClasses.Rules
         {
             get
             {
-                if (!_isRealised)
+                if (!IsRealised)
                 {
                     if (Rules.Count > 0)
                     {
@@ -49,7 +49,7 @@ namespace PreTran.TestClasses.Rules
 
                             if (Rules[0].Text == ",")
                             {
-                                //Rules[0].IsRealised = false;
+                                Rules[0].IsRealised = false;
                                 Rules[0].Text = "";
                                 Rules[0].IsRealised = true;
                             }
@@ -103,10 +103,14 @@ namespace PreTran.TestClasses.Rules
             }
             set
             {
-                if (!_isRealised)
+                if (!IsRealised)
                 {
                     _text = value;
-                    _isRealised = true;
+                    if (Rules.Count == 1)
+                    {
+                        Rules[0].Text = value;
+                        Rules[0].IsRealised = true;
+                    }
                 }
             }
 

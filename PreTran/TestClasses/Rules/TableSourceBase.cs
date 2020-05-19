@@ -13,7 +13,6 @@ namespace PreTran.TestClasses.Rules
     class TableSourceBase : BaseRule
     {
         TableSourceBaseListener _listener = new TableSourceBaseListener();
-        private bool _isRealised = false;
         private string _text;
 
         public TableSourceBase(Interval ruleInterval, ParserRuleContext context, string text) : base(ruleInterval, context, text)
@@ -22,10 +21,56 @@ namespace PreTran.TestClasses.Rules
             walker.Walk(_listener, context);
             Rules = _listener.Rules;
             _text = text;
-            foreach (var rule in Rules)
+        }
+
+        public override string Text
+        {
+            get
             {
-                rule.Text += " ";
+                if (!IsRealised)
+                {
+                    if (Rules.Count > 0)
+                    {
+                        _text = "";
+                        if (Rules.Count > 1)
+                        {
+                            foreach (var baseRule in Rules)
+                            {
+                                if (baseRule != Rules.Last())
+                                {
+                                    _text += baseRule.Text + DivideSym;
+                                }
+                                else
+                                {
+                                    _text += baseRule.Text;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _text += Rules[0].Text;
+                        }
+
+                        return _text;
+                    }
+                    else
+                    {
+                        return _text;
+                    }
+                }
+                else
+                {
+                    return _text;
+                }
             }
+            set
+            {
+                if (!IsRealised)
+                {
+                    _text = value;
+                }
+            }
+
         }
     }
 }

@@ -14,6 +14,7 @@ namespace PreTran.Q_Structures
     {
         private string _name;
         private string _createTableColumnNames;
+        private string _output = "error";
         private DataBaseStructure _inDataBase;
         private DataBaseStructure _outDataBase;
         private BaseRule _sortRule;
@@ -115,6 +116,8 @@ namespace PreTran.Q_Structures
             //        Console.WriteLine(tmpName);
             //    }
             //}
+            _sortRule.IsRealised = false;
+            _output = _sortRule.Text;
         }
 
         public NewSortStructure(string name, BaseRule sortRule, DataBaseStructure fullDataBase, string tag)
@@ -219,6 +222,9 @@ namespace PreTran.Q_Structures
                     rule.IsRealised = true;
                 }
             }
+
+            _sortRule.IsRealised = false;
+            _output = _sortRule.Text;
         }
 
         public DataBaseStructure OutDataBase
@@ -228,7 +234,7 @@ namespace PreTran.Q_Structures
 
         public string Output
         {
-            get { return _sortRule.Text; }
+            get { return _output; }
         }
 
         public string CreateTableColumnNames => _createTableColumnNames;
