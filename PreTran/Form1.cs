@@ -1198,7 +1198,7 @@ namespace MySQL_Clear_standart
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
             foreach (var binary in listener.Binaries) 
             {
-                if (binary.Type == 2)
+                if (binary.Type == 2 && binary.ComparisionSymphol == "=")
                 {
                     JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
                     tmpJoins.Add(tmp);
@@ -1211,7 +1211,8 @@ namespace MySQL_Clear_standart
             List<JoinStructure> tmpList = new List<JoinStructure>();
             foreach (JoinStructure join in joinQueries)
             {
-                if (join.LeftColumn!=null)
+                join.CheckIsFilled();
+                if (join.IsFilled)
                 {
                    tmpList.Add(join);
                 }
@@ -1549,7 +1550,7 @@ namespace MySQL_Clear_standart
             GetTree(textBox_tab2_Query.Text);
             _joinQuery =
                 MakeJoin(_dbName, _listener, MakeSelect(_dbName, _listener)).ToList();
-
+            List<JoinStructure> subJoin = new List<JoinStructure>();
             textBox_tab2_JoinResult.Clear();
             foreach (var join in _joinQuery)
             {
@@ -1560,10 +1561,10 @@ namespace MySQL_Clear_standart
                 textBox_tab2_JoinResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
-                    _subJoinQuery = MakeJoin(_dbName, subQlistener, MakeSelect(_dbName, subQlistener)).ToList();
+                    subJoin = MakeJoin(_dbName, subQlistener, MakeSelect(_dbName, subQlistener)).ToList();
                 }
 
-                foreach (var join in _subJoinQuery)
+                foreach (var join in subJoin)
                 {
                     textBox_tab2_JoinResult.Text += "\r\n========" + join.Name + "========\r\n" + join.Output + "\r\n";
                 }
@@ -1788,7 +1789,15 @@ namespace MySQL_Clear_standart
                 var select = new SelectQuery();
                 if (!joinQ[index].Switched)
                 {
-                    select = qb.CreateSelectQuery(joinQ[index].RightSelect.Output, 0);
+                    if (joinQ[index].RightSelect != null)
+                    {
+                        select = qb.CreateSelectQuery(joinQ[index].RightSelect.Output, 0);
+                    }
+                    else
+                    {
+                       // select.;
+
+                    }
                 }
                 else
                 {
@@ -1807,7 +1816,7 @@ namespace MySQL_Clear_standart
                         select2,"a", //joinQ[index].LeftSelect.Name,
                         qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                .ToList(),
+                                .ToList(), joinQ[index].LeftSelect.IndexColumnName != null ?
                             new List<Index>()
                             {
                                 new Index()
@@ -1815,7 +1824,7 @@ namespace MySQL_Clear_standart
                                     FieldNames = new List<string>() {joinQ[index].LeftSelect.IndexColumnName},
                                     Name = $"INDEX_{joinQ[index].LeftSelect.IndexColumnName}"
                                 }
-                            }));
+                            }: new List<Index>()));
 
                 }
                 else
@@ -1825,20 +1834,30 @@ namespace MySQL_Clear_standart
                 var rightRelation = new Relation();
                 if (!joinQ[index].Switched)
                 {
-                    rightRelation =
-                        qb.CreateRelation(
-                            select, "b", //joinQ[index].RightSelect.Name,
-                            qb.CreateRelationSchema(joinQ[index].RightSelect.OutTable.Columns
+                    if (joinQ[index].RightSelect != null)
+                    {
+                        rightRelation =
+                            qb.CreateRelation(
+                                select, "b", //joinQ[index].RightSelect.Name,
+                                qb.CreateRelationSchema(joinQ[index].RightSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                    .ToList(),
-                                new List<Index>()
-                                {
-                                    new Index()
+                                    .ToList(), joinQ[index].RightSelect.IndexColumnName != null
+                                    ? new List<Index>()
                                     {
-                                        FieldNames = new List<string>() {joinQ[index].RightSelect.IndexColumnName},
-                                        Name = $"INDEX_{joinQ[index].RightSelect.IndexColumnName}"
+                                        new Index()
+                                        {
+                                            FieldNames = new List<string>()
+                                                {joinQ[index].RightSelect.IndexColumnName},
+                                            Name = $"INDEX_{joinQ[index].RightSelect.IndexColumnName}"
+                                        }
                                     }
-                                }));
+                                    : new List<Index>()));
+                    }
+                    else
+                    {
+                        rightRelation.IsEmpty = true;
+                        rightRelation = qb.CreateEmptyRelation();
+                    }
                 }
                 else
                 {
@@ -1847,7 +1866,7 @@ namespace MySQL_Clear_standart
                             select, "c", //joinQ[index].LeftSelect.Name,
                             qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                    .ToList(),
+                                    .ToList(), joinQ[index].LeftSelect.IndexColumnName != null ?
                                 new List<Index>()
                                 {
                                     new Index()
@@ -1855,7 +1874,7 @@ namespace MySQL_Clear_standart
                                         FieldNames = new List<string>() {joinQ[index].LeftSelect.IndexColumnName},
                                         Name = $"INDEX_{joinQ[index].LeftSelect.IndexColumnName}"
                                     }
-                                }));
+                                } : new  List<Index>()));
                 }
                 
 
@@ -1870,7 +1889,7 @@ namespace MySQL_Clear_standart
                         leftRelation, rightRelation));
             }
 
-            string resultSelect = "SELECT";
+            string resultSelect = "SELECT ";
             if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
             {
                 foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
@@ -1890,8 +1909,8 @@ namespace MySQL_Clear_standart
                 resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
             }
 
-            //resultSelect += "FROM" + Constants.RelationNameTag + ";";
-            resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
+            resultSelect += " FROM " + Constants.RelationNameTag + ";";
+            //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
             if (subJoinIndex > -1) //ПАЧИНИТЬ
             {
 

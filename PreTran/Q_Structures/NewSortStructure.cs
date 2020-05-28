@@ -117,7 +117,7 @@ namespace PreTran.Q_Structures
             //    }
             //}
             _sortRule.IsRealised = false;
-            _output = _sortRule.Text;
+            _output = _sortRule.Text + ";";
         }
 
         public NewSortStructure(string name, BaseRule sortRule, DataBaseStructure fullDataBase, string tag)
@@ -211,8 +211,8 @@ namespace PreTran.Q_Structures
                     _createTableColumnNames += ",\r\n";
                 }
             }
-            
-            List<BaseRule> fromList = _sortRule.GetRulesByType("tablesourcebase");
+
+            List<BaseRule> fromList = _sortRule.GetRulesByType("atomtableitem");
             foreach (BaseRule rule in fromList)
             {
                 if (rule.Text != "")
@@ -224,7 +224,7 @@ namespace PreTran.Q_Structures
             }
 
             _sortRule.IsRealised = false;
-            _output = _sortRule.Text;
+            _output = _sortRule.Text + ";";
         }
 
         public DataBaseStructure OutDataBase

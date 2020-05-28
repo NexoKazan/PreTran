@@ -749,53 +749,53 @@ namespace PreTran.Q_Structures
             {
                 if (_leftJoin.LeftSelect != null)
                 {
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).IsRealised =
+                    _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval,"atomtableitem").IsRealised =
                         false;
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).Text = "";
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).IsRealised = true;
+                    _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                    _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
                 }
 
                 if (_leftJoin.RightSelect != null)
                 {
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).IsRealised =
+                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
                         false;
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).Text = "";
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).IsRealised =
+                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
                         true;
                 }
             }
 
             if (_leftSelect != null)
             {
-                _sortRule.GetRuleBySourceInterval(_leftSelect.InputTable.SourceInterval).IsRealised = false;
-                _sortRule.GetRuleBySourceInterval(_leftSelect.InputTable.SourceInterval).Text = "";
-                _sortRule.GetRuleBySourceInterval(_leftSelect.InputTable.SourceInterval).IsRealised = true;
+                _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
             }
             if (_rightSelect != null)
             {
-                _sortRule.GetRuleBySourceInterval(_rightSelect.InputTable.SourceInterval).IsRealised = false;
-                _sortRule.GetRuleBySourceInterval(_rightSelect.InputTable.SourceInterval).Text = _name;
-                _sortRule.GetRuleBySourceInterval(_rightSelect.InputTable.SourceInterval).IsRealised = true;
+                _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
+                _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
             }
 
             if (_leftJoin != null &&  _rightSelect == null && _leftSelect == null)
             {
                 if (_leftJoin.RightSelect != null)
                 {
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).IsRealised =
+                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
                         false;
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).Text = _name;
-                    _sortRule.GetRuleBySourceInterval(_leftJoin.RightSelect.InputTable.SourceInterval).IsRealised =
+                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
+                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
                         true;
                 }
                 else
                 {
                     if (_leftJoin.LeftSelect != null)
                     {
-                        _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).IsRealised =
+                        _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
                             false;
-                        _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).Text = _name;
-                        _sortRule.GetRuleBySourceInterval(_leftJoin.LeftSelect.InputTable.SourceInterval).IsRealised =
+                        _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
+                        _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
                             true;
                     }
                 }

@@ -170,6 +170,27 @@ namespace PreTran
             return outRule;
         }
 
+        public BaseRule GetRule(Interval sourceInterval, string ruleType)
+        {
+            BaseRule outRule = new BaseRule(sourceInterval, Context, "ERROR");
+            if (_sourceInterval.a == sourceInterval.a && _sourceInterval.b == sourceInterval.b && _ruleType == ruleType)
+            {
+                outRule = this;
+            }
+            else
+            {
+                foreach (BaseRule rule in Rules)
+                {
+                    if (rule.SourceInterval.a <= sourceInterval.a && rule.SourceInterval.b >= sourceInterval.b)
+                    {
+                        outRule = rule.GetRule(sourceInterval, ruleType);
+                    }
+                }
+            }
+
+            return outRule;
+        }
+
         public virtual bool CheckRealize()
         {
             bool output = true;

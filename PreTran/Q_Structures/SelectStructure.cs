@@ -216,11 +216,10 @@ namespace PreTran.Q_Structures
 
             _output += "\r\n" + "FROM " + "\r\n\t" + _tableName + "\r\n" ;
 
-            BaseRule tmp = _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval);
-            
-            _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
-            _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).Text = _name;
-            _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = true;
+            BaseRule tableRule = _sortRule.GetRule(_inputTable.SourceInterval, "atomtableitem");
+            tableRule.IsRealised = false;
+            tableRule.Text = _name;
+            tableRule.IsRealised = true;
 
             if (_whereList.Count != 0 || _likeList != null)
             {

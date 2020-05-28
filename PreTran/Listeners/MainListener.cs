@@ -33,7 +33,9 @@ namespace PreTran.Listeners
 {
     class MainListener : MySqlParserBaseListener
     {
-        
+
+        #region Переменные
+
         private int _depth;
         private int _tmpDepth;
         private int _id;
@@ -63,7 +65,9 @@ namespace PreTran.Listeners
         private List<MainListener> _subQueryListeners = new List<MainListener>();
         private List<BaseRule> _baseRules = new List<BaseRule>();
         private List<BinaryComparisionPredicateStructure> _binaries = new List<BinaryComparisionPredicateStructure>();
-       
+        
+
+        #endregion
         public MainListener(int depth)
         {
             _tmpDepth = depth;
@@ -208,14 +212,6 @@ namespace PreTran.Listeners
             }
         }
 
-        public override void EnterTableName([NotNull] MySqlParser.TableNameContext context)
-        {
-            //if (_depth == _tmpDepth)
-            //{
-            //    _tableNames.Add(new TableStructure(context.GetText(), context.SourceInterval));
-            //}
-        }
-
         public override void EnterSelectColumnElement([NotNull] MySqlParser.SelectColumnElementContext context)
         {
             if(_depth == _tmpDepth)
@@ -338,14 +334,6 @@ namespace PreTran.Listeners
             }
         }
         
-        public override void EnterGroupByItem([NotNull] MySqlParser.GroupByItemContext context)
-        {
-            //if (_depth == _tmpDepth)
-            //{
-            //    GroupByColumnsNames.Add(context.GetText());
-            //}
-        }
-
         public override void EnterOrderByExpression([NotNull] MySqlParser.OrderByExpressionContext context)
         {
             if (_depth == _tmpDepth)
@@ -364,21 +352,6 @@ namespace PreTran.Listeners
             }
             
         }
-
-        //public override void EnterSubqueryExpessionAtom([NotNull] MySqlParser.SubqueryExpessionAtomContext context)
-        //{
-        //    _depth++;
-        //    MainListener tmpSubListener = new MainListener(_depth);
-        //    tmpSubListener.ID = _id;
-        //    ParseTreeWalker walker = new ParseTreeWalker();
-        //    walker.Walk(tmpSubListener, context.selectStatement());
-        //    SubQueryListeners.Add(tmpSubListener);
-        //}
-
-        //public override void ExitSubqueryExpessionAtom([NotNull] MySqlParser.SubqueryExpessionAtomContext context)
-        //{
-        //    _depth--;
-        //}
 
         public override void EnterQuerySpecification(MySqlParser.QuerySpecificationContext context)
         {
