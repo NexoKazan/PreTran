@@ -468,11 +468,11 @@ namespace PreTran.Q_Structures
                     {
                         if (_notFilledJoin.LeftColumnString == column.Name)
                         {
-                            _join.IndexColumnName = column.Name;
+                            _join.IndexColumnNames.Add(column.Name);
                         }
                         else if(_notFilledJoin.RightColumnString == column.Name)
                         {
-                            _join.IndexColumnName = column.Name;
+                            _join.IndexColumnNames.Add(column.Name);
                         }
                     }
                 }
@@ -482,7 +482,7 @@ namespace PreTran.Q_Structures
                     {
                         if (column.IsPrimary == 1)
                         {
-                            _join.IndexColumnName = column.Name;
+                            _join.IndexColumnNames.Add(column.Name);
                         }
                     }
                 }
@@ -496,11 +496,11 @@ namespace PreTran.Q_Structures
                     {
                         if (_notFilledJoin.LeftColumnString == column.Name)
                         {
-                            _subJoin.IndexColumnName = column.Name;
+                            _subJoin.IndexColumnNames.Add(column.Name);
                         }
                         else if(_notFilledJoin.RightColumnString == column.Name)
                         {
-                            _subJoin.IndexColumnName = column.Name;
+                            _subJoin.IndexColumnNames.Add(column.Name);
                         }
                     }
                 }
@@ -510,7 +510,7 @@ namespace PreTran.Q_Structures
                     {
                         if (column.IsPrimary == 1)
                         {
-                            _subJoin.IndexColumnName = column.Name;
+                            _subJoin.IndexColumnNames.Add(column.Name);
                         }
                     }
                 }

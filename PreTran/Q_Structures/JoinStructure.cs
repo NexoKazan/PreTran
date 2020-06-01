@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms.VisualStyles;
 using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
@@ -33,7 +34,7 @@ namespace PreTran.Q_Structures
         private string _name;
         private string _output;
         private string _comparisonOperator;
-        private string _indexColumnName;
+        private List<string> _indexColumnNames = new List<string>();
         private string _createTableColumnNames;
         private bool _isFirst = false;
         private bool _switched = false;
@@ -77,10 +78,17 @@ namespace PreTran.Q_Structures
             get { return _rightColumnString; }
         }
 
-        public string IndexColumnName
+        public List<string> IndexColumnNames
         {
-            get { return _indexColumnName; }
-            set { _indexColumnName = value; }
+            get
+            {
+                if (_indexColumnNames.Count > 0)
+                {
+                    _indexColumnNames = _indexColumnNames.Distinct().ToList();
+                }
+                return _indexColumnNames;
+            }
+            set { _indexColumnNames = value; }
         }
 
         public string CreateTableColumnNames
@@ -616,12 +624,12 @@ namespace PreTran.Q_Structures
                 {
                     if (column.Name == LeftColumnString)
                     {
-                        _leftJoin.IndexColumnName = column.Name;
+                        _leftJoin.IndexColumnNames.Add(column.Name);
                     }
 
                     if (column.Name == RightColumnString)
                     {
-                        _leftJoin.IndexColumnName = column.Name;
+                        _leftJoin.IndexColumnNames.Add(column.Name);
                     }
 
                 }
@@ -634,13 +642,13 @@ namespace PreTran.Q_Structures
                         {
                             if (column.Name == LeftColumnString)
                             {
-                                _leftSelect.IndexColumnName = column.Name;
+                                _leftSelect.IndexColumnNames.Add(column.Name);
                             }
                             else
                             {
                                 if (column.Name == RightColumnString)
                                 {
-                                    _leftSelect.IndexColumnName = column.Name;
+                                    _leftSelect.IndexColumnNames.Add(column.Name);
                                 }
                             }
                         }
@@ -655,13 +663,13 @@ namespace PreTran.Q_Structures
                         {
                             if (column.Name == LeftColumnString)
                             {
-                                _rightSelect.IndexColumnName = column.Name;
+                                _rightSelect.IndexColumnNames.Add(column.Name);
                             }
                             else
                             {
                                 if (column.Name == RightColumnString)
                                 {
-                                    _rightSelect.IndexColumnName = column.Name;
+                                    _rightSelect.IndexColumnNames.Add(column.Name);
                                 }
                             }
                         }
@@ -676,13 +684,13 @@ namespace PreTran.Q_Structures
                     {
                         if (column.Name == LeftColumnString)
                         {
-                            _leftSelect.IndexColumnName = column.Name;
+                            _leftSelect.IndexColumnNames.Add(column.Name);
                         }
                         else
                         {
                             if (column.Name == RightColumnString)
                             {
-                                _leftSelect.IndexColumnName = column.Name;
+                                _leftSelect.IndexColumnNames.Add(column.Name);
                             }
                         }
                     }
@@ -696,17 +704,29 @@ namespace PreTran.Q_Structures
                     {
                         if (column.Name == LeftColumnString)
                         {
-                            _rightSelect.IndexColumnName = column.Name;
+                            _rightSelect.IndexColumnNames.Add(column.Name);
                         }
                         else
                         {
                             if (column.Name == RightColumnString)
                             {
-                                _rightSelect.IndexColumnName = column.Name;
+                                _rightSelect.IndexColumnNames.Add(column.Name);
                             }
                         }
                     }
 
+                }
+            }
+
+            if (_indexColumnNames.Count < 1)
+            {
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.IsPrimary > 0)
+                    {
+                        _indexColumnNames.Add(column.Name);
+                    }
+                    
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace PreTran.Q_Structures
         private string _name;
         private string _createTableColumnNames;
         private string _output = "error";
+        private List<string> _indexColumnName = new List<string>();
         private DataBaseStructure _inDataBase;
         private DataBaseStructure _outDataBase;
         private BaseRule _sortRule;
@@ -33,6 +35,7 @@ namespace PreTran.Q_Structures
             _asStructures = _listener.AsStructures;
             List<TableStructure> tmpTableList = new List<TableStructure>();
             List<ColumnStructure> tmpColumnList = new List<ColumnStructure>();
+            List<ColumnStructure> orderedColumnList = new List<ColumnStructure>();
             foreach (TableStructure inTable in _inDataBase.Tables)
             {
                
@@ -79,6 +82,19 @@ namespace PreTran.Q_Structures
                 }
             }
 
+            foreach (string orderColumn in _listener.SelectColumnsOrded)
+            {
+                foreach (ColumnStructure column in tmpColumnList)
+                {
+                    if (orderColumn == column.Name)
+                    {
+                        orderedColumnList.Add(column);
+                    }
+                }
+            }
+
+            tmpColumnList = orderedColumnList;
+
             if (tmpColumnList.Count > 0)
             {
                 tmpTableList.Add(new TableStructure("SORT_OUT_TABLE", tmpColumnList.ToArray()));
@@ -104,20 +120,10 @@ namespace PreTran.Q_Structures
                     _createTableColumnNames += ",\r\n";
                 }
             }
-            //List<BaseRule> columns = _sortRule.GetRulesByType("fullcolumnname");
-            //foreach (BaseRule rule in columns)
-            //{
-            //    if (rule.Rules.Count > 1)
-            //    {
-            //        string tmpName = rule.Text.Replace(".", "");
-            //        rule.IsRealised = false;
-            //        rule.Text = tmpName;
-            //        rule.IsRealised = true;
-            //        Console.WriteLine(tmpName);
-            //    }
-            //}
+
             _sortRule.IsRealised = false;
             _output = _sortRule.Text + ";";
+            SetIndexes();
         }
 
         public NewSortStructure(string name, BaseRule sortRule, DataBaseStructure fullDataBase, string tag)
@@ -132,6 +138,7 @@ namespace PreTran.Q_Structures
             _asStructures = _listener.AsStructures;
             List<TableStructure> tmpTableList = new List<TableStructure>();
             List<ColumnStructure> tmpColumnList = new List<ColumnStructure>();
+            List<ColumnStructure> orderedColumnList = new List<ColumnStructure>();
             foreach (TableStructure inTable in _inDataBase.Tables)
             {
 
@@ -185,6 +192,18 @@ namespace PreTran.Q_Structures
                 }
             }
 
+            foreach (string orderColumn in _listener.SelectColumnsOrded)
+            {
+                foreach (ColumnStructure column in tmpColumnList)
+                {
+                    if (orderColumn == column.Name)
+                    {
+                        orderedColumnList.Add(column);
+                    }
+                }
+            }
+
+            tmpColumnList = orderedColumnList;
 
             if (tmpColumnList.Count > 0)
             {
@@ -225,6 +244,21 @@ namespace PreTran.Q_Structures
 
             _sortRule.IsRealised = false;
             _output = _sortRule.Text + ";";
+            SetIndexes();
+        }
+
+        private void SetIndexes()
+        {
+            foreach (TableStructure table in _outDataBase.Tables)
+            {
+                foreach (ColumnStructure column in table.Columns)
+                {
+                    if (column.IsPrimary > 0)
+                    {
+                        _indexColumnName.Add(column.Name);
+                    }
+                }
+            }
         }
 
         public DataBaseStructure OutDataBase
@@ -240,5 +274,11 @@ namespace PreTran.Q_Structures
         public string CreateTableColumnNames => _createTableColumnNames;
 
         public string Name => _name;
+
+        public List<string> IndexColumnName
+        {
+            get => _indexColumnName;
+            set => _indexColumnName = value;
+        }
     }
 }

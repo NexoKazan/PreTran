@@ -1637,9 +1637,26 @@ namespace MySQL_Clear_standart
             {
                 testQuery.Append("\r\n -- ========" + select.Name + "=========\r\n");
                 //testQuery.Append(string.Format(dropSyntax, select.Name));
+
+                string index = "";
+                if (select.IndexColumnNames.Count > 0)
+                {
+                    foreach (string joinIndexColumnName in select.IndexColumnNames)
+                    {
+                        if (joinIndexColumnName != select.IndexColumnNames.Last())
+                        {
+                            index += joinIndexColumnName + ", ";
+                        }
+                        else
+                        {
+                            index += joinIndexColumnName;
+                        }
+                    }
+                }
+
                 testQuery.Append(string.Format(createTableSyntax, select.Name, select.CreateTableColumnNames,
-                    select.IndexColumnName != null ? 
-                    string.Format(createIndexSyntax, select.Name + "_INDEX", select.Name, select.IndexColumnName)
+                    select.IndexColumnNames.Count > 0 ? 
+                    string.Format(createIndexSyntax, select.Name + "_INDEX", select.Name, index)
                     : ""));
                 testQuery.Append(string.Format(querSyntax, select.Output));
                 //testQuery.Append(string.Format(createIndexSyntax, select.Name + "_INDEX", select.Name, select.IndexColumnName));
@@ -1649,10 +1666,25 @@ namespace MySQL_Clear_standart
             {
                 testQuery.Append("\r\n -- ========" + join.Name + "=========\r\n");
                // testQuery.Append(string.Format(dropSyntax, join.Name));
-                testQuery.Append(string.Format(createTableSyntax, join.Name, join.CreateTableColumnNames, 
-                    join.IndexColumnName != null ?
-                    string.Format(createIndexSyntax, join.Name + "_INDEX", join.Name,
-                        join.IndexColumnName) : " "));
+               string index = "";
+               if (join.IndexColumnNames.Count > 0)
+               {
+                   foreach (string joinIndexColumnName in join.IndexColumnNames)
+                   {
+                       if (joinIndexColumnName != join.IndexColumnNames.Last())
+                       {
+                           index += joinIndexColumnName + ", ";
+                       }
+                       else
+                       {
+                           index += joinIndexColumnName;
+                       }
+                   }
+               }
+
+               testQuery.Append(string.Format(createTableSyntax, join.Name, join.CreateTableColumnNames,
+                   string.Format(createIndexSyntax, join.Name + "_INDEX", join.Name,
+                       index)));
                 testQuery.Append(string.Format(querSyntax, join.Output));
 
                 dropBuilder.Append(string.Format(dropSyntax, join.Name));
@@ -1664,9 +1696,25 @@ namespace MySQL_Clear_standart
                 {
                     testQuery.Append("\r\n -- ========" + select.Name + "=========\r\n");
                     //testQuery.Append(string.Format(dropSyntax, select.Name));
+                    string index = "";
+                    if (select.IndexColumnNames.Count > 0)
+                    {
+                        foreach (string joinIndexColumnName in select.IndexColumnNames)
+                        {
+                            if (joinIndexColumnName != select.IndexColumnNames.Last())
+                            {
+                                index += joinIndexColumnName + ", ";
+                            }
+                            else
+                            {
+                                index += joinIndexColumnName;
+                            }
+                        }
+                    }
+
                     testQuery.Append(string.Format(createTableSyntax, select.Name, select.CreateTableColumnNames,
-                        select.IndexColumnName != null ? 
-                        string.Format(createIndexSyntax, select.Name + "_INDEX", select.Name, select.IndexColumnName)
+                        select.IndexColumnNames.Count > 0 ? 
+                        string.Format(createIndexSyntax, select.Name + "_INDEX", select.Name, index)
                         : ""));
                     testQuery.Append(string.Format(querSyntax, select.Output));
                     //testQuery.Append(string.Format(createIndexSyntax, select.Name + "_INDEX", select.Name, select.IndexColumnName));
@@ -1676,10 +1724,24 @@ namespace MySQL_Clear_standart
                 {
                     testQuery.Append("\r\n -- ========" + join.Name + "=========\r\n");
                     // testQuery.Append(string.Format(dropSyntax, join.Name));
-                    testQuery.Append(string.Format(createTableSyntax, join.Name, join.CreateTableColumnNames, 
-                        join.IndexColumnName != null ?
-                            string.Format(createIndexSyntax, join.Name + "_INDEX", join.Name,
-                                join.IndexColumnName) : " "));
+                    string index = "";
+                    if (join.IndexColumnNames.Count > 0)
+                    {
+                        foreach (string joinIndexColumnName in join.IndexColumnNames)
+                        {
+                            if (joinIndexColumnName != join.IndexColumnNames.Last())
+                            {
+                                index += joinIndexColumnName + ", ";
+                            }
+                            else
+                            {
+                                index += joinIndexColumnName;
+                            }
+                        }
+                    }
+                    testQuery.Append(string.Format(createTableSyntax, join.Name, join.CreateTableColumnNames,
+                        string.Format(createIndexSyntax, join.Name + "_INDEX", join.Name,
+                                index)));
                     testQuery.Append(string.Format(querSyntax, join.Output));
 
                     dropBuilder.Append(string.Format(dropSyntax, join.Name));
@@ -1735,11 +1797,13 @@ namespace MySQL_Clear_standart
                 else
                 {
                     List<SelectStructure> cSelects = new List<SelectStructure>();
+                    
                     cSelects.AddRange(selectQ);
                     if (subSelectQ != null)
                     {
                         cSelects.AddRange(subSelectQ);
                     }
+
 
                     TryConnect(cSelects.ToArray(), sortQ, _connectionIP);
                 }
@@ -1816,13 +1880,13 @@ namespace MySQL_Clear_standart
                         select2,"a", //joinQ[index].LeftSelect.Name,
                         qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                .ToList(), joinQ[index].LeftSelect.IndexColumnName != null ?
+                                .ToList(), joinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
                             new List<Index>()
                             {
                                 new Index()
                                 {
-                                    FieldNames = new List<string>() {joinQ[index].LeftSelect.IndexColumnName},
-                                    Name = $"INDEX_{joinQ[index].LeftSelect.IndexColumnName}"
+                                    FieldNames = joinQ[index].IndexColumnNames,
+                                    Name = $"INDEX_{joinQ[index].Name}"
                                 }
                             }: new List<Index>()));
 
@@ -1841,14 +1905,13 @@ namespace MySQL_Clear_standart
                                 select, "b", //joinQ[index].RightSelect.Name,
                                 qb.CreateRelationSchema(joinQ[index].RightSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                    .ToList(), joinQ[index].RightSelect.IndexColumnName != null
+                                    .ToList(), joinQ[index].RightSelect.IndexColumnNames.Count > 0
                                     ? new List<Index>()
                                     {
                                         new Index()
                                         {
-                                            FieldNames = new List<string>()
-                                                {joinQ[index].RightSelect.IndexColumnName},
-                                            Name = $"INDEX_{joinQ[index].RightSelect.IndexColumnName}"
+                                            FieldNames = joinQ[index].RightSelect.IndexColumnNames,
+                                            Name = $"INDEX_{joinQ[index].RightSelect.Name}"
                                         }
                                     }
                                     : new List<Index>()));
@@ -1866,13 +1929,13 @@ namespace MySQL_Clear_standart
                             select, "c", //joinQ[index].LeftSelect.Name,
                             qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                    .ToList(), joinQ[index].LeftSelect.IndexColumnName != null ?
+                                    .ToList(), joinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
                                 new List<Index>()
                                 {
                                     new Index()
                                     {
-                                        FieldNames = new List<string>() {joinQ[index].LeftSelect.IndexColumnName},
-                                        Name = $"INDEX_{joinQ[index].LeftSelect.IndexColumnName}"
+                                        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                                        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
                                     }
                                 } : new  List<Index>()));
                 }
@@ -1883,8 +1946,8 @@ namespace MySQL_Clear_standart
                         qb.CreateRelationSchema(
                             joinQ[index].OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
-                            joinQ[index].IndexColumnName != null ? new List<Index>()
-                                    {new Index() {FieldNames = new List<string>() {joinQ[index].IndexColumnName}, Name = $"INDEX_{joinQ[index].IndexColumnName}"}} : 
+                            joinQ[index].IndexColumnNames.Count > 0 ? new List<Index>()
+                                    {new Index() {FieldNames = joinQ[index].IndexColumnNames, Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"}} : 
                                 new List<Index>()), 0,
                         leftRelation, rightRelation));
             }
@@ -1985,13 +2048,36 @@ namespace MySQL_Clear_standart
                 relations.Add(cRelation);
             }
 
+            string resultSelect = "SELECT ";
+            if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
+            {
+                foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
+                {
+                    if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
+                    {
+                        resultSelect += column.Name + ", ";
+                    }
+                    else
+                    {
+                        resultSelect += column.Name;
+                    }
+                }
+            }
+            else
+            {
+                resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
+            }
+
+            resultSelect += " FROM " + Constants.RelationNameTag + ";";
+            //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
+
             qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
                         .Columns
                         .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
                         .ToList(),
                     new List<Index>()
                     {
-                    }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", relations.ToArray() ));
+                    }), 0, resultSelect, relations.ToArray() ));
 
             //qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
             //            .Columns

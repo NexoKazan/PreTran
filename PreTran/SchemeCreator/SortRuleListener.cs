@@ -17,6 +17,7 @@ namespace PreTran.Listeners
 
         private List<string> _selectColumnNames = new List<string>();
         private List<string> _selectAsRightColumns = new List<string>();
+        private List<string> _selectColumnsOrded = new List<string>();
 
         List<BaseRule> _asRules = new List<BaseRule>();
         private List<SchemeAsStructure> _asStructures = new List<SchemeAsStructure>();
@@ -43,6 +44,8 @@ namespace PreTran.Listeners
             get => _selectAsRightColumns;
         }
 
+        public List<string> SelectColumnsOrded => _selectColumnsOrded;
+
         #endregion
 
         public override void EnterEveryRule(ParserRuleContext context)
@@ -57,6 +60,7 @@ namespace PreTran.Listeners
                     if (_selectElementsFlag == 1)
                     {
                         _selectAsRightColumns.Add(context.children.Last().GetText());
+                        _selectColumnsOrded.Add(context.children.Last().GetText());
                     }
                 }
             }
@@ -69,12 +73,14 @@ namespace PreTran.Listeners
                 if (context.ChildCount == 1)
                 {
                     _selectColumnNames.Add(context.GetText());
+                    _selectColumnsOrded.Add(context.GetText());
                 }
                 else
                 {
                     string tmp = context.children[1].GetText();
                     tmp = tmp.Remove(0, 1);
                     _selectColumnNames.Add(tmp);
+                    _selectColumnsOrded.Add(tmp);
                 }
             }
         }

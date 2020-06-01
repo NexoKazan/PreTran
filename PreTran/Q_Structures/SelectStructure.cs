@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
@@ -33,7 +34,7 @@ namespace PreTran.Q_Structures
         private string _output = "error";
         private string _tableName;
         private static int _id = 0;
-        private string _indexColumnName = null;
+        private List<string> _indexColumnNames = new List<string>();
         private string _createTableColumnNames;
         private BaseRule _sortRule;
         private TableStructure _inputTable;
@@ -68,10 +69,17 @@ namespace PreTran.Q_Structures
             get { return _tableName; }
         }
 
-        public string IndexColumnName
+        public List<string> IndexColumnNames
         {
-            get { return _indexColumnName; }
-            set { _indexColumnName = value; }
+            get
+            {
+                if (_indexColumnNames.Count > 1)
+                {
+                    _indexColumnNames = _indexColumnNames.Distinct().ToList();
+                }
+                return _indexColumnNames;
+            }
+            set { _indexColumnNames = value; }
         }
 
         public string CreateTableColumnNames
@@ -278,6 +286,22 @@ namespace PreTran.Q_Structures
                         _sortRule.GetRuleBySourceInterval(sourceInterval).IsRealised = false;
                         _sortRule.GetRuleBySourceInterval(sourceInterval).Text = column.Name;
                         _sortRule.GetRuleBySourceInterval(sourceInterval).IsRealised = true;
+                    }
+                }
+            }
+
+            SetIndexes();
+        }
+
+        private void SetIndexes()
+        {
+            if (_indexColumnNames.Count < 1)
+            {
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.IsPrimary > 0)
+                    {
+                        _indexColumnNames.Add(column.Name);
                     }
                 }
             }
