@@ -2015,6 +2015,12 @@ namespace MySQL_Clear_standart
             var query = qb.GetQuery();
             query.Save(query.Number + ".xml");
 
+            #region Вывод ручных запросов
+
+            FillTextBoxWithHandQ(query);
+
+            #endregion
+           
             var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
             clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
 
@@ -2090,7 +2096,11 @@ namespace MySQL_Clear_standart
 
             var query = qb.GetQuery();
             query.Save(query.Number + ".xml");
+            #region Вывод ручных запросов
 
+            FillTextBoxWithHandQ(query);
+
+            #endregion
             var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
             clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
         }
@@ -2105,6 +2115,27 @@ namespace MySQL_Clear_standart
             }
         }
 
+        private void FillTextBoxWithHandQ(Query query)
+        {
+            textBox_tab2_SelectResult.Clear();
+            textBox_tab2_JoinResult.Clear();
+            textBox_tab2_SortResult.Clear();
+            for (var index = 0; index < query.SelectQueries.Count; index++)
+            {
+                var selectQuery = query.SelectQueries[index];
+                textBox_tab2_SelectResult.Text += "\r\n -- ======== S_" + index + "=========\r\n";
+                textBox_tab2_SelectResult.Text += selectQuery.Query;
+            }
+
+            for (var index = 0; index < query.JoinQueries.Count; index++)
+            {
+                var joinQuery = query.JoinQueries[index];
+                textBox_tab2_JoinResult.Text += "\r\n -- ======== J_" + index + "=========\r\n";
+                textBox_tab2_JoinResult.Text += joinQuery.Query;
+            }
+
+            textBox_tab2_SortResult.Text += query.SortQuery.Query;
+        }
         #endregion
 
         
