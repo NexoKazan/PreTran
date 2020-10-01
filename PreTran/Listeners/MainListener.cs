@@ -28,6 +28,7 @@ using PreTran.DataBaseSchemeStructure;
 using PreTran.Q_Part_Structures;
 using PreTran.TestClasses;
 using PreTran.TestClasses.Listeners;
+using PreTran.TestClasses.Rules;
 
 namespace PreTran.Listeners
 {
@@ -60,14 +61,16 @@ namespace PreTran.Listeners
         private List<TableStructure> _subTables = new List<TableStructure>();
 
         private List<LikeStructure> _likeList = new List<LikeStructure>();
+        private List<BetweenStructure> _betweenList = new List<BetweenStructure>();
         private List<AsStructure> _asList = new List<AsStructure>();
         private List<OrderByStructure> _orderByList = new List<OrderByStructure>();   
         private List<MainListener> _subQueryListeners = new List<MainListener>();
         private List<BaseRule> _baseRules = new List<BaseRule>();
         private List<BinaryComparisionPredicateStructure> _binaries = new List<BinaryComparisionPredicateStructure>();
-        
+
 
         #endregion
+
         public MainListener(int depth)
         {
             _tmpDepth = depth;
@@ -155,6 +158,8 @@ namespace PreTran.Listeners
         }
 
         internal List<BaseRule> BaseRules { get => _baseRules; set => _baseRules = value; }
+
+        public List<BetweenStructure> BetweenList => _betweenList;
 
         //public List<string> RemoveCounterColumsNames
         //{
@@ -379,6 +384,14 @@ namespace PreTran.Listeners
             }
         }
 
+        public override void EnterBetweenPredicate(MySqlParser.BetweenPredicateContext context)
+        {
+            if (_depth == _tmpDepth)
+            {
+                _betweenList.Add(new BetweenStructure(context.GetText(), context.Start.Text, context.SourceInterval, context));
+            }
+        }
+        
         public override void EnterLikePredicate([NotNull] MySqlParser.LikePredicateContext context)
         {
             if (!_caseBlock && !_outerJoinBlock)

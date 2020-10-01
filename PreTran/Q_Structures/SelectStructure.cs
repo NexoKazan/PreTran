@@ -41,16 +41,18 @@ namespace PreTran.Q_Structures
         private List<WhereStructure> _whereList;
         private List<AsStructure> _asList;
         private List<LikeStructure> _likeList;
+        private List<BetweenStructure> _betweenList;
         private TableStructure _outTable;
         private ColumnStructure[] _outColumn;
         
-        public SelectStructure(string name, TableStructure table, List<WhereStructure> whereList, List<AsStructure> asList, BaseRule sortRule)
+        public SelectStructure(string name, TableStructure table, List<WhereStructure> whereList, List<AsStructure> asList, BaseRule sortRule, List<BetweenStructure> betweenList)
         {
             _name = name;
             _tableName = table.Name;
             _inputTable = table;
             _whereList = whereList;
             _asList = asList;
+            _betweenList = betweenList;
             _sortRule = sortRule;
         }
 
@@ -229,7 +231,7 @@ namespace PreTran.Q_Structures
             tableRule.Text = _name;
             tableRule.IsRealised = true;
 
-            if (_whereList.Count != 0 || _likeList != null)
+            if (_whereList.Count != 0 || _likeList != null || _betweenList.Count > 0)
             {
                 _output += "WHERE ";
                 foreach (WhereStructure whereStructure in _whereList)
@@ -243,7 +245,7 @@ namespace PreTran.Q_Structures
                         
                     }
 
-                    if (whereStructure != _whereList.LastOrDefault() || (_likeList != null && _likeList.Count>0))
+                    if (whereStructure != _whereList.LastOrDefault() || (_likeList != null && _likeList.Count>0) || (_betweenList.Count > 0))
                     {
                         _output += " AND ";
                     }
@@ -257,7 +259,22 @@ namespace PreTran.Q_Structures
                         _sortRule.GetRuleBySourceInterval(like.SourceInterval).Text = "";
                         _sortRule.GetRuleBySourceInterval(like.SourceInterval).IsRealised = true;
                         _output += Environment.NewLine + "\t" + like.LeftColumn.Name + " LIKE " + like.RightExpression;
-                        if (like != _likeList.LastOrDefault())
+                        if (like != _likeList.LastOrDefault() || _betweenList.Count > 0)
+                        {
+                            _output += " AND ";
+                        }
+                    }
+                }
+
+                if (_betweenList.Count > 0)
+                {
+                    foreach (BetweenStructure betweenStructure in _betweenList)
+                    {
+                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
+                        _sortRule.GetRuleBySourceInterval(betweenStructure.SourceInterval).Text = "";
+                        _sortRule.GetRuleBySourceInterval(betweenStructure.SourceInterval).IsRealised = true;
+                        _output += Environment.NewLine + "\t" + betweenStructure.Text;
+                        if (betweenStructure != _betweenList.LastOrDefault() )
                         {
                             _output += " AND ";
                         }
@@ -327,6 +344,14 @@ namespace PreTran.Q_Structures
                 foreach (LikeStructure like in _likeList)
                 {
                     like.LeftColumn.UsageCounter--;
+                }
+            }
+
+            if (_betweenList.Count > 0)
+            {
+                foreach (BetweenStructure betweenStructure in _betweenList)
+                {
+                    betweenStructure.Column.UsageCounter--;
                 }
             }
 

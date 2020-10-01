@@ -17,9 +17,39 @@
  */
 #endregion
 
+using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
+using PreTran.DataBaseSchemeStructure;
+using PreTran.TestClasses.Rules;
+
 namespace PreTran.Q_Part_Structures
 {
     class BetweenStructure
     {
+        private string _text;
+        private string _columnName;
+
+        private Interval _sourceInterval;
+        private ColumnStructure _column;
+
+        public BetweenStructure(string text, string columnName, Interval sourceInterval, ParserRuleContext context)
+        {
+            BetweenPredicate tmpBetweenPredicate = new BetweenPredicate(sourceInterval, context, text);
+            _text = tmpBetweenPredicate.Text;
+            _columnName = columnName;
+            _sourceInterval = sourceInterval;
+        }
+
+        public ColumnStructure Column
+        {
+            get { return _column; }
+            set { _column = value; }
+        }
+
+        public string ColumnName => _columnName;
+
+        public Interval SourceInterval => _sourceInterval;
+
+        public string Text => _text;
     }
 }

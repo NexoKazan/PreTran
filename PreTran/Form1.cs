@@ -1048,7 +1048,7 @@ namespace MySQL_Clear_standart
             {
                 selectQueries[i] = new SelectStructure("S_" + listener.Depth + "_" + i, queryDB.Tables[i],
                     GetCorrectWhereStructure(tmpWhere, queryDB.Tables[i].Name),
-                    GetCorrectAsStructures(listener.AsList, queryDB.Tables[i]), _sortRule
+                    GetCorrectAsStructures(listener.AsList, queryDB.Tables[i]), _sortRule, GetCorrectBetweenList(listener.BetweenList, queryDB.Tables[i])
                     );
             }
             foreach (SelectStructure select in selectQueries)
@@ -1066,7 +1066,7 @@ namespace MySQL_Clear_standart
             CreateScheme(selectQueries);
             return selectQueries;
         }
-        
+
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects)
         {
             DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
@@ -1885,8 +1885,8 @@ namespace MySQL_Clear_standart
                             {
                                 new Index()
                                 {
-                                    FieldNames = joinQ[index].IndexColumnNames,
-                                    Name = $"INDEX_{joinQ[index].Name}"
+                                    FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                                    Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
                                 }
                             }: new List<Index>()));
 
@@ -2136,8 +2136,27 @@ namespace MySQL_Clear_standart
 
             textBox_tab2_SortResult.Text += query.SortQuery.Query;
         }
+
+        private List<BetweenStructure> GetCorrectBetweenList(List<BetweenStructure> listenerBetweenList, TableStructure queryDbTable)
+        {
+            List<BetweenStructure> tmpList = new List<BetweenStructure>();
+            foreach (ColumnStructure column in queryDbTable.Columns)
+            {
+                foreach (BetweenStructure betweenStructure in listenerBetweenList)
+                {
+                    if (column.Name == betweenStructure.ColumnName)
+                    {
+                        betweenStructure.Column = column;
+                        tmpList.Add(betweenStructure);
+                    }
+                }
+            }
+
+            return tmpList;
+        }
+
         #endregion
 
-        
+
     }
 }
