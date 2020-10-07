@@ -687,7 +687,7 @@ namespace MySQL_Clear_standart
         #region Методы для Join
 
         //"Филл Джонс"
-        private void FillJoins(List<JoinStructure> joinList, DataBaseStructure dataBase,
+        private List<JoinStructure> FillJoins(List<JoinStructure> joinList, DataBaseStructure dataBase,
             List<SelectStructure> selectQueries)
         {
             int i = 1;
@@ -736,6 +736,34 @@ namespace MySQL_Clear_standart
                     }
                 }
             }
+            for (i = 0; i < joinList.Count - 1; i++)
+            {
+                for (int j = i + 1; j < joinList.Count - 1; j++)
+                {
+                    if (joinList[i].LeftSelect != null && joinList[j].LeftSelect != null &&
+                        joinList[i].RightSelect != null && joinList[j].RightSelect != null)
+                    {
+                        if (joinList[i].LeftSelect.TableName == joinList[j].LeftSelect.TableName &&
+                         joinList[i].RightSelect.TableName == joinList[j].RightSelect.TableName ||
+                         joinList[i].LeftSelect.TableName == joinList[j].RightSelect.TableName &&
+                         joinList[i].RightSelect.TableName == joinList[j].LeftSelect.TableName
+                        )
+                        {
+                            joinList[i].AdditionalJoins.Add(joinList[j]);
+                            joinList[j].IsAdditional = true;
+                        }
+
+                    }
+                }
+            }
+            List<JoinStructure> tmpJoins = new List<JoinStructure>();
+            foreach (JoinStructure join in joinList)
+            {
+                if(!join.IsAdditional)
+                {tmpJoins.Add(join);}
+            }
+
+            return tmpJoins;
         }
         
         private void GetJoinSequence(List<JoinStructure> joinStructures, int joinDepth)
@@ -919,11 +947,13 @@ namespace MySQL_Clear_standart
             {
                 if (joinStructure.Name == null)
                 {
-                    joinStructure.Name = "J_" + joinDepth + "_"  + tmp.Count.ToString();
-                    joinStructure.LeftJoin = tmp.Last();
-                    joinStructure.LeftSelect = null;
-                    joinStructure.RightSelect = null;
-                    tmp.Add(joinStructure);
+                    joinStructure.IsAdditional = true;
+                    tmp.LastOrDefault().AdditionalJoins.Add(joinStructure);
+                    //joinStructure.Name = "J_" + joinDepth + "_"  + tmp.Count.ToString();
+                    //joinStructure.LeftJoin = tmp.Last();
+                    //joinStructure.LeftSelect = null;
+                    //joinStructure.RightSelect = null;
+                    //tmp.Add(joinStructure);
                 }
             }
             return tmp;
@@ -1079,9 +1109,8 @@ namespace MySQL_Clear_standart
                     tmpJoins.Add(tmp);
                 }
             }
-            JoinStructure[] joinQueries = tmpJoins.ToArray();
-            SelectStructure[] selectQueries = selects;
-            FillJoins(joinQueries.ToList(), queryDB, selectQueries.ToList());
+            JoinStructure[] joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
+            
           
             List<JoinStructure> tmpList = new List<JoinStructure>();
             foreach (JoinStructure join in joinQueries)
@@ -1204,9 +1233,8 @@ namespace MySQL_Clear_standart
                     tmpJoins.Add(tmp);
                 }
             }
-            JoinStructure[] joinQueries = tmpJoins.ToArray();
-            SelectStructure[] selectQueries = selects;
-            FillJoins(joinQueries.ToList(), queryDB, selectQueries.ToList());
+
+            JoinStructure[] joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
 
             List<JoinStructure> tmpList = new List<JoinStructure>();
             foreach (JoinStructure join in joinQueries)
