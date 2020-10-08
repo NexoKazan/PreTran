@@ -1131,6 +1131,14 @@ namespace MySQL_Clear_standart
                 join.CreateQuerry();
             }
 
+            for (int i = joinQueries.Length - 1; i >= 0; i--)
+            {
+                joinQueries[i].SetIndex();
+            }
+            foreach (SelectStructure select in selects)
+            {
+                select.SetIndexes();
+            }
             CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
@@ -1151,6 +1159,7 @@ namespace MySQL_Clear_standart
 
             }
             NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase);
+            sortQuery.SetIndexes();
             #region OLD
 
             //SelectStructure[] select = selects;
@@ -1255,6 +1264,15 @@ namespace MySQL_Clear_standart
                 join.CreateQuerry(left, right);
             }
 
+            for (int i = joinQueries.Length - 1; i >= 0; i--)
+            {
+                joinQueries[i].SetIndex();
+            }
+
+            foreach (SelectStructure select in selects)
+            {
+                select.SetIndexes();
+            }
             CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
@@ -1871,7 +1889,16 @@ namespace MySQL_Clear_standart
 
         private void TryConnect(JoinStructure[] joinQ, NewSortStructure sortQ, int subJoinIndex, string address)
         {
-            QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text) - 1);
+            int qNumber = 1;
+            if (comboBox_tab2_QueryNumber.Text != "0"  )
+            {
+                qNumber = int.Parse(comboBox_tab2_QueryNumber.Text) - 1;
+            }
+            else
+            {
+                qNumber = 14;
+            }
+            QueryBuilder qb = new QueryBuilder(qNumber);
             bool isNoMainjoin = joinQ.Length == subJoinIndex + 1;
 
             var c_join = new JoinQuery[joinQ.Length];

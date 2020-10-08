@@ -123,7 +123,7 @@ namespace PreTran.Q_Structures
 
             _sortRule.IsRealised = false;
             _output = _sortRule.Text + ";";
-            SetIndexes();
+            //SetIndexes();
         }
 
         public NewSortStructure(string name, BaseRule sortRule, DataBaseStructure fullDataBase, string tag)
@@ -244,10 +244,10 @@ namespace PreTran.Q_Structures
 
             _sortRule.IsRealised = false;
             _output = _sortRule.Text + ";";
-            SetIndexes();
+            //SetIndexes();
         }
 
-        private void SetIndexes()
+        public void SetIndexes()
         {
             foreach (TableStructure table in _outDataBase.Tables)
             {

@@ -307,10 +307,10 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            SetIndexes();
+            //SetIndexes();
         }
 
-        private void SetIndexes()
+        public void SetIndexes()
         {
             if (_indexColumnNames.Count < 1)
             {

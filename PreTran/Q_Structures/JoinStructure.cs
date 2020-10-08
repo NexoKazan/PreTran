@@ -475,7 +475,7 @@ namespace PreTran.Q_Structures
                    }
                 }
 
-                SetIndex();
+                //SetIndex();
                 SetCreateTableColumnList();
                 SetSortFrom();
                 _sortRule.GetRuleBySourceInterval(_sourceInterval).Text = "";
@@ -767,7 +767,7 @@ namespace PreTran.Q_Structures
                    }
                 }
 
-                SetIndex();
+                //SetIndex();
                 SetCreateTableColumnList();
                 SetSortFrom();
                 _sortRule.GetRuleBySourceInterval(_sourceInterval).Text = "";
@@ -776,7 +776,7 @@ namespace PreTran.Q_Structures
             }
         }
 
-        private void SetIndex()
+        public void SetIndex()
         {
             if (_leftJoin != null)
             {
@@ -995,7 +995,15 @@ namespace PreTran.Q_Structures
                     }
                 }
             }
-            
+
+            if (AdditionalJoins.Count > 0)
+            {
+                foreach (JoinStructure addJoin in AdditionalJoins)
+                {
+                    ///ЫЫЫ кривой хардкод, переделать. Слишком много делается, а нужно только сделать метод setSortFrom
+                    addJoin.CreateQuerry();
+                }
+            }
         }
 
     }
