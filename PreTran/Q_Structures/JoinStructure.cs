@@ -792,6 +792,19 @@ namespace PreTran.Q_Structures
                         _leftJoin.IndexColumnNames.Add(column.Name);
                     }
 
+                    foreach (JoinStructure addJoin in _additionalJoins)
+                    {
+                        if (column.Name == addJoin.LeftColumnString)
+                        {
+                            _leftJoin.IndexColumnNames.Add(column.Name);
+                        }
+
+                        if (column.Name == addJoin.RightColumnString)
+                        {
+                            _leftJoin.IndexColumnNames.Add(column.Name);
+                        }
+                    }
+
                 }
 
                 if (_switched)
@@ -809,6 +822,21 @@ namespace PreTran.Q_Structures
                                 if (column.Name == RightColumnString)
                                 {
                                     _leftSelect.IndexColumnNames.Add(column.Name);
+                                }
+                            }
+
+                            foreach (JoinStructure addJoin in _additionalJoins)
+                            {
+                                if (column.Name == addJoin.LeftColumnString)
+                                {
+                                    _leftSelect.IndexColumnNames.Add(column.Name);
+                                }
+                                else
+                                {
+                                    if (column.Name == addJoin.RightColumnString)
+                                    {
+                                        _leftSelect.IndexColumnNames.Add(column.Name);
+                                    }
                                 }
                             }
                         }
@@ -832,6 +860,21 @@ namespace PreTran.Q_Structures
                                     _rightSelect.IndexColumnNames.Add(column.Name);
                                 }
                             }
+
+                            foreach (JoinStructure addJoin in _additionalJoins)
+                            {
+                                if (column.Name == addJoin.LeftColumnString)
+                                {
+                                    _rightSelect.IndexColumnNames.Add(column.Name);
+                                }
+                                else
+                                {
+                                    if (column.Name == addJoin.RightColumnString)
+                                    {
+                                        _rightSelect.IndexColumnNames.Add(column.Name);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -851,6 +894,21 @@ namespace PreTran.Q_Structures
                             if (column.Name == RightColumnString)
                             {
                                 _leftSelect.IndexColumnNames.Add(column.Name);
+                            }
+                        }
+
+                        foreach (JoinStructure addJoin in _additionalJoins)
+                        {
+                            if (column.Name == addJoin.LeftColumnString)
+                            {
+                                _leftSelect.IndexColumnNames.Add(column.Name);
+                            }
+                            else
+                            {
+                                if (column.Name == addJoin.RightColumnString)
+                                {
+                                    _leftSelect.IndexColumnNames.Add(column.Name);
+                                }
                             }
                         }
                     }
@@ -873,11 +931,27 @@ namespace PreTran.Q_Structures
                                 _rightSelect.IndexColumnNames.Add(column.Name);
                             }
                         }
+
+                        foreach (JoinStructure addJoin in _additionalJoins)
+                        {
+                            
+                            if (column.Name == addJoin.LeftColumnString)
+                            {
+                                _rightSelect.IndexColumnNames.Add(column.Name);
+                            }
+                            else
+                            {
+                                if (column.Name == addJoin.RightColumnString)
+                                {
+                                    _rightSelect.IndexColumnNames.Add(column.Name);
+                                }
+                            }
+                        }
                     }
 
                 }
             }
-
+            
             if (_indexColumnNames.Count < 1)
             {
                 foreach (ColumnStructure column in _outTable.Columns)
