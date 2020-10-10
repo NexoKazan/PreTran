@@ -316,7 +316,7 @@ namespace PreTran.Q_Structures
             {
                 foreach (ColumnStructure column in _outTable.Columns)
                 {
-                    if (column.IsPrimary > 0)
+                    if (column.IsPrimary > 0 )
                     {
                         _indexColumnNames.Add(column.Name);
                     }
