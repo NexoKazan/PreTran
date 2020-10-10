@@ -835,7 +835,7 @@ namespace PreTran.Q_Structures
                                 {
                                     if (column.Name == addJoin.RightColumnString)
                                     {
-                                        _leftSelect.IndexColumnNames.Add(column.Name);
+                                       _leftSelect.IndexColumnNames.Add(column.Name);
                                     }
                                 }
                             }
@@ -871,7 +871,7 @@ namespace PreTran.Q_Structures
                                 {
                                     if (column.Name == addJoin.RightColumnString)
                                     {
-                                        _rightSelect.IndexColumnNames.Add(column.Name);
+                                       _rightSelect.IndexColumnNames.Add(column.Name);
                                     }
                                 }
                             }
@@ -907,7 +907,7 @@ namespace PreTran.Q_Structures
                             {
                                 if (column.Name == addJoin.RightColumnString)
                                 {
-                                    _leftSelect.IndexColumnNames.Add(column.Name);
+                                   _leftSelect.IndexColumnNames.Add(column.Name);
                                 }
                             }
                         }
@@ -934,7 +934,7 @@ namespace PreTran.Q_Structures
 
                         foreach (JoinStructure addJoin in _additionalJoins)
                         {
-                            
+
                             if (column.Name == addJoin.LeftColumnString)
                             {
                                 _rightSelect.IndexColumnNames.Add(column.Name);
@@ -943,7 +943,7 @@ namespace PreTran.Q_Structures
                             {
                                 if (column.Name == addJoin.RightColumnString)
                                 {
-                                    _rightSelect.IndexColumnNames.Add(column.Name);
+                                   _rightSelect.IndexColumnNames.Add(column.Name);
                                 }
                             }
                         }
@@ -951,7 +951,7 @@ namespace PreTran.Q_Structures
 
                 }
             }
-            
+
             if (_indexColumnNames.Count < 1)
             {
                 foreach (ColumnStructure column in _outTable.Columns)
@@ -960,7 +960,7 @@ namespace PreTran.Q_Structures
                     {
                         _indexColumnNames.Add(column.Name);
                     }
-                    
+
                 }
             }
         }
