@@ -813,15 +813,15 @@ namespace PreTran.Q_Structures
                     {
                         foreach (ColumnStructure column in _leftSelect.OutColumn)
                         {
-                            if (column.Name == LeftColumnString && _leftSelect.IndexColumnNames.Count == 0)
+                            if (column.Name == LeftColumnString)
                             {
                                 _leftSelect.IndexColumnNames.Add(column.Name);
                             }
                             else
                             {
-                                if (column.Name == RightColumnString && _leftSelect.IndexColumnNames.Count == 0)
+                                if (column.Name == RightColumnString)
                                 {
-                                    _leftSelect.IndexColumnNames.Add(column.Name);
+                                    //_leftSelect.IndexColumnNames.Add(column.Name);
                                 }
                             }
 
@@ -829,13 +829,13 @@ namespace PreTran.Q_Structures
                             {
                                 if (column.Name == addJoin.LeftColumnString)
                                 {
-                                   // _leftSelect.IndexColumnNames.Add(column.Name);
+                                    _leftSelect.IndexColumnNames.Add(column.Name);
                                 }
                                 else
                                 {
                                     if (column.Name == addJoin.RightColumnString)
                                     {
-                                       // _leftSelect.IndexColumnNames.Add(column.Name);
+                                        _leftSelect.IndexColumnNames.Add(column.Name);
                                     }
                                 }
                             }
@@ -849,13 +849,13 @@ namespace PreTran.Q_Structures
                     {
                         foreach (ColumnStructure column in _rightSelect.OutColumn)
                         {
-                            if (column.Name == LeftColumnString && _rightSelect.IndexColumnNames.Count == 0)
+                            if (column.Name == LeftColumnString )
                             {
-                                _rightSelect.IndexColumnNames.Add(column.Name);
+                                //_rightSelect.IndexColumnNames.Add(column.Name);
                             }
                             else
                             {
-                                if (column.Name == RightColumnString && _rightSelect.IndexColumnNames.Count == 0)
+                                if (column.Name == RightColumnString)
                                 {
                                     _rightSelect.IndexColumnNames.Add(column.Name);
                                 }
@@ -865,7 +865,7 @@ namespace PreTran.Q_Structures
                             {
                                 if (column.Name == addJoin.LeftColumnString)
                                 {
-                                    //_rightSelect.IndexColumnNames.Add(column.Name);
+                                    _rightSelect.IndexColumnNames.Add(column.Name);
                                 }
                                 else
                                 {
@@ -893,7 +893,7 @@ namespace PreTran.Q_Structures
                         {
                             if (column.Name == RightColumnString)
                             {
-                                _leftSelect.IndexColumnNames.Add(column.Name);
+                                //_leftSelect.IndexColumnNames.Add(column.Name);
                             }
                         }
 
@@ -922,7 +922,7 @@ namespace PreTran.Q_Structures
                     {
                         if (column.Name == LeftColumnString)
                         {
-                            _rightSelect.IndexColumnNames.Add(column.Name);
+                            //_rightSelect.IndexColumnNames.Add(column.Name);
                         }
                         else
                         {
