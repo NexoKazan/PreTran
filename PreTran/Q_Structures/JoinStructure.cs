@@ -871,7 +871,7 @@ namespace PreTran.Q_Structures
                                 {
                                     if (column.Name == addJoin.RightColumnString)
                                     {
-                                        //_rightSelect.IndexColumnNames.Add(column.Name);
+                                        _rightSelect.IndexColumnNames.Add(column.Name);
                                     }
                                 }
                             }
