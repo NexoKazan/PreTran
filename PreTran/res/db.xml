@@ -102,7 +102,7 @@
     <S_Type Name="VARCHAR(25)" Size="25" ID="4" />
     <S_Type Name="VARCHAR(55)" Size="55" ID="5" />
     <S_Type Name="CHAR(10)" Size="10" ID="6" />
-    <S_Type Name="DECIMAL(15,2)" Size="7" ID="7" />
+    <S_Type Name="DECIMAL(15,4)" Size="7" ID="7" />
     <S_Type Name="VARCHAR(23)" Size="23" ID="8" />
     <S_Type Name="VARCHAR(101)" Size="101" ID="9" />
     <S_Type Name="VARCHAR(40)" Size="40" ID="10" />
