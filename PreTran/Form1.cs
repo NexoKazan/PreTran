@@ -1092,7 +1092,10 @@ namespace MySQL_Clear_standart
                     }
                 }
                 select.CreateQuerry();
+                select.SetIndexes();
             }
+
+            
             CreateScheme(selectQueries);
             return selectQueries;
         }
@@ -1135,10 +1138,6 @@ namespace MySQL_Clear_standart
             {
                 joinQueries[i].SetIndex();
             }
-            foreach (SelectStructure select in selects)
-            {
-                select.SetIndexes();
-            }
             CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
@@ -1146,9 +1145,9 @@ namespace MySQL_Clear_standart
         private NewSortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, BaseRule sortRule)
         {
             SelectStructure[] selects = MakeSelect(dataBase, listener);
-            SelectStructure[] subSelects;
+            SelectStructure[] subSelects = new SelectStructure[] { };
             JoinStructure[] joins = MakeJoin(dataBase, listener, selects);
-            JoinStructure[] subJoins;
+            JoinStructure[] subJoins = new JoinStructure[] { };
             if (_listener.SubQueryListeners.Count != 0)
             {
                 foreach (var subQlistener in _listener.SubQueryListeners)
@@ -1158,6 +1157,7 @@ namespace MySQL_Clear_standart
                 }
 
             }
+
             NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase);
             sortQuery.SetIndexes();
             #region OLD
@@ -1269,10 +1269,6 @@ namespace MySQL_Clear_standart
                 joinQueries[i].SetIndex();
             }
 
-            foreach (SelectStructure select in selects)
-            {
-                select.SetIndexes();
-            }
             CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
@@ -1342,9 +1338,9 @@ namespace MySQL_Clear_standart
             #endregion
             DataBaseStructure qDB = CreateSubDatabase(dataBase, listener);
             SelectStructure[] selects = MakeSelect(qDB, listener);
-            SelectStructure[] subSelects;
+            SelectStructure[] subSelects = new SelectStructure []{};
             JoinStructure[] joins = MakeJoin(qDB, listener, selects);
-            JoinStructure[] subJoins;
+            JoinStructure[] subJoins = new JoinStructure[] { };
             if (_listener.SubQueryListeners.Count != 0)
             {
                 DataBaseStructure subQDB = CreateSubDatabase(dataBase,listener.SubQueryListeners[0]);
@@ -1355,8 +1351,9 @@ namespace MySQL_Clear_standart
 
                     subJoins = MakeJoin(subQDB, subQlistener, subSelects);
                 }
-
             }
+
+           
             //List<BaseRule> fromList = sortRule.GetRulesByType("tablesourcebase");
             //foreach (BaseRule rule in sortRule.GetRulesByType("tablesourcebase"))
             //{
@@ -1369,7 +1366,7 @@ namespace MySQL_Clear_standart
             //}
            
             NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase, tag);
-
+            sortQuery.SetIndexes();
             CreateScheme(sortQuery);
             return sortQuery;
         }
@@ -1657,7 +1654,6 @@ namespace MySQL_Clear_standart
             {
                 selectQ = MakeSelect(_dbName, _listener);
                 joinQ = MakeJoin(_dbName, _listener, selectQ);
-                
                 if (_listener.SubQueryListeners.Count > 0)
                 {
                     subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
@@ -1729,8 +1725,10 @@ namespace MySQL_Clear_standart
                }
 
                testQuery.Append(string.Format(createTableSyntax, join.Name, join.CreateTableColumnNames,
+                   join.IndexColumnNames.Count > 0 ?
                    string.Format(createIndexSyntax, join.Name + "_INDEX", join.Name,
-                       index)));
+                       index)
+                   :""));
                 testQuery.Append(string.Format(querSyntax, join.Output));
 
                 dropBuilder.Append(string.Format(dropSyntax, join.Name));

@@ -778,6 +778,9 @@ namespace PreTran.Q_Structures
 
         public void SetIndex()
         {
+            #region OLD
+
+            /*
             if (_leftJoin != null)
             {
                 foreach (ColumnStructure column in _leftJoin.Columns)
@@ -961,6 +964,135 @@ namespace PreTran.Q_Structures
                         _indexColumnNames.Add(column.Name);
                     }
 
+                }
+            }
+
+            if (_indexColumnNames.Count < 1)
+            {
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.Type.Name == "INT")
+                    {
+                        _indexColumnNames.Add(column.Name);
+                        break;
+                    }
+                }
+            }
+            */
+            #endregion
+
+            List<string> possibleIndexNames = new List<string>();
+
+            possibleIndexNames.Add(_leftColumn.Name);
+            possibleIndexNames.Add(_rightColumn.Name);
+
+            foreach (JoinStructure additionalJoin in _additionalJoins)
+            {
+                possibleIndexNames.Add(additionalJoin.LeftColumn.Name);
+                possibleIndexNames.Add(additionalJoin.RightColumn.Name);
+            }
+            
+            if (_leftJoin != null)
+            {
+                foreach (string name in possibleIndexNames)
+                {
+                    foreach (ColumnStructure column in _leftJoin.OutTable.Columns)
+                    {
+                        if (column.Name == name)
+                        {
+                            _leftJoin.IndexColumnNames.Add(column.Name);
+                        }
+                    }
+                }
+                if (_switched)
+                {
+                    if (_leftSelect.IndexColumnNames.Count > 0)
+                    {
+                        _leftSelect.IndexColumnNames = new List<string>();
+                    }
+                    foreach (string name in possibleIndexNames)
+                    {
+                        foreach (ColumnStructure column in _leftSelect.OutTable.Columns)
+                        {
+                            if (column.Name == name)
+                            {
+                                _leftSelect.IndexColumnNames.Add(column.Name);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (_rightSelect.IndexColumnNames.Count > 0)
+                    {
+                        _rightSelect.IndexColumnNames = new List<string>();
+                    }
+                    foreach (string name in possibleIndexNames)
+                    {
+                        foreach (ColumnStructure column in _rightSelect.OutTable.Columns)
+                        {
+                            if (column.Name == name)
+                            {
+                                _rightSelect.IndexColumnNames.Add(column.Name);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (_leftSelect.IndexColumnNames.Count > 0)
+                {
+                    _leftSelect.IndexColumnNames = new List<string>();
+                }
+                foreach (string name in possibleIndexNames)
+                {
+                    foreach (ColumnStructure column in _leftSelect.OutTable.Columns)
+                    {
+                        if (column.Name == name)
+                        {
+                            _leftSelect.IndexColumnNames.Add(column.Name);
+                        }
+                    }
+                }
+                
+                if (_rightSelect.IndexColumnNames.Count > 0)
+                {
+                    _rightSelect.IndexColumnNames = new List<string>();
+                }
+                foreach (string name in possibleIndexNames)
+                {
+                    foreach (ColumnStructure column in _rightSelect.OutTable.Columns)
+                    {
+                        if (column.Name == name)
+                        {
+                            _rightSelect.IndexColumnNames.Add(column.Name);
+                        }
+                    }
+                }
+            }
+
+            if (_indexColumnNames.Count < 1)
+            {
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.IsPrimary > 0)
+                    {
+                        _indexColumnNames.Add(column.Name);
+                    }
+
+                }
+            }
+
+            if (_indexColumnNames.Count < 1)
+            {
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.Type.Name == "INT")
+                    {
+                        _indexColumnNames.Add(column.Name);
+                        break;
+                    }
                 }
             }
         }

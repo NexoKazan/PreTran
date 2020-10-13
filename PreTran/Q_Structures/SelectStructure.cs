@@ -322,6 +322,17 @@ namespace PreTran.Q_Structures
                     }
                 }
             }
+            if (_indexColumnNames.Count < 1)
+            {
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.Type.Name == "INT")
+                    {
+                        _indexColumnNames.Add(column.Name);
+                        break;
+                    }
+                }
+            }
         }
 
         private void ColumnCounterDelete()
