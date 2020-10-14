@@ -2102,7 +2102,16 @@ namespace MySQL_Clear_standart
                 var cRelation = qb.CreateRelation(cSelect, select.Name,
                     qb.CreateRelationSchema(
                         select.OutColumn.Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
-                        new List<Index>()));
+                        select.IndexColumnNames.Count > 0 ?
+                            new List<Index>()
+                            {
+                                new Index()
+                                {
+                                    FieldNames = select.IndexColumnNames,
+                                    Name = $"INDEX_{select.Name}"
+                                }
+                            } : new List<Index>()
+                       ));
 
                 relations.Add(cRelation);
             }
