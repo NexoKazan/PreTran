@@ -46,41 +46,43 @@ namespace PreTran.TestClasses.Rules
                             }
 
                             Rules = tmpList;
-
-                            if (Rules[0].Text == ",")
+                            if (Rules.Count > 1)
                             {
-                                Rules[0].IsRealised = false;
-                                Rules[0].Text = "";
-                                Rules[0].IsRealised = true;
-                            }
-
-                            for (var i = 0; i < Rules.Count; i++)
-                            {
-                                if (Rules[i].Text == ",")
+                                if (Rules[0].Text == ",")
                                 {
-                                    if (Rules[i - 1].Text == Environment.NewLine && Rules[i - 1].Text != "" &&
-                                        Rules[i - 1].Text != "\t" && Rules[i - 1].Text != " " &&
-                                        Rules[i - 1].Text != "\r")
+                                    Rules[0].IsRealised = false;
+                                    Rules[0].Text = "";
+                                    Rules[0].IsRealised = true;
+                                }
+
+                                for (var i = 0; i < Rules.Count; i++)
+                                {
+                                    if (Rules[i].Text == ",")
                                     {
-                                        //костыль
+                                        if (Rules[i - 1].Text == Environment.NewLine && Rules[i - 1].Text != "" &&
+                                            Rules[i - 1].Text != "\t" && Rules[i - 1].Text != " " &&
+                                            Rules[i - 1].Text != "\r")
+                                        {
+                                            //костыль
+                                        }
+                                        else
+                                        {
+                                            Rules[i].IsRealised = false;
+                                            Rules[i].Text = "";
+                                            Rules[i].IsRealised = true;
+                                        }
+
+                                        Rules[i].Text += Environment.NewLine;
+                                    }
+
+                                    if (Rules[i] != Rules.Last())
+                                    {
+                                        _text += Rules[i].Text + ", ";
                                     }
                                     else
                                     {
-                                        Rules[i].IsRealised = false;
-                                        Rules[i].Text = "";
-                                        Rules[i].IsRealised = true;
+                                        _text += Rules[i].Text;
                                     }
-
-                                    Rules[i].Text += Environment.NewLine;
-                                }
-
-                                if (Rules[i] != Rules.Last())
-                                {
-                                    _text += Rules[i].Text + ", ";
-                                }
-                                else
-                                {
-                                    _text += Rules[i].Text;
                                 }
                             }
                         }

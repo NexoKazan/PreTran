@@ -244,9 +244,9 @@ namespace PreTran.Q_Structures
                     }
                 }
 
-                if (AdditionalJoins.Count > 0)
+                if (_additionalJoins.Count > 0)
                 {
-                    foreach (JoinStructure AddJoin in AdditionalJoins)
+                    foreach (JoinStructure AddJoin in _additionalJoins)
                     {
                         _columns.Add(AddJoin.LeftColumn);
                         _columns.Add(AddJoin.RightColumn);
@@ -528,6 +528,12 @@ namespace PreTran.Q_Structures
                         _columns.AddRange(_rightSelect.OutColumn);
 
                     }
+                }
+
+                foreach (JoinStructure additionalJoin in AdditionalJoins)
+                {
+                    _columns.Add(additionalJoin.LeftColumn);
+                    _columns.Add(additionalJoin.RightColumn);
                 }
 
                 ColumnCounterDelete(_columns);
@@ -1127,77 +1133,107 @@ namespace PreTran.Q_Structures
                     _rightColumn.UsageCounter--;
                 }
 
-                foreach (JoinStructure addJoin in AdditionalJoins)
-                {
-                    if (addJoin.LeftColumn != null && addJoin.LeftColumn.Name == column.Name)
-                    {
-                        column.UsageCounter--;
-                        addJoin.LeftColumn.UsageCounter--;
-                    }
+                //foreach (JoinStructure addJoin in AdditionalJoins)
+                //{
+                //    if (addJoin.LeftColumn != null && addJoin.LeftColumn.Name == column.Name)
+                //    {
+                //        column.UsageCounter--;
+                //        addJoin.LeftColumn.UsageCounter--;
+                //    }
 
-                    if (addJoin.RightColumn != null && addJoin.RightColumn.Name == column.Name)
-                    {
-                        column.UsageCounter--;
-                        addJoin.RightColumn.UsageCounter--;
-                    }
-                }
+                //    if (addJoin.RightColumn != null && addJoin.RightColumn.Name == column.Name)
+                //    {
+                //        column.UsageCounter--;
+                //        addJoin.RightColumn.UsageCounter--;
+                //    }
+                //}
             }
         }
 
         private void SetSortFrom()
         {
-            if (_leftJoin != null)
+            if (!_isAdditional)
             {
-                if (_leftJoin.LeftSelect != null)
-                {
-                    _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval,"atomtableitem").IsRealised =
-                        false;
-                    _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
-                    _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
-                }
-
-                if (_leftJoin.RightSelect != null)
-                {
-                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                        false;
-                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
-                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                        true;
-                }
-            }
-
-            if (_leftSelect != null)
-            {
-                _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
-                _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
-                _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
-            }
-            if (_rightSelect != null)
-            {
-                _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
-                _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
-                _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
-            }
-
-            if (_leftJoin != null &&  _rightSelect == null && _leftSelect == null)
-            {
-                if (_leftJoin.RightSelect != null)
-                {
-                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                        false;
-                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
-                    _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                        true;
-                }
-                else
+                if (_leftJoin != null)
                 {
                     if (_leftJoin.LeftSelect != null)
                     {
                         _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
                             false;
-                        _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
+                        _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
                         _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
                             true;
+                    }
+
+                    if (_leftJoin.RightSelect != null)
+                    {
+                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
+                            false;
+                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
+                            true;
+                    }
+                }
+
+                if (_leftSelect != null)
+                {
+                    _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                    _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                    _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
+                }
+
+                if (_rightSelect != null)
+                {
+                    _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                    _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
+                    _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
+                }
+
+                if (_leftJoin != null && _rightSelect == null && _leftSelect == null)
+                {
+                    if (_leftJoin.RightSelect != null)
+                    {
+                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
+                            false;
+                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text =
+                            _name;
+                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
+                            true;
+                    }
+                    else
+                    {
+                        if (_leftJoin.LeftSelect != null)
+                        {
+                            _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                false;
+                            _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text =
+                                _name;
+                            _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (!_switched)
+                {
+                    if (_leftSelect != null)
+                    {
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
+                    }
+                }
+                else
+                {
+                    if (_rightSelect != null)
+                    {
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
                     }
                 }
             }
@@ -1207,7 +1243,7 @@ namespace PreTran.Q_Structures
                 foreach (JoinStructure addJoin in AdditionalJoins)
                 {
                     ///ЫЫЫ кривой хардкод, переделать. Слишком много делается, а нужно только сделать метод setSortFrom
-                    addJoin.CreateQuerry();
+                    addJoin.CreateQuerry(_name,_name);
                 }
             }
         }

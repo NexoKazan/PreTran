@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms.VisualStyles;
 using System.Xml;
+using System.Xml.Schema;
 using Antlr4.Runtime.Misc;
 using ClusterixN.Common.Data;
 using ClusterixN.Common.Data.Query;
@@ -1113,30 +1114,45 @@ namespace MySQL_Clear_standart
                 }
             }
             JoinStructure[] joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
-            
-          
+
+         
             List<JoinStructure> tmpList = new List<JoinStructure>();
+            List<JoinStructure> excludedJoin = new List<JoinStructure>();
             foreach (JoinStructure join in joinQueries)
             {
                 join.CheckIsFilled();
                 if (join.IsFilled)
                 {
-                   tmpList.Add(join);
+                    if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
+                    {
+                        tmpList.Add(join);
+                    }
+                    else
+                    {
+                        join.IsAdditional = true;
+                        excludedJoin.Add(join);
+                    }
                 }
+
+
+
             }
 
             joinQueries = tmpList.ToArray();
 
             GetJoinSequence(joinQueries.ToList(), listener.Depth);
-            joinQueries = SortJoin(joinQueries.ToList(), listener.Depth).ToArray();
+            List<JoinStructure> unitedJoin = joinQueries.ToList();
+            unitedJoin.AddRange(excludedJoin);
+            joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
             foreach (var join in joinQueries)
-            {                
-                join.CreateQuerry();
+            {
+                
+                    join.CreateQuerry();
             }
 
             for (int i = joinQueries.Length - 1; i >= 0; i--)
             {
-                joinQueries[i].SetIndex();
+                    joinQueries[i].SetIndex();
             }
             CreateScheme(joinQueries.ToList());
             return joinQueries;
@@ -1246,19 +1262,33 @@ namespace MySQL_Clear_standart
             JoinStructure[] joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
 
             List<JoinStructure> tmpList = new List<JoinStructure>();
+            List<JoinStructure> excludedJoin = new List<JoinStructure>();
             foreach (JoinStructure join in joinQueries)
             {
                 join.CheckIsFilled();
                 if (join.IsFilled)
                 {
-                   tmpList.Add(join);
+                    if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
+                    {
+                        tmpList.Add(join);
+                    }
+                    else
+                    {
+                        join.IsAdditional = true;
+                        excludedJoin.Add(join);
+                    }
                 }
+
+
+
             }
 
             joinQueries = tmpList.ToArray();
 
             GetJoinSequence(joinQueries.ToList(), listener.Depth);
-            joinQueries = SortJoin(joinQueries.ToList(), listener.Depth).ToArray();
+            List<JoinStructure> unitedJoin = joinQueries.ToList();
+            unitedJoin.AddRange(excludedJoin);
+            joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
             foreach (var join in joinQueries)
             {
                 join.CreateQuerry(left, right);
