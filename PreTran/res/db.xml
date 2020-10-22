@@ -20,9 +20,9 @@
         <ColumnStructure IsPrimary="0" Name="L_SUPPKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="2" Name="L_LINENUMBER" TypeID="2"/>
         <ColumnStructure IsPrimary="0" Name="L_QUANTITY" TypeID="7"/>
-        <ColumnStructure IsPrimary="0" Name="L_EXTENDEDPRICE" TypeID="7"/>
-        <ColumnStructure IsPrimary="0" Name="L_DISCOUNT" TypeID="7"/>
-        <ColumnStructure IsPrimary="0" Name="L_TAX" TypeID="14"/>
+        <ColumnStructure IsPrimary="0" Name="L_EXTENDEDPRICE" TypeID="18"/>
+        <ColumnStructure IsPrimary="0" Name="L_DISCOUNT" TypeID="18"/>
+        <ColumnStructure IsPrimary="0" Name="L_TAX" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="L_RETURNFLAG" TypeID="14"/>
         <ColumnStructure IsPrimary="0" Name="L_LINESTATUS" TypeID="14"/>
         <ColumnStructure IsPrimary="0" Name="L_SHIPDATE" TypeID="15"/>
@@ -103,6 +103,7 @@
     <S_Type Name="VARCHAR(55)" Size="55" ID="5" />
     <S_Type Name="CHAR(10)" Size="10" ID="6" />
     <S_Type Name="DECIMAL(15,4)" Size="7" ID="7" />
+    <S_Type Name="DECIMAL(15,2)" Size="6" ID="18"/>
     <S_Type Name="VARCHAR(23)" Size="23" ID="8" />
     <S_Type Name="VARCHAR(101)" Size="101" ID="9" />
     <S_Type Name="VARCHAR(40)" Size="40" ID="10" />

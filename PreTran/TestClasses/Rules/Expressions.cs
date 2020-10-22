@@ -18,10 +18,6 @@ namespace PreTran.TestClasses.Rules
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             Rules = _listener.Rules;
-            foreach (var rule in Rules)
-            {
-                rule.Text += " ";
-            }
         }
     }
 }

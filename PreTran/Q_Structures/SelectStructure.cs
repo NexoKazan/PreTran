@@ -252,7 +252,8 @@ namespace PreTran.Q_Structures
                         
                     }
 
-                    if (whereStructure != _whereList.LastOrDefault() || (_likeList != null && _likeList.Count>0) || (_betweenList.Count > 0))
+                    if (whereStructure != _whereList.LastOrDefault() || (_likeList != null && _likeList.Count>0) || 
+                        (_inStructureList != null && _inStructureList.Count > 0) || _betweenList.Count > 0)
                     {
                         _output += " AND ";
                     }
