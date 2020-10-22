@@ -26,7 +26,8 @@ namespace PreTran.Q_Part_Structures
     {
         simple = 1,
         join = 2,
-        subQ = 3
+        subQ = 3,
+        select = 4
     }
 
     class BinaryComparisionPredicateStructure

@@ -61,6 +61,7 @@ namespace PreTran.Listeners
         private List<TableStructure> _subTables = new List<TableStructure>();
 
         private List<LikeStructure> _likeList = new List<LikeStructure>();
+        private List<InStructure> _inStructureList = new List<InStructure>();
         private List<BetweenStructure> _betweenList = new List<BetweenStructure>();
         private List<AsStructure> _asList = new List<AsStructure>();
         private List<OrderByStructure> _orderByList = new List<OrderByStructure>();   
@@ -160,6 +161,8 @@ namespace PreTran.Listeners
         internal List<BaseRule> BaseRules { get => _baseRules; set => _baseRules = value; }
 
         public List<BetweenStructure> BetweenList => _betweenList;
+
+        public List<InStructure> InStructureList => _inStructureList;
 
         //public List<string> RemoveCounterColumsNames
         //{
@@ -428,6 +431,19 @@ namespace PreTran.Listeners
         public override void ExitOuterJoin(MySqlParser.OuterJoinContext context)
         {
             _outerJoinBlock = false;
+        }
+
+        public override void EnterInPredicate(MySqlParser.InPredicateContext context)
+        {
+            if (!_caseBlock && !_outerJoinBlock)
+            {
+                if (_depth == _tmpDepth)
+                {
+                    InPredicate inPredicateRule = new InPredicate(context.SourceInterval, context, context.GetText());
+                    InStructure tmpInStructure = new InStructure(inPredicateRule.Text, context.children[0].GetText(), context.SourceInterval);
+                    InStructureList.Add(tmpInStructure);
+                }
+            }
         }
     }
 }

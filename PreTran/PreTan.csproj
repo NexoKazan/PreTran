@@ -72,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Q_Part_Structures\InStructure.cs" />
     <Compile Include="SchemeCreator\SchemeAsListener.cs" />
     <Compile Include="SchemeCreator\SchemeAsStructure.cs" />
     <Compile Include="SchemeCreator\SortRuleListener.cs" />

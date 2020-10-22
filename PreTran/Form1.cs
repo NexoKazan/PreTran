@@ -646,6 +646,10 @@ namespace MySQL_Clear_standart
                             ws.Column = column;
                             ws.Table = dataBaseTable.Name;
                         }
+                        if(column.Name == ws.RightExpr)
+                        {
+                            ws.RightColumn = column;
+                        }
                     }
 
                 }
@@ -1064,7 +1068,14 @@ namespace MySQL_Clear_standart
             
             foreach (BinaryComparisionPredicateStructure binary in listener.Binaries)
             {
+                CheckBinaryType(binary, queryDB);
                 if (binary.Type == 1)
+                {
+                    WhereStructure tmp = new WhereStructure(binary.LeftString, binary.ComparisionSymphol, binary.RightString, binary.SourceInterval);
+                    tmpWhere.Add(tmp);
+                }
+
+                if (binary.Type == 4)
                 {
                     WhereStructure tmp = new WhereStructure(binary.LeftString, binary.ComparisionSymphol, binary.RightString, binary.SourceInterval);
                     tmpWhere.Add(tmp);
@@ -1074,6 +1085,7 @@ namespace MySQL_Clear_standart
             FindeWhereStructureTable(tmpWhere, queryDB);
             FillAsStructures(queryDB, listener.AsList);
             FillLikeStructures(queryDB, listener.LkeList);
+            FillInStructures(queryDB, listener.InStructureList);
 
             for (var i = 0; i < queryDB.Tables.Length; i++)
             {
@@ -1092,6 +1104,15 @@ namespace MySQL_Clear_standart
                         select.LikeList.Add(like);
                     }
                 }
+
+                foreach (InStructure inStructure in listener.InStructureList)
+                {
+                    if (select.TableName == inStructure.Table.Name)
+                    {
+                        select.InStructureList = new List<InStructure>();
+                        select.InStructureList.Add(inStructure);
+                    }
+                }
                 select.CreateQuerry();
                 select.SetIndexes();
             }
@@ -1100,6 +1121,9 @@ namespace MySQL_Clear_standart
             CreateScheme(selectQueries);
             return selectQueries;
         }
+
+        
+
 
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects)
         {
@@ -2245,6 +2269,58 @@ namespace MySQL_Clear_standart
             }
 
             return tmpList;
+        }
+
+        private void CheckBinaryType(BinaryComparisionPredicateStructure binary, DataBaseStructure queryDb)
+        {
+            bool isLeftCollumn = false;
+            bool isRightCollumn = false;
+            foreach (TableStructure table in queryDb.Tables)
+            {
+                foreach (var columnStructure in table.Columns)
+                {
+                    if (columnStructure.Name == binary.LeftString)
+                    {
+                        isLeftCollumn = true;
+                    }
+                    if (columnStructure.Name == binary.RightString)
+                    {
+                        isRightCollumn = true;
+                    }
+                }
+
+                if(isRightCollumn && isLeftCollumn)
+                {
+                    binary.Type = 4;
+                    break;
+                }
+                else
+                {
+                    isRightCollumn = false;
+                    isLeftCollumn = false;
+                }
+            }
+
+        }
+        
+        private void FillInStructures(DataBaseStructure queryDb, List<InStructure> listenerInStructureList)
+        {
+            foreach (InStructure inStructure in listenerInStructureList)
+            {
+                foreach (TableStructure table in queryDb.Tables)
+                {
+                    foreach (ColumnStructure column in table.Columns)
+                    {
+                        if (column.Name == inStructure.LeftColumnName)
+                        {
+                            inStructure.LeftColumn = column;
+                            inStructure.Table = table;
+                            break;
+                        }
+                    }
+                }
+            }
+
         }
 
         #endregion

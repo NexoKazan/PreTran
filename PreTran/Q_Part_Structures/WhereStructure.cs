@@ -30,6 +30,7 @@ namespace PreTran.Q_Part_Structures
         private string _table;
         private string _comparisionOperator;
         private ColumnStructure _column;
+        private ColumnStructure _rightColumn;
         private Interval _sourceInterval;
 
 
@@ -85,6 +86,12 @@ namespace PreTran.Q_Part_Structures
         {
             get { return _column; }
             set { _column = value; }
+        }
+
+        public ColumnStructure RightColumn
+        {
+            get { return _rightColumn; }
+            set { _rightColumn = value; }
         }
     }
 }
