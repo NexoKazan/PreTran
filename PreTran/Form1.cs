@@ -967,7 +967,7 @@ namespace MySQL_Clear_standart
         private JoinStructure FindeJoin(string j1, string j2, List<JoinStructure> joinList)
         {
             //не должно быть ошибок
-            JoinStructure output = new JoinStructure("ERROR", "ERROR", "ERROR", new Interval(0,0), _sortRule);
+            JoinStructure output = new JoinStructure("ERROR", "ERROR", "ERROR", new Interval(0,0), _sortRule, false);
             output.Name = "ERROR";
             foreach (JoinStructure structure in joinList)
             {
@@ -1133,7 +1133,7 @@ namespace MySQL_Clear_standart
             {
                 if (binary.Type == 2 && binary.ComparisionSymphol == "=")
                 {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
+                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule, binary.IsOuterJoin);
                     tmpJoins.Add(tmp);
                 }
             }
@@ -1278,7 +1278,7 @@ namespace MySQL_Clear_standart
             {
                 if (binary.Type == 2 && binary.ComparisionSymphol == "=")
                 {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule);
+                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule, binary.IsOuterJoin);
                     tmpJoins.Add(tmp);
                 }
             }

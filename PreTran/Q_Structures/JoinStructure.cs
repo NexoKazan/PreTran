@@ -39,7 +39,8 @@ namespace PreTran.Q_Structures
         private bool _isFirst = false;
         private bool _switched = false;
         private bool _isAdditional = false;
-        private bool _isFilled = true;       
+        private bool _isFilled = true;
+        private bool _isOuterJoin;
         private Interval _sourceInterval;
         private BaseRule _sortRule;
         private ColumnStructure _leftColumn;
@@ -52,13 +53,14 @@ namespace PreTran.Q_Structures
         private List<JoinStructure> _additionalJoins = new List<JoinStructure>();
 
         public JoinStructure(string leftColumn, string rightColumn, string comparisonOperator, Interval sourceInterval,
-            BaseRule sortRule)
+            BaseRule sortRule, bool isOuterJoin)
         {
             _leftColumnString = leftColumn;
             _rightColumnString = rightColumn;
             _comparisonOperator = comparisonOperator;
             _sortRule = sortRule;
-            SourceInterval = sourceInterval;
+            _sourceInterval = sourceInterval;
+            _isOuterJoin = isOuterJoin;
         }
 
         #region Свойства
@@ -191,123 +193,79 @@ namespace PreTran.Q_Structures
         {
             if (_isFilled)
             {
-                if (_leftJoin != null)
-                {
-                    _columns.AddRange(_leftJoin.Columns);
-                    if (_switched)
-                    {
-                        if (_leftSelect != null)
-                            _columns.AddRange(_leftSelect.OutColumn);
-                    }
-                    else
-                    {
-                        if (_rightSelect != null)
-                            _columns.AddRange(_rightSelect.OutColumn);
-                    }
-                    //bool flag = false;
-                    //if (_leftSelect != null)
-                    //{
-                    //    foreach (ColumnStructure column in _columns)
-                    //    {
-                    //        foreach (ColumnStructure selectColumn in _leftSelect.OutTable.Columns)
-                    //        {
-                    //            if (column.Name == selectColumn.Name)
-                    //            {
-                    //                flag = true;
-                    //                break;
-                    //            }
-                    //        }
-                    //    }
+
+                string left = "ERROR";
+                string right = "ERROR";
+
+                #region  старая тема
 
 
-                    //    if (flag)
-                    //    {
-                    //        _columns.AddRange(_rightSelect.OutColumn);
-                    //    }
-                    //    else
-                    //    {
-                    //        _columns.AddRange(_leftSelect.OutColumn);
-                    //    }
-                    //}
-                }
-                else
-                {
-                    if (_leftSelect != null)
-                    {
-                        _columns.AddRange(_leftSelect.OutColumn);
-                    }
+                //if (_leftJoin != null)
+                //{
+                //    if (_leftSelect != null || _rightSelect != null)
+                //    {
+                //        _output += _leftJoin.Name + ",\r\n\t";
+                //    }
+                //    else
+                //    {
+                //        _output += _leftJoin.Name + "\r\n";
+                //    }
 
-                    if (_rightSelect != null)
-                    {
-                        _columns.AddRange(_rightSelect.OutColumn);
+                //    if (_switched)
+                //    {
+                //        if (_leftSelect != null)
+                //        {
+                //            _output += _leftSelect.Name + "\r\n";
+                //        }
+                //    }
+                //    else
+                //    {
+                //        if (_rightSelect != null)
+                //        {
+                //            _output += _rightSelect.Name + "\r\n";
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    if (_leftSelect != null)
+                //    {
+                //        _output += _leftSelect.Name + ",\r\n\t";
+                //    }
+                //    else
+                //    {
+                //        _output += "\r\n";
+                //    }
 
-                    }
-                }
+                //    if (_rightSelect != null)
+                //    {
+                //        _output += _rightSelect.Name + "\r\n";
+                //    }
+                //    else
+                //    {
+                //        _output += "\r\n";
+                //    }
+                //}
 
-                if (_additionalJoins.Count > 0)
-                {
-                    foreach (JoinStructure AddJoin in _additionalJoins)
-                    {
-                        _columns.Add(AddJoin.LeftColumn);
-                        _columns.Add(AddJoin.RightColumn);
-                    }
-                }
-                ColumnCounterDelete(_columns);
-                List<ColumnStructure> tmpColumns = new List<ColumnStructure>();
-                foreach (ColumnStructure column in _columns)
-                {
-                    if (column.IsForSelect || column.UsageCounter > 0)
-                    {
-                        tmpColumns.Add(column);
-                    }
-                }
 
-                _columns = tmpColumns;
-                _outTable = new TableStructure(_name + "_TB", _columns.ToArray());
-                _output = "SELECT";
-                bool commaPointer = false;
-                for (int i = 0; i < _columns.Count; i++)
-                {
-                    if (_columns[i].UsageCounter > 0 || _columns[i].IsForSelect)
-                    {
-
-                        if (!commaPointer)
-                        {
-                            _output += "\r\n\t" + _columns[i].Name;
-                            commaPointer = true;
-                        }
-                        else
-                        {
-                            _output += ",\r\n\t" + _columns[i].Name;
-                        }
-                    }
-                }
-
-                _output += "\r\nFROM\r\n\t";
+                #endregion
 
                 if (_leftJoin != null)
                 {
-                    if (_leftSelect != null || _rightSelect != null)
-                    {
-                        _output += _leftJoin.Name + ",\r\n\t";
-                    }
-                    else
-                    {
-                        _output += _leftJoin.Name + "\r\n";
-                    }
-
+                    left = _leftJoin.Name;
+                   
                     if (_switched)
                     {
                         if (_leftSelect != null)
                         {
-                            _output += _leftSelect.Name + "\r\n";
+                            right =  _leftSelect.Name;
                         }
                     }
                     else
                     {
                         if (_rightSelect != null)
                         {
-                            _output += _rightSelect.Name + "\r\n";
+                            right = _rightSelect.Name;
                         }
                     }
                 }
@@ -315,172 +273,17 @@ namespace PreTran.Q_Structures
                 {
                     if (_leftSelect != null)
                     {
-                        _output += _leftSelect.Name + ",\r\n\t";
-                    }
-                    else
-                    {
-                        _output += "\r\n";
+                        left = _leftSelect.Name;
                     }
 
                     if (_rightSelect != null)
                     {
-                        _output += _rightSelect.Name + "\r\n";
-                    }
-                    else
-                    {
-                        _output += "\r\n";
+                        right= _rightSelect.Name;
                     }
                 }
 
-                if (_leftColumn != null && _rightColumn != null)
-                {
-                    if (_leftColumn.DotTableId == null && _rightColumn.DotTableId == null)
-                    {
-                        if (!_switched)
-                        {
-                            _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " + _comparisonOperator +
-                                       " " + _rightColumn.Name;
+                this.CreateQuerry(left, right);
 
-                        }
-                        else
-                        {
-                            _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator +
-                                       " " + _leftColumn.Name;
-                        }
-                    }
-                    else
-                    {
-                        if (_leftColumn.DotTableId != null && _rightColumn.DotTableId != null)
-                        {
-                            if (!_switched)
-                            {
-                                _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.DotTableId + _leftColumn.Name + " " + _comparisonOperator +
-                                           " " + _rightColumn.DotTableId + _rightColumn.Name;
-                            }
-                            else
-                            {
-                                _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.DotTableId + _rightColumn.Name + " " + _comparisonOperator +
-                                           " " + _leftColumn.DotTableId + _leftColumn.Name;
-                            }
-
-                            _leftColumn.Name = _leftColumn.DotTableId + _leftColumn.Name;
-                            _rightColumn.Name = _rightColumn.DotTableId + _rightColumn.Name;
-                        }
-                        else
-                        {
-                            if (_rightColumn.DotTableId != null)
-                            {
-                                if (!_switched)
-                                {
-                                    _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " + _comparisonOperator +
-                                               " " + _rightColumn.DotTableId + _rightColumn.Name;
-
-                                }
-                                else
-                                {
-                                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.DotTableId + _rightColumn.Name + " " + _comparisonOperator +
-                                               " " + _leftColumn.Name;
-                                }
-                                _rightColumn.Name = _rightColumn.DotTableId + _rightColumn.Name;
-                            }
-
-                            if (_leftColumn.DotTableId != null)
-                            {
-                                if (!_switched)
-                                {
-                                    _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.DotTableId + _leftColumn.Name + " " + _comparisonOperator +
-                                               " " + _rightColumn.Name;
-                                }
-                                else
-                                {
-                                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " + _comparisonOperator +
-                                               " " + _leftColumn.DotTableId + _leftColumn.Name;
-                                }
-                                _leftColumn.Name = _leftColumn.DotTableId + _leftColumn.Name;
-                            }
-                        }
-                    }
-                }
-
-                foreach (JoinStructure addJoin in AdditionalJoins)
-                {
-                   if (addJoin.LeftColumn != null && addJoin.RightColumn != null)
-                   {
-                       if (addJoin.LeftColumn.DotTableId == null && addJoin.RightColumn.DotTableId == null)
-                       {
-                           if (!_switched)
-                           {
-                               _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.Name + " " + _comparisonOperator +
-                                          " " + addJoin.RightColumn.Name;
-
-                           }
-                           else
-                           {
-                               _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.Name + " " + _comparisonOperator +
-                                          " " + addJoin.LeftColumn.Name;
-                           }
-                       }
-                       else
-                       {
-                           if (addJoin.LeftColumn.DotTableId != null && addJoin.RightColumn.DotTableId != null)
-                           {
-                               if (!_switched)
-                               {
-                                   _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name + " " + _comparisonOperator +
-                                              " " + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
-                               }
-                               else
-                               {
-                                   _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name + " " + _comparisonOperator +
-                                              " " + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
-                               }
-
-                               addJoin.LeftColumn.Name = addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
-                               addJoin.RightColumn.Name = addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
-                           }
-                           else
-                           {
-                               if (addJoin.RightColumn.DotTableId != null)
-                               {
-                                   if (!_switched)
-                                   {
-                                       _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.Name + " " + _comparisonOperator +
-                                                  " " + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
-
-                                   }
-                                   else
-                                   {
-                                       _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name + " " + _comparisonOperator +
-                                                  " " + addJoin.LeftColumn.Name;
-                                   }
-                                   addJoin.RightColumn.Name = addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
-                               }
-
-                               if (addJoin.LeftColumn.DotTableId != null)
-                               {
-                                   if (!_switched)
-                                   {
-                                       _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name + " " + _comparisonOperator +
-                                                  " " + addJoin.RightColumn.Name;
-                                   }
-                                   else
-                                   {
-                                       _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.Name + " " + _comparisonOperator +
-                                                  " " + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
-                                   }
-                                   addJoin.LeftColumn.Name = addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
-                               }
-                           }
-                       }
-                   }
-                }
-
-                //SetIndex();
-                SetCreateTableColumnList();
-                SetSortFrom();
-                _sortRule.GetRuleBySourceInterval(_sourceInterval).Text = "";
-                _sortRule.GetRuleBySourceInterval(_sourceInterval).IsRealised = true;
-                _output += ";";
             }
         }
 
@@ -569,137 +372,179 @@ namespace PreTran.Q_Structures
 
                 _output += "\r\nFROM\r\n\t";
 
-                #region old4
+                if (!_isOuterJoin)
+                {
+                    //ПРЕДПОЛАГАЕМ ЧТО ТОЛЬКО LEFT
+                    _output += left + ", " + Environment.NewLine + "\t" + right;
+                }
+                else
+                {
+                    //ПРЕДПОЛАГАЕМ ЧТО ТОЛЬКО LEFT
+                    _output += left + " LEFT OUTER JOIN " + right;
+                }
 
-                //if (_leftJoin != null)
-                //{
-                //    if (_leftSelect != null || _rightSelect != null)
-                //    {
-                //        _output += _leftJoin.Name + ",\r\n\t";
-                //    }
-                //    else
-                //    {
-                //        _output += _leftJoin.Name + "\r\n";
-                //    }
-
-                //    if (_switched)
-                //    {
-                //        if (_leftSelect != null)
-                //        {
-                //            _output += _leftSelect.Name + "\r\n";
-                //        }
-                //    }
-                //    else
-                //    {
-                //        if (_rightSelect != null)
-                //        {
-                //            _output += _rightSelect.Name + "\r\n";
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    if (_leftSelect != null)
-                //    {
-                //        _output += _leftSelect.Name + ",\r\n\t";
-                //    }
-                //    else
-                //    {
-                //        _output += "\r\n";
-                //    }
-
-                //    if (_rightSelect != null)
-                //    {
-                //        _output += _rightSelect.Name + "\r\n";
-                //    }
-                //    else
-                //    {
-                //        _output += "\r\n";
-                //    }
-                //}
-
-                #endregion
-
-                _output += left + ", " + Environment.NewLine + right;
                 if (_leftColumn != null && _rightColumn != null)
                 {
-                    if (_leftColumn.DotTableId == null && _rightColumn.DotTableId == null)
+                    if (!_isOuterJoin)
                     {
-                        if (!_switched)
-                        {
-                            _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " +
-                                       _comparisonOperator +
-                                       " " + _rightColumn.Name;
-
-                        }
-                        else
-                        {
-                            _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " +
-                                       _comparisonOperator +
-                                       " " + _leftColumn.Name;
-                        }
-                    }
-                    else
-                    {
-                        if (_leftColumn.DotTableId != null && _rightColumn.DotTableId != null)
+                        if (_leftColumn.DotTableId == null && _rightColumn.DotTableId == null)
                         {
                             if (!_switched)
                             {
-                                _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.DotTableId +
-                                           _leftColumn.Name + " " + _comparisonOperator +
-                                           " " + _rightColumn.DotTableId + _rightColumn.Name;
+                                _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " +
+                                           _comparisonOperator +
+                                           " " + _rightColumn.Name;
+
                             }
                             else
                             {
-                                _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.DotTableId +
-                                           _rightColumn.Name + " " + _comparisonOperator +
-                                           " " + _leftColumn.DotTableId + _leftColumn.Name;
+                                _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " +
+                                           _comparisonOperator +
+                                           " " + _leftColumn.Name;
                             }
-
-                            _leftColumn.Name = _leftColumn.DotTableId + _leftColumn.Name;
-                            _rightColumn.Name = _rightColumn.DotTableId + _rightColumn.Name;
                         }
                         else
                         {
-                            if (_rightColumn.DotTableId != null)
-                            {
-                                if (!_switched)
-                                {
-                                    _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " +
-                                               _comparisonOperator +
-                                               " " + _rightColumn.DotTableId + _rightColumn.Name;
-
-                                }
-                                else
-                                {
-                                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.DotTableId +
-                                               _rightColumn.Name + " " + _comparisonOperator +
-                                               " " + _leftColumn.Name;
-                                }
-
-                                _rightColumn.Name = _rightColumn.DotTableId + _rightColumn.Name;
-                            }
-
-                            if (_leftColumn.DotTableId != null)
+                            if (_leftColumn.DotTableId != null && _rightColumn.DotTableId != null)
                             {
                                 if (!_switched)
                                 {
                                     _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.DotTableId +
                                                _leftColumn.Name + " " + _comparisonOperator +
-                                               " " + _rightColumn.Name;
+                                               " " + _rightColumn.DotTableId + _rightColumn.Name;
                                 }
                                 else
                                 {
-                                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " +
-                                               _comparisonOperator +
+                                    _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.DotTableId +
+                                               _rightColumn.Name + " " + _comparisonOperator +
                                                " " + _leftColumn.DotTableId + _leftColumn.Name;
                                 }
 
                                 _leftColumn.Name = _leftColumn.DotTableId + _leftColumn.Name;
+                                _rightColumn.Name = _rightColumn.DotTableId + _rightColumn.Name;
+                            }
+                            else
+                            {
+                                if (_rightColumn.DotTableId != null)
+                                {
+                                    if (!_switched)
+                                    {
+                                        _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.Name + " " +
+                                                   _comparisonOperator +
+                                                   " " + _rightColumn.DotTableId + _rightColumn.Name;
+
+                                    }
+                                    else
+                                    {
+                                        _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.DotTableId +
+                                                   _rightColumn.Name + " " + _comparisonOperator +
+                                                   " " + _leftColumn.Name;
+                                    }
+
+                                    _rightColumn.Name = _rightColumn.DotTableId + _rightColumn.Name;
+                                }
+
+                                if (_leftColumn.DotTableId != null)
+                                {
+                                    if (!_switched)
+                                    {
+                                        _output += Environment.NewLine + "WHERE\r\n\t" + _leftColumn.DotTableId +
+                                                   _leftColumn.Name + " " + _comparisonOperator +
+                                                   " " + _rightColumn.Name;
+                                    }
+                                    else
+                                    {
+                                        _output += Environment.NewLine + "WHERE\r\n\t" + _rightColumn.Name + " " +
+                                                   _comparisonOperator +
+                                                   " " + _leftColumn.DotTableId + _leftColumn.Name;
+                                    }
+
+                                    _leftColumn.Name = _leftColumn.DotTableId + _leftColumn.Name;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (_leftColumn.DotTableId == null && _rightColumn.DotTableId == null)
+                        {
+                            if (!_switched)
+                            {
+                                _output += Environment.NewLine + "ON\r\n\t" + _leftColumn.Name + " " +
+                                           _comparisonOperator +
+                                           " " + _rightColumn.Name;
+
+                            }
+                            else
+                            {
+                                _output += Environment.NewLine + "ON\r\n\t" + _rightColumn.Name + " " +
+                                           _comparisonOperator +
+                                           " " + _leftColumn.Name;
+                            }
+                        }
+                        else
+                        {
+                            if (_leftColumn.DotTableId != null && _rightColumn.DotTableId != null)
+                            {
+                                if (!_switched)
+                                {
+                                    _output += Environment.NewLine + "ON\r\n\t" + _leftColumn.DotTableId +
+                                               _leftColumn.Name + " " + _comparisonOperator +
+                                               " " + _rightColumn.DotTableId + _rightColumn.Name;
+                                }
+                                else
+                                {
+                                    _output += Environment.NewLine + "ON\r\n\t" + _rightColumn.DotTableId +
+                                               _rightColumn.Name + " " + _comparisonOperator +
+                                               " " + _leftColumn.DotTableId + _leftColumn.Name;
+                                }
+
+                                _leftColumn.Name = _leftColumn.DotTableId + _leftColumn.Name;
+                                _rightColumn.Name = _rightColumn.DotTableId + _rightColumn.Name;
+                            }
+                            else
+                            {
+                                if (_rightColumn.DotTableId != null)
+                                {
+                                    if (!_switched)
+                                    {
+                                        _output += Environment.NewLine + "ON\r\n\t" + _leftColumn.Name + " " +
+                                                   _comparisonOperator +
+                                                   " " + _rightColumn.DotTableId + _rightColumn.Name;
+
+                                    }
+                                    else
+                                    {
+                                        _output += Environment.NewLine + "ON\r\n\t" + _rightColumn.DotTableId +
+                                                   _rightColumn.Name + " " + _comparisonOperator +
+                                                   " " + _leftColumn.Name;
+                                    }
+
+                                    _rightColumn.Name = _rightColumn.DotTableId + _rightColumn.Name;
+                                }
+
+                                if (_leftColumn.DotTableId != null)
+                                {
+                                    if (!_switched)
+                                    {
+                                        _output += Environment.NewLine + "ON\r\n\t" + _leftColumn.DotTableId +
+                                                   _leftColumn.Name + " " + _comparisonOperator +
+                                                   " " + _rightColumn.Name;
+                                    }
+                                    else
+                                    {
+                                        _output += Environment.NewLine + "ON\r\n\t" + _rightColumn.Name + " " +
+                                                   _comparisonOperator +
+                                                   " " + _leftColumn.DotTableId + _leftColumn.Name;
+                                    }
+
+                                    _leftColumn.Name = _leftColumn.DotTableId + _leftColumn.Name;
+                                }
                             }
                         }
                     }
                 }
+
                 foreach (JoinStructure addJoin in AdditionalJoins)
                 {
                    if (addJoin.LeftColumn != null && addJoin.RightColumn != null)
@@ -1154,53 +999,9 @@ namespace PreTran.Q_Structures
         {
             if (!_isAdditional)
             {
-                if (_leftJoin != null)
+                if (!_isOuterJoin)
                 {
-                    if (_leftJoin.LeftSelect != null)
-                    {
-                        _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                            false;
-                        _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
-                        _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                            true;
-                    }
-
-                    if (_leftJoin.RightSelect != null)
-                    {
-                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                            false;
-                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
-                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                            true;
-                    }
-                }
-
-                if (_leftSelect != null)
-                {
-                    _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
-                    _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
-                    _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
-                }
-
-                if (_rightSelect != null)
-                {
-                    _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
-                    _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
-                    _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
-                }
-
-                if (_leftJoin != null && _rightSelect == null && _leftSelect == null)
-                {
-                    if (_leftJoin.RightSelect != null)
-                    {
-                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                            false;
-                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text =
-                            _name;
-                        _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised =
-                            true;
-                    }
-                    else
+                    if (_leftJoin != null)
                     {
                         if (_leftJoin.LeftSelect != null)
                         {
@@ -1208,10 +1009,139 @@ namespace PreTran.Q_Structures
                                     .IsRealised =
                                 false;
                             _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text =
-                                _name;
+                                "";
                             _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
                                     .IsRealised =
                                 true;
+                        }
+
+                        if (_leftJoin.RightSelect != null)
+                        {
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                false;
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text =
+                                "";
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                true;
+                        }
+                    }
+
+                    if (_leftSelect != null)
+                    {
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
+                    }
+
+                    if (_rightSelect != null)
+                    {
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
+                    }
+
+                    if (_leftJoin != null && _rightSelect == null && _leftSelect == null)
+                    {
+                        if (_leftJoin.RightSelect != null)
+                        {
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                false;
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text =
+                                _name;
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                true;
+                        }
+                        else
+                        {
+                            if (_leftJoin.LeftSelect != null)
+                            {
+                                _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                        .IsRealised =
+                                    false;
+                                _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                        .Text =
+                                    _name;
+                                _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                        .IsRealised =
+                                    true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (_leftJoin != null)
+                    {
+                        if (_leftJoin.LeftSelect != null)
+                        {
+                            _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                false;
+                            _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem").Text =
+                                "";
+                            _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                true;
+                        }
+
+                        if (_leftJoin.RightSelect != null)
+                        {
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                false;
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text =
+                                "";
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                true;
+                        }
+                    }
+
+                    if (_leftSelect != null)
+                    {
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").Text = _name;
+                        _sortRule.GetRule(_leftSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
+                    }
+
+                    if (_rightSelect != null)
+                    {
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = false;
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").Text = "";
+                        _sortRule.GetRule(_rightSelect.InputTable.SourceInterval, "atomtableitem").IsRealised = true;
+                    }
+
+                    if (_leftJoin != null && _rightSelect == null && _leftSelect == null)
+                    {
+                        if (_leftJoin.RightSelect != null)
+                        {
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                false;
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem").Text =
+                                _name;
+                            _sortRule.GetRule(_leftJoin.RightSelect.InputTable.SourceInterval, "atomtableitem")
+                                    .IsRealised =
+                                true;
+                        }
+                        else
+                        {
+                            if (_leftJoin.LeftSelect != null)
+                            {
+                                _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                        .IsRealised =
+                                    false;
+                                _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                        .Text =
+                                    _name;
+                                _sortRule.GetRule(_leftJoin.LeftSelect.InputTable.SourceInterval, "atomtableitem")
+                                        .IsRealised =
+                                    true;
+                            }
                         }
                     }
                 }

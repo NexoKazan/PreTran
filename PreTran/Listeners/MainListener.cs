@@ -43,10 +43,11 @@ namespace PreTran.Listeners
         private bool _triggerEnterSelectFunctionElemenAsExist = false;
         private bool _isFirst = true;
         private bool _caseBlock = false; //только для бинарок в кейзе и лайке
-        private bool _outerJoinBlock = false;
+        private bool _isOuterJoin = false;
         public string _return = "Return:\r\n";
         private string _subSelectFunction;
         private IVocabulary _vocabulary;
+        private Interval _outerJoinInterval;
 
         //private List<string> _columnNames = new List<string>();
         //private List<TableStructure> _tableNames = new List<TableStructure>();
@@ -307,16 +308,28 @@ namespace PreTran.Listeners
 
         public override void EnterBinaryComparasionPredicate([NotNull] MySqlParser.BinaryComparasionPredicateContext context)
         {
-            if (!_caseBlock && !_outerJoinBlock)
+            if (!_caseBlock)
             {
                 if (_depth == _tmpDepth)
                 {
-                    BinaryComparisionPredicateStructure tmpBinary =
-                        new BinaryComparisionPredicateStructure(context.left.GetText(),
-                            context.comparisonOperator().GetText(), context.right.GetText(), context.SourceInterval);
+                    BinaryComparisionPredicateStructure tmpBinary;
+                    if (!_isOuterJoin)
+                    {
+                         tmpBinary =
+                            new BinaryComparisionPredicateStructure(context.left.GetText(),
+                                context.comparisonOperator().GetText(), context.right.GetText(),
+                                context.SourceInterval, _isOuterJoin);
+                    }
+                    else
+                    {
+                         tmpBinary =
+                            new BinaryComparisionPredicateStructure(context.left.GetText(),
+                                context.comparisonOperator().GetText(), context.right.GetText(),
+                                _outerJoinInterval, _isOuterJoin);
+                    }
                     if (context.GetChild(2).GetChild(0).GetType().ToString()
-                        .Contains("ConstantExpressionAtomContext") || context.GetChild(2).GetChild(0).GetType()
-                        .ToString().Contains("MathExpressionAtomContext"))
+                            .Contains("ConstantExpressionAtomContext") || context.GetChild(2).GetChild(0).GetType()
+                            .ToString().Contains("MathExpressionAtomContext"))
                     {
                         tmpBinary.Type = (int) PredicateType.simple;
                     }
@@ -397,7 +410,7 @@ namespace PreTran.Listeners
         
         public override void EnterLikePredicate([NotNull] MySqlParser.LikePredicateContext context)
         {
-            if (!_caseBlock && !_outerJoinBlock)
+            if (!_caseBlock)
             {
                 if (_depth == _tmpDepth)
                 {
@@ -425,17 +438,20 @@ namespace PreTran.Listeners
 
         public override void EnterOuterJoin(MySqlParser.OuterJoinContext context)
         {
-            _outerJoinBlock = true;
+            //ПРЕДПОЛАГАЕМ ЧТО ТОЛЬКО LEFT
+            _outerJoinInterval = context.SourceInterval;
+            _isOuterJoin = true;
         }
 
         public override void ExitOuterJoin(MySqlParser.OuterJoinContext context)
         {
-            _outerJoinBlock = false;
+            _outerJoinInterval = new Interval();
+            _isOuterJoin = false;
         }
 
         public override void EnterInPredicate(MySqlParser.InPredicateContext context)
         {
-            if (!_caseBlock && !_outerJoinBlock)
+            if (!_caseBlock)
             {
                 if (_depth == _tmpDepth)
                 {

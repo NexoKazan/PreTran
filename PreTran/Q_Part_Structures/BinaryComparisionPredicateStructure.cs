@@ -44,14 +44,16 @@ namespace PreTran.Q_Part_Structures
 
         private string _comparisionSymphol;
 
+        private bool _isOuterJoin;
         private Interval _sourceInterval;
 
-        public BinaryComparisionPredicateStructure(string leftString, string comparisionSymphol, string rightString, Interval sourceInterval)
+        public BinaryComparisionPredicateStructure(string leftString, string comparisionSymphol, string rightString, Interval sourceInterval, bool isOuterJoin)
         {
             _leftString = leftString;
             _rightString = rightString;
             _comparisionSymphol = comparisionSymphol;
             _sourceInterval = sourceInterval;
+            _isOuterJoin = isOuterJoin;
         }
 
         public int Type
@@ -94,6 +96,12 @@ namespace PreTran.Q_Part_Structures
         {
             get { return _subQID; }
             set { _subQID = value; }
+        }
+
+        public bool IsOuterJoin
+        {
+            //ПРЕДПОЛАГАЕМ ЧТО ТОЛЬКО LEFT
+            get { return _isOuterJoin; }
         }
 
         public Interval SourceInterval { get => _sourceInterval; set => _sourceInterval = value; }
