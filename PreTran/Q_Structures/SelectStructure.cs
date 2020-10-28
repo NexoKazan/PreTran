@@ -354,14 +354,25 @@ namespace PreTran.Q_Structures
         private bool CheckForDistinct()
         {
             bool isDistinct = true;
+            int columsCounter = 2;
             foreach (ColumnStructure column in _outTable.Columns)
             {
                 if (column.IsPrimary == 1)
                 {
                     isDistinct = false;
                     break;
-                    
                 }
+
+                if (column.IsPrimary == 2)
+                {
+                    columsCounter--;
+                }
+
+            }
+
+            if (columsCounter <= 0)
+            {
+                isDistinct = false;
             }
             return isDistinct;
         }

@@ -333,12 +333,13 @@ namespace PreTran.Q_Structures
                     }
                 }
 
-                foreach (JoinStructure additionalJoin in AdditionalJoins)
+                foreach (JoinStructure additionalJoin in _additionalJoins)
                 {
                     _columns.Add(additionalJoin.LeftColumn);
                     _columns.Add(additionalJoin.RightColumn);
                 }
 
+                _columns = RemoveSameNames(_columns);
                 ColumnCounterDelete(_columns);
                 List<ColumnStructure> tmpColumns = new List<ColumnStructure>();
                 foreach (ColumnStructure column in _columns)
@@ -545,7 +546,7 @@ namespace PreTran.Q_Structures
                     }
                 }
 
-                foreach (JoinStructure addJoin in AdditionalJoins)
+                foreach (JoinStructure addJoin in _additionalJoins)
                 {
                    if (addJoin.LeftColumn != null && addJoin.RightColumn != null)
                    {
@@ -625,6 +626,30 @@ namespace PreTran.Q_Structures
                 _sortRule.GetRuleBySourceInterval(_sourceInterval).IsRealised = true;
                 _output += ";";
             }
+        }
+
+        private List<ColumnStructure> RemoveSameNames(List<ColumnStructure> columns)
+        {
+            List<ColumnStructure> tmpColumns = new List<ColumnStructure>();
+            tmpColumns.Add(columns[0]);
+            bool isForAdd ;
+            foreach (ColumnStructure column in columns)
+            {
+                isForAdd = true;
+                foreach (ColumnStructure columnStructure in tmpColumns)
+                {
+                    if (column.Name == columnStructure.Name)
+                    {
+                        isForAdd = false;
+                    }
+                }
+
+                if (isForAdd)
+                {
+                    tmpColumns.Add(column);
+                }
+            }
+            return tmpColumns;
         }
 
         public void SetIndex()
@@ -1168,9 +1193,9 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            if (AdditionalJoins.Count > 0)
+            if (_additionalJoins.Count > 0)
             {
-                foreach (JoinStructure addJoin in AdditionalJoins)
+                foreach (JoinStructure addJoin in _additionalJoins)
                 {
                     ///ЫЫЫ кривой хардкод, переделать. Слишком много делается, а нужно только сделать метод setSortFrom
                     addJoin.CreateQuerry(_name,_name);

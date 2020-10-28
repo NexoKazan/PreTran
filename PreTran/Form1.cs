@@ -1121,10 +1121,7 @@ namespace MySQL_Clear_standart
             CreateScheme(selectQueries);
             return selectQueries;
         }
-
-        
-
-
+                
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects)
         {
             DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
@@ -1147,19 +1144,17 @@ namespace MySQL_Clear_standart
                 join.CheckIsFilled();
                 if (join.IsFilled)
                 {
-                    if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
-                    {
-                        tmpList.Add(join);
-                    }
-                    else
-                    {
-                        join.IsAdditional = true;
-                        excludedJoin.Add(join);
-                    }
+                    tmpList.Add(join);
+                    //if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
+                    //{
+                    //    tmpList.Add(join);
+                    //}
+                    //else
+                    //{
+                    //    join.IsAdditional = true;
+                    //    excludedJoin.Add(join);
+                    //}
                 }
-
-
-
             }
 
             joinQueries = tmpList.ToArray();
@@ -1593,18 +1588,7 @@ namespace MySQL_Clear_standart
             _output = "";
             _output += "\r\n========Return================\r\n";
 
-            tabControl_main.SelectTab(1);
-            btn_tab2_CreateSelect.PerformClick();
-            btn_tab2_CreateJoin.PerformClick();
-            btn_tab2_CreateSort.PerformClick();
-            tabControl_main.SelectTab(0);
 
-           
-            NewSortStructure tmpSortStructure = new NewSortStructure("TEST", _sortRule, _dbName);
-            _output = tmpSortStructure.Output;
-            _output += Environment.NewLine + "/////////////////////////////////////////////" + Environment.NewLine;
-            //_output += ShowDataBase(tmpSortStructure.OutDataBase);
-            _output += tmpSortStructure.CreateTableColumnNames;
             textBox_tab1_Query.Text = _output;
         }
         
