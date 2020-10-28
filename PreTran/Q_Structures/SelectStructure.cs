@@ -272,7 +272,18 @@ namespace PreTran.Q_Structures
                         _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
                         _sortRule.GetRuleBySourceInterval(like.SourceInterval).Text = "";
                         _sortRule.GetRuleBySourceInterval(like.SourceInterval).IsRealised = true;
-                        _output += Environment.NewLine + "\t" + like.LeftColumn.Name + " LIKE " + like.RightExpression;
+                        if (!like.IsNot)
+                        {
+
+                            _output += Environment.NewLine + "\t" + like.LeftColumn.Name + " LIKE " +
+                                       like.RightExpression;
+                        }
+                        else
+                        {
+                            _output += Environment.NewLine + "\t" + like.LeftColumn.Name + " NOT LIKE " +
+                                       like.RightExpression;
+                        }
+
                         if (like != _likeList.LastOrDefault() || _betweenList.Count > 0 || _inStructureList != null)
                         {
                             _output += " AND ";
