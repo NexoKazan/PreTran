@@ -1287,15 +1287,16 @@ namespace MySQL_Clear_standart
                 join.CheckIsFilled();
                 if (join.IsFilled)
                 {
-                    if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
-                    {
-                        tmpList.Add(join);
-                    }
-                    else
-                    {
-                        join.IsAdditional = true;
-                        excludedJoin.Add(join);
-                    }
+                    tmpList.Add(join);
+                    //if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
+                    //{
+                    //    tmpList.Add(join);
+                    //}
+                    //else
+                    //{
+                    //    join.IsAdditional = true;
+                    //    excludedJoin.Add(join);
+                    //}
                 }
 
 
