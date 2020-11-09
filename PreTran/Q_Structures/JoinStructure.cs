@@ -35,6 +35,7 @@ namespace PreTran.Q_Structures
         private string _output;
         private string _comparisonOperator;
         private List<string> _indexColumnNames = new List<string>();
+        private List<ColumnStructure> _indexColumns = new List<ColumnStructure>();
         private string _createTableColumnNames;
         private bool _isFirst = false;
         private bool _switched = false;
@@ -187,6 +188,11 @@ namespace PreTran.Q_Structures
             set => _additionalJoins = value;
         }
 
+        public List<ColumnStructure> IndexColumn
+        {
+            get { return _indexColumns; }
+            set { _indexColumns = value; }
+        }
         #endregion
 
         public void CreateQuerry()
@@ -877,6 +883,7 @@ namespace PreTran.Q_Structures
                         if (column.Name == name)
                         {
                             _leftJoin.IndexColumnNames.Add(column.Name);
+                            _leftJoin.IndexColumn.Add(column);
                         }
                     }
                 }
@@ -885,6 +892,7 @@ namespace PreTran.Q_Structures
                     if (_leftSelect.IndexColumnNames.Count > 0)
                     {
                         _leftSelect.IndexColumnNames = new List<string>();
+                        _leftSelect.IndexColumns = new List<ColumnStructure>();
                     }
                     foreach (string name in possibleIndexNames)
                     {
@@ -893,6 +901,7 @@ namespace PreTran.Q_Structures
                             if (column.Name == name)
                             {
                                 _leftSelect.IndexColumnNames.Add(column.Name);
+                                _leftSelect.IndexColumns.Add(column);
                             }
                         }
                     }
@@ -902,6 +911,7 @@ namespace PreTran.Q_Structures
                     if (_rightSelect.IndexColumnNames.Count > 0)
                     {
                         _rightSelect.IndexColumnNames = new List<string>();
+                        _rightSelect.IndexColumns = new List<ColumnStructure>();
                     }
                     foreach (string name in possibleIndexNames)
                     {
@@ -910,6 +920,7 @@ namespace PreTran.Q_Structures
                             if (column.Name == name)
                             {
                                 _rightSelect.IndexColumnNames.Add(column.Name);
+                                _rightSelect.IndexColumns.Add(column);
                             }
                         }
                     }
@@ -920,6 +931,7 @@ namespace PreTran.Q_Structures
                 if (_leftSelect.IndexColumnNames.Count > 0)
                 {
                     _leftSelect.IndexColumnNames = new List<string>();
+                    _leftSelect.IndexColumns = new List<ColumnStructure>();
                 }
                 foreach (string name in possibleIndexNames)
                 {
@@ -928,6 +940,7 @@ namespace PreTran.Q_Structures
                         if (column.Name == name)
                         {
                             _leftSelect.IndexColumnNames.Add(column.Name);
+                            _leftSelect.IndexColumns.Add(column);
                         }
                     }
                 }
@@ -935,6 +948,7 @@ namespace PreTran.Q_Structures
                 if (_rightSelect.IndexColumnNames.Count > 0)
                 {
                     _rightSelect.IndexColumnNames = new List<string>();
+                    _rightSelect.IndexColumns = new List<ColumnStructure>();
                 }
                 foreach (string name in possibleIndexNames)
                 {
@@ -943,20 +957,44 @@ namespace PreTran.Q_Structures
                         if (column.Name == name)
                         {
                             _rightSelect.IndexColumnNames.Add(column.Name);
+                            _rightSelect.IndexColumns.Add(column);
                         }
+                    }
+                }
+            }
+
+
+            if (_indexColumnNames.Count < 1)
+            {
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.IsPrimary == 1)
+                    {
+                        _indexColumns.Add(column);
+                        _indexColumnNames.Add(column.Name);
                     }
                 }
             }
 
             if (_indexColumnNames.Count < 1)
             {
+                int primaryKeyCount = 0;
                 foreach (ColumnStructure column in _outTable.Columns)
                 {
-                    if (column.IsPrimary > 0)
+                    if (column.IsPrimary > 1)
                     {
-                        _indexColumnNames.Add(column.Name);
+                        primaryKeyCount = column.IsPrimary;
+                        break;
                     }
-
+                }
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.IsPrimary > 1 && primaryKeyCount > 0)
+                    {
+                        _indexColumns.Add(column);
+                        _indexColumnNames.Add(column.Name);
+                        primaryKeyCount--;
+                    }
                 }
             }
 
@@ -966,11 +1004,14 @@ namespace PreTran.Q_Structures
                 {
                     if (column.Type.Name == "INT")
                     {
+                        _indexColumns.Add(column);
                         _indexColumnNames.Add(column.Name);
                         break;
                     }
                 }
             }
+
+            
         }
 
         private void SetCreateTableColumnList()
@@ -1203,5 +1244,78 @@ namespace PreTran.Q_Structures
             }
         }
 
+        public void CheckIsDistinct()
+        {
+            bool isDistinct = true;
+
+            if (_leftJoin != null)
+            {
+                foreach (ColumnStructure column in _leftJoin.IndexColumn)
+                {
+                    if (column.IsPrimary == 1)
+                    {
+                        isDistinct = false;
+                        break;
+                    }
+                }
+                if (_switched)
+                {
+                    foreach (ColumnStructure column in _leftSelect.IndexColumns)
+                    {
+                        if (column.IsPrimary == 1)
+                        {
+                            isDistinct = false;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (ColumnStructure column in _rightSelect.IndexColumns)
+                    {
+                        if (column.IsPrimary == 1)
+                        {
+                            isDistinct = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (ColumnStructure column in _leftSelect.IndexColumns)
+                {
+                    if (column.IsPrimary == 1)
+                    {
+                        isDistinct = false;
+                        break;
+                    }
+                }
+                foreach (ColumnStructure column in _rightSelect.IndexColumns)
+                {
+                    if (column.IsPrimary == 1)
+                    {
+                        isDistinct = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isDistinct)
+            {
+                _output = _output.Insert(6, " DISTINCT");
+            }
+
+            //Console.WriteLine(Environment.NewLine + "========" + _name + "========" );
+            //Console.WriteLine(Environment.NewLine + "Имена" + "========");
+            //foreach (string name in _indexColumnNames)
+            //{
+            //    Console.WriteLine(Environment.NewLine + name);
+            //}
+            //Console.WriteLine(Environment.NewLine + "Столбцы" + "========");
+            //foreach (ColumnStructure column in _indexColumns)
+            //{
+            //    Console.WriteLine(Environment.NewLine + column.Name);
+        }
     }
 }

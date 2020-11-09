@@ -1173,6 +1173,12 @@ namespace MySQL_Clear_standart
             {
                     joinQueries[i].SetIndex();
             }
+
+            foreach (JoinStructure joinQuery in joinQueries)
+            {
+                joinQuery.CheckIsDistinct();
+            }
+
             CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
@@ -1319,6 +1325,10 @@ namespace MySQL_Clear_standart
                 joinQueries[i].SetIndex();
             }
 
+            foreach (JoinStructure joinQuery in joinQueries)
+            {
+                joinQuery.CheckIsDistinct();
+            }
             CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
@@ -1973,14 +1983,16 @@ namespace MySQL_Clear_standart
                         qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                                 .ToList(), joinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
-                            new List<Index>()
-                            {
-                                new Index()
-                                {
-                                    FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
-                                    Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
-                                }
-                            }: new List<Index>()));
+                            //new List<Index>()
+                            //{
+                            //    new Index()
+                            //    {
+                            //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                            //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
+                            //    }
+                            //}
+                            CreateRelationIndex(joinQ[index].LeftSelect.IndexColumns)
+                            : new List<Index>()));
 
                 }
                 else
@@ -1997,15 +2009,16 @@ namespace MySQL_Clear_standart
                                 select, "b", //joinQ[index].RightSelect.Name,
                                 qb.CreateRelationSchema(joinQ[index].RightSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                    .ToList(), joinQ[index].RightSelect.IndexColumnNames.Count > 0
-                                    ? new List<Index>()
-                                    {
-                                        new Index()
-                                        {
-                                            FieldNames = joinQ[index].RightSelect.IndexColumnNames,
-                                            Name = $"INDEX_{joinQ[index].RightSelect.Name}"
-                                        }
-                                    }
+                                    .ToList(), joinQ[index].RightSelect.IndexColumnNames.Count > 0 ? 
+                                    //new List<Index>()
+                                    //{
+                                    //    new Index()
+                                    //    {
+                                    //        FieldNames = joinQ[index].RightSelect.IndexColumnNames,
+                                    //        Name = $"INDEX_{joinQ[index].RightSelect.Name}"
+                                    //    }
+                                    //}
+                                    CreateRelationIndex(joinQ[index].RightSelect.IndexColumns)
                                     : new List<Index>()));
                     }
                     else
@@ -2022,14 +2035,16 @@ namespace MySQL_Clear_standart
                             qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                                     .ToList(), joinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
-                                new List<Index>()
-                                {
-                                    new Index()
-                                    {
-                                        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
-                                        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
-                                    }
-                                } : new  List<Index>()));
+                                //new List<Index>()
+                                //{
+                                //    new Index()
+                                //    {
+                                //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                                //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
+                                //    }
+                                //} 
+                                CreateRelationIndex(joinQ[index].LeftSelect.IndexColumns)
+                                : new  List<Index>()));
                 }
                 
 
@@ -2038,9 +2053,17 @@ namespace MySQL_Clear_standart
                         qb.CreateRelationSchema(
                             joinQ[index].OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
-                            joinQ[index].IndexColumnNames.Count > 0 ? new List<Index>()
-                                    {new Index() {FieldNames = joinQ[index].IndexColumnNames, Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"}} : 
-                                new List<Index>()), 0,
+                            joinQ[index].IndexColumnNames.Count > 0 ?
+                                //new List<Index>()
+                                //{
+                                //    new Index()
+                                //    {
+                                //        FieldNames = joinQ[index].IndexColumnNames,
+                                //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
+                                //    }
+                                //}
+                                CreateRelationIndex(joinQ[index].IndexColumn)
+                                : new List<Index>()), 0,
                         leftRelation, rightRelation));
             }
 
@@ -2142,14 +2165,16 @@ namespace MySQL_Clear_standart
                     qb.CreateRelationSchema(
                         select.OutColumn.Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
                         select.IndexColumnNames.Count > 0 ?
-                            new List<Index>()
-                            {
-                                new Index()
-                                {
-                                    FieldNames = select.IndexColumnNames,
-                                    Name = $"INDEX_{select.Name}"
-                                }
-                            } : new List<Index>()
+                            //new List<Index>()
+                            //{
+                            //    new Index()
+                            //    {
+                            //        FieldNames = select.IndexColumnNames,
+                            //        Name = $"INDEX_{select.Name}"
+                            //    }
+                            //} 
+                            CreateRelationIndex(select.IndexColumns)
+                            : new List<Index>()
                        ));
 
                 relations.Add(cRelation);
@@ -2308,6 +2333,96 @@ namespace MySQL_Clear_standart
 
         }
 
+        private List<Index> CreateRelationIndex(List<ColumnStructure> indexColumns)
+        {
+            List<Index> outIndex = new List<Index>();
+            Index primaryIndex = new Index();
+            Index anotherIndex = new Index();
+            List<string> notPrimaryColums = new List<string>();
+            foreach (ColumnStructure column in indexColumns)
+            {
+                if (column.IsPrimary == 1)
+                {
+                    primaryIndex = new Index()
+                    {
+                        Name = "IND1_" + column.Name,
+                        FieldNames = new List<string>() {column.Name},
+                        IsPrimary = true
+                    };
+                    outIndex.Add(primaryIndex);
+                }
+                else
+                {
+                    notPrimaryColums.Add(column.Name);
+                }
+            }
+
+            if (primaryIndex.FieldNames.Count == 0)
+            {
+                notPrimaryColums = new List<string>();
+                int primaryKeyCount = -1;
+                List<string> possPrimaryIndexColumnNames = new List<string>();
+
+                foreach (ColumnStructure column in indexColumns)
+                {
+                    if (column.IsPrimary > 1)
+                    {
+                        primaryKeyCount = column.IsPrimary;
+                        break;
+                    }
+                }
+                foreach (ColumnStructure column in indexColumns)
+                {
+                    if (column.IsPrimary > 1 && primaryKeyCount > 0)
+                    {
+                        possPrimaryIndexColumnNames.Add(column.Name);
+                        primaryKeyCount--;
+                    }
+                    else
+                    {
+                        notPrimaryColums.Add(column.Name);
+                    }
+                }
+
+                if (primaryKeyCount == 0 )
+                {
+                    primaryIndex = new Index()
+                    {
+                        Name = "IND2_" + possPrimaryIndexColumnNames[0],
+                        FieldNames = possPrimaryIndexColumnNames,
+                        IsPrimary = true
+                    };
+                    outIndex.Add(primaryIndex);
+                }
+            }
+
+            if (primaryIndex.FieldNames.Count == 0)
+            {
+                anotherIndex = new Index()
+                {
+                    Name = "IND3_" + indexColumns[0].Name,
+                    FieldNames = notPrimaryColums,
+                    IsPrimary = false
+
+                };
+                outIndex.Add(anotherIndex);
+            }
+            else
+            {
+                if (notPrimaryColums.Count > 0)
+                {
+                    anotherIndex = new Index()
+                    {
+                        Name = "IND4_" + indexColumns[0].Name,
+                        FieldNames = notPrimaryColums,
+                        IsPrimary = false
+
+                    };
+                    outIndex.Add(anotherIndex);
+                }
+            }
+            return outIndex;
+        }
         #endregion
 
 

@@ -35,6 +35,7 @@ namespace PreTran.Q_Structures
         private string _tableName;
         private static int _id = 0;
         private List<string> _indexColumnNames = new List<string>();
+        private List<ColumnStructure> _indexColumns = new List<ColumnStructure>();
         private string _createTableColumnNames;
         private BaseRule _sortRule;
         private TableStructure _inputTable;
@@ -122,6 +123,12 @@ namespace PreTran.Q_Structures
         {
             get { return _inStructureList; }
             set { _inStructureList = value; }
+        }
+
+        public List<ColumnStructure> IndexColumns
+        {
+            get { return _indexColumns; }
+            set { _indexColumns = value; }
         }
 
         public void CreateQuerry()
@@ -383,9 +390,32 @@ namespace PreTran.Q_Structures
             {
                 foreach (ColumnStructure column in _outTable.Columns)
                 {
-                    if (column.IsPrimary > 0 )
+                    if (column.IsPrimary == 1 )
                     {
+                        _indexColumns.Add(column);
                         _indexColumnNames.Add(column.Name);
+                    }
+                }
+            }
+
+            if (_indexColumnNames.Count < 1)
+            {
+                int primaryKeyCount = 0;
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.IsPrimary > 1)
+                    {
+                        primaryKeyCount = column.IsPrimary;
+                        break;
+                    }
+                }
+                foreach (ColumnStructure column in _outTable.Columns)
+                {
+                    if (column.IsPrimary > 1 && primaryKeyCount > 0)
+                    {
+                        _indexColumns.Add(column);
+                        _indexColumnNames.Add(column.Name);
+                        primaryKeyCount--;
                     }
                 }
             }
@@ -395,6 +425,7 @@ namespace PreTran.Q_Structures
                 {
                     if (column.Type.Name == "INT")
                     {
+                        _indexColumns.Add(column);
                         _indexColumnNames.Add(column.Name);
                         break;
                     }
