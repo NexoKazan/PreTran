@@ -214,11 +214,18 @@ namespace PreTran.Q_Structures
 
             foreach (var asStructure in _asList)
             {
-                
-                if (_output != "SELECT " || _output != "SELECT DISTINCT ")
+
+                if (_output != "SELECT ")
                 {
-                    _output += ",";
-                    _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
+                    if (_output != "SELECT DISTINCT ")
+                    {
+                        _output += ",";
+                        _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
+                    }
+                    else
+                    {
+                        _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
+                    }
                 }
                 else
                 {

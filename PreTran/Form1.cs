@@ -686,9 +686,48 @@ namespace MySQL_Clear_standart
 
             return outList;
         }
+        
+        private List<BetweenStructure> GetCorrectBetweenList(List<BetweenStructure> listenerBetweenList, TableStructure queryDbTable)
+        {
+            List<BetweenStructure> tmpList = new List<BetweenStructure>();
+            foreach (ColumnStructure column in queryDbTable.Columns)
+            {
+                foreach (BetweenStructure betweenStructure in listenerBetweenList)
+                {
+                    if (column.Name == betweenStructure.ColumnName)
+                    {
+                        betweenStructure.Column = column;
+                        tmpList.Add(betweenStructure);
+                    }
+                }
+            }
+
+            return tmpList;
+        }
+
+        private void FillInStructures(DataBaseStructure queryDb, List<InStructure> listenerInStructureList)
+        {
+            foreach (InStructure inStructure in listenerInStructureList)
+            {
+                foreach (TableStructure table in queryDb.Tables)
+                {
+                    foreach (ColumnStructure column in table.Columns)
+                    {
+                        if (column.Name == inStructure.LeftColumnName)
+                        {
+                            inStructure.LeftColumn = column;
+                            inStructure.Table = table;
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+
 
         #endregion
-        
+
         #region Методы для Join
 
         //"Филл Джонс"
@@ -771,9 +810,10 @@ namespace MySQL_Clear_standart
             return tmpJoins;
         }
         
-        private void GetJoinSequence(List<JoinStructure> joinStructures, int joinDepth)
+        private List<JoinStructure> GetJoinSequence(List<JoinStructure> joinStructures, int joinDepth)
         {
-            if (joinStructures.Count != 0)
+            List<JoinStructure> outJoin = joinStructures;
+            if (outJoin.Count != 0)
             {
                 List<Pares> j_list_Pares = new List<Pares>();
 
@@ -884,7 +924,7 @@ namespace MySQL_Clear_standart
                     {
                         if (i == 0)
                         {
-                            JoinStructure tmp = FindeJoin(container[0], container[1], joinStructures);
+                            JoinStructure tmp = FindeJoin(container[0], container[1], outJoin);
                             tmp.IsFirst = true;
                             j_sequence.Add(tmp);
                             i = 2;
@@ -894,7 +934,7 @@ namespace MySQL_Clear_standart
                             int stopper = j_sequence.Count;
                             for (int j = 0; j < i; j++)
                             {
-                                JoinStructure tmp = FindeJoin(container[j], container[i], joinStructures);
+                                JoinStructure tmp = FindeJoin(container[j], container[i], outJoin);
                                 if (tmp.Name != "ERROR")
                                 {
                                     j_sequence.Add(tmp);
@@ -930,6 +970,8 @@ namespace MySQL_Clear_standart
                     }
                 }
             }
+
+            return outJoin;
         }
 
         private List<JoinStructure> SortJoin(List<JoinStructure> joinStructures, int joinDepth)
@@ -984,7 +1026,39 @@ namespace MySQL_Clear_standart
 
             return output;
         }
-        
+
+        private void CheckBinaryType(BinaryComparisionPredicateStructure binary, DataBaseStructure queryDb)
+        {
+            bool isLeftCollumn = false;
+            bool isRightCollumn = false;
+            foreach (TableStructure table in queryDb.Tables)
+            {
+                foreach (var columnStructure in table.Columns)
+                {
+                    if (columnStructure.Name == binary.LeftString)
+                    {
+                        isLeftCollumn = true;
+                    }
+                    if (columnStructure.Name == binary.RightString)
+                    {
+                        isRightCollumn = true;
+                    }
+                }
+
+                if (isRightCollumn && isLeftCollumn)
+                {
+                    binary.Type = 4;
+                    break;
+                }
+                else
+                {
+                    isRightCollumn = false;
+                    isLeftCollumn = false;
+                }
+            }
+
+        }
+
         #endregion
 
         #region Методы для Sort
@@ -1126,6 +1200,10 @@ namespace MySQL_Clear_standart
         {
             DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
+            //List<JoinStructure> excludedJoin = new List<JoinStructure>();
+            List<JoinStructure> tmpList = new List<JoinStructure>();
+            JoinStructure[] joinQueries = new JoinStructure[0];
+
             foreach (var binary in listener.Binaries) 
             {
                 if (binary.Type == 2 && binary.ComparisionSymphol == "=")
@@ -1134,55 +1212,88 @@ namespace MySQL_Clear_standart
                     tmpJoins.Add(tmp);
                 }
             }
-            JoinStructure[] joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
 
-         
-            List<JoinStructure> tmpList = new List<JoinStructure>();
-            List<JoinStructure> excludedJoin = new List<JoinStructure>();
-            foreach (JoinStructure join in joinQueries)
+            if (tmpJoins.Count > 0)
             {
-                join.CheckIsFilled();
-                if (join.IsFilled)
+                joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
+
+                foreach (JoinStructure join in joinQueries)
                 {
-                    tmpList.Add(join);
-                    //if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
-                    //{
-                    //    tmpList.Add(join);
-                    //}
-                    //else
-                    //{
-                    //    join.IsAdditional = true;
-                    //    excludedJoin.Add(join);
-                    //}
+                    join.CheckIsFilled();
+                    if (join.IsFilled)
+                    {
+                        tmpList.Add(join);
+                        //if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
+                        //{
+                        //    tmpList.Add(join);
+                        //}
+                        //else
+                        //{
+                        //    join.IsAdditional = true;
+                        //    excludedJoin.Add(join);
+                        //}
+                    }
+                }
+
+                if (tmpList.Count > 0)
+                {
+                    List<List<JoinStructure>> shuffledJoins = ShuffleJoin(tmpList);
+
+                    List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
+                    //unitedJoin.AddRange(excludedJoin);
+
+
+
+                    joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
+
+                    foreach (var join in joinQueries)
+                    {
+                        join.CreateQuerry();
+                    }
+
+                    for (int i = joinQueries.Length - 1; i >= 0; i--)
+                    {
+                        joinQueries[i].SetIndex();
+                    }
+
+                    foreach (JoinStructure joinQuery in joinQueries)
+                    {
+                        joinQuery.CheckIsDistinct();
+                    }
+
+                    CreateScheme(joinQueries.ToList());
+                }
+                else
+                {
+                    joinQueries = tmpList.ToArray();
                 }
             }
 
-            joinQueries = tmpList.ToArray();
-
-            GetJoinSequence(joinQueries.ToList(), listener.Depth);
-            List<JoinStructure> unitedJoin = joinQueries.ToList();
-            unitedJoin.AddRange(excludedJoin);
-            joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
-            foreach (var join in joinQueries)
-            {
-                
-                    join.CreateQuerry();
-            }
-
-            for (int i = joinQueries.Length - 1; i >= 0; i--)
-            {
-                    joinQueries[i].SetIndex();
-            }
-
-            foreach (JoinStructure joinQuery in joinQueries)
-            {
-                joinQuery.CheckIsDistinct();
-            }
-
-            CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
-        
+
+        private List<List<JoinStructure>> ShuffleJoin(List<JoinStructure> inputJoins)
+        {
+            List<List<JoinStructure>> outSequence = new List<List<JoinStructure>>();
+
+            for (int i = 0; i < inputJoins.Count; i++)
+            {
+                List<JoinStructure> tmpSeq = new List<JoinStructure>();
+                tmpSeq.Add(inputJoins[i]);
+                for (int j = 0; j < inputJoins.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        tmpSeq.Add(inputJoins[j]);
+                    }
+                }
+
+                outSequence.Add(tmpSeq);
+            }
+
+            return outSequence;
+        }
+
         private NewSortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, BaseRule sortRule)
         {
             SelectStructure[] selects = MakeSelect(dataBase, listener);
@@ -1275,6 +1386,8 @@ namespace MySQL_Clear_standart
         {
             DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
+            JoinStructure[] joinQueries = new JoinStructure[0];
+
             foreach (var binary in listener.Binaries) 
             {
                 if (binary.Type == 2 && binary.ComparisionSymphol == "=")
@@ -1284,52 +1397,64 @@ namespace MySQL_Clear_standart
                 }
             }
 
-            JoinStructure[] joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
-
-            List<JoinStructure> tmpList = new List<JoinStructure>();
-            List<JoinStructure> excludedJoin = new List<JoinStructure>();
-            foreach (JoinStructure join in joinQueries)
+            if (tmpJoins.Count > 0)
             {
-                join.CheckIsFilled();
-                if (join.IsFilled)
+                joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
+
+                List<JoinStructure> tmpList = new List<JoinStructure>();
+                List<JoinStructure> excludedJoin = new List<JoinStructure>();
+                foreach (JoinStructure join in joinQueries)
                 {
-                    tmpList.Add(join);
-                    //if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
-                    //{
-                    //    tmpList.Add(join);
-                    //}
-                    //else
-                    //{
-                    //    join.IsAdditional = true;
-                    //    excludedJoin.Add(join);
-                    //}
+                    join.CheckIsFilled();
+                    if (join.IsFilled)
+                    {
+                        tmpList.Add(join);
+                        //if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
+                        //{
+                        //    tmpList.Add(join);
+                        //}
+                        //else
+                        //{
+                        //    join.IsAdditional = true;
+                        //    excludedJoin.Add(join);
+                        //}
+                    }
+
+
+
                 }
 
+                if (tmpList.Count > 0)
+                {
+                    List<List<JoinStructure>> shuffledJoins = ShuffleJoin(tmpList);
 
+                    List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
+                    //unitedJoin.AddRange(excludedJoin);
 
+                    joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
+                    foreach (var join in joinQueries)
+                    {
+                        join.CreateQuerry(left, right);
+                    }
+
+                    for (int i = joinQueries.Length - 1; i >= 0; i--)
+                    {
+                        joinQueries[i].SetIndex();
+                    }
+
+                    foreach (JoinStructure joinQuery in joinQueries)
+                    {
+                        joinQuery.CheckIsDistinct();
+                    }
+
+                    CreateScheme(joinQueries.ToList());
+                }
+                else
+                {
+                    joinQueries = tmpList.ToArray();
+                }
             }
 
-            joinQueries = tmpList.ToArray();
-
-            GetJoinSequence(joinQueries.ToList(), listener.Depth);
-            List<JoinStructure> unitedJoin = joinQueries.ToList();
-            unitedJoin.AddRange(excludedJoin);
-            joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
-            foreach (var join in joinQueries)
-            {
-                join.CreateQuerry(left, right);
-            }
-
-            for (int i = joinQueries.Length - 1; i >= 0; i--)
-            {
-                joinQueries[i].SetIndex();
-            }
-
-            foreach (JoinStructure joinQuery in joinQueries)
-            {
-                joinQuery.CheckIsDistinct();
-            }
-            CreateScheme(joinQueries.ToList());
             return joinQueries;
         }
 
@@ -1430,13 +1555,178 @@ namespace MySQL_Clear_standart
             CreateScheme(sortQuery);
             return sortQuery;
         }
-         
-         #endregion
+
+        #endregion
+
+        private void FillTextBoxWithHandQ(Query query)
+        {
+            textBox_tab2_SelectResult.Clear();
+            textBox_tab2_JoinResult.Clear();
+            textBox_tab2_SortResult.Clear();
+            for (var index = 0; index < query.SelectQueries.Count; index++)
+            {
+                var selectQuery = query.SelectQueries[index];
+                textBox_tab2_SelectResult.Text += "\r\n -- ======== S_" + index + "=========\r\n";
+                textBox_tab2_SelectResult.Text += selectQuery.Query;
+            }
+
+            for (var index = 0; index < query.JoinQueries.Count; index++)
+            {
+                var joinQuery = query.JoinQueries[index];
+                textBox_tab2_JoinResult.Text += "\r\n -- ======== J_" + index + "=========\r\n";
+                textBox_tab2_JoinResult.Text += joinQuery.Query;
+            }
+
+            textBox_tab2_SortResult.Text += query.SortQuery.Query;
+        }
+
+        private List<Index> CreateRelationIndex(List<ColumnStructure> indexColumns, bool isLast)
+        {
+            List<Index> outIndex = new List<Index>();
+            if (!isLast)
+            {
+                Index primaryIndex = new Index();
+                Index anotherIndex = new Index();
+                List<string> notPrimaryColumns = new List<string>();
+                List<ColumnStructure> possPrimaryColumns = new List<ColumnStructure>();
+                foreach (ColumnStructure column in indexColumns)
+                {
+                    if (column.IsPrimary == 1)
+                    {
+                        primaryIndex = new Index()
+                        {
+                            Name = "TotalyPrim_" + column.Name,
+                            FieldNames = new List<string>() {column.Name},
+                            IsPrimary = true
+                        };
+                        outIndex.Add(primaryIndex);
+                    }
+                    else
+                    {
+                        if (column.IsPrimary == 0)
+                        {
+                            notPrimaryColumns.Add(column.Name);
+                        }
+                        else
+                        {
+                            possPrimaryColumns.Add(column);
+                        }
+                    }
+                }
+
+                if (notPrimaryColumns.Count > 0)
+                {
+                    anotherIndex = new Index()
+                    {
+                        Name = "TotalyNoPrim_" + indexColumns[0].Name,
+                        FieldNames = notPrimaryColumns,
+                        IsPrimary = false
+
+                    };
+                    outIndex.Add(anotherIndex);
+                }
+
+                //тут будет куча проблем, потому что нужно проверять таблицы изначальные, а по ним информации нет, надо сделать привязку столбца к таблице column.TableName
+                if (possPrimaryColumns.Count > 0)
+                {
+                    int primaryKeyCount = -1;
+                    List<string> notPrimaryColumnNames = new List<string>();
+                    List<string> possPrimaryIndexColumnNames = new List<string>();
+
+                    foreach (ColumnStructure column in possPrimaryColumns)
+                    {
+                        if (column.IsPrimary > 1)
+                        {
+                            primaryKeyCount = column.IsPrimary;
+                            break;
+                        }
+                    }
+
+                    foreach (ColumnStructure column in possPrimaryColumns)
+                    {
+                        if (column.IsPrimary > 1 && primaryKeyCount > 0)
+                        {
+                            possPrimaryIndexColumnNames.Add(column.Name);
+                            primaryKeyCount--;
+                        }
+                        else
+                        {
+                            notPrimaryColumnNames.Add(column.Name);
+                        }
+                    }
+
+                    if (primaryKeyCount == 0)
+                    {
+                        Index possPrimaryIndex = new Index()
+                        {
+                            Name = "PossPrim" + possPrimaryIndexColumnNames[0],
+                            FieldNames = possPrimaryIndexColumnNames,
+                            IsPrimary = true
+                        };
+                        outIndex.Add(possPrimaryIndex);
+                    }
+                    else
+                    {
+                        Index errPossPrimaryIndex = new Index()
+                        {
+                            Name = "PossPrim" + possPrimaryIndexColumnNames[0],
+                            FieldNames = possPrimaryIndexColumnNames,
+                            IsPrimary = false
+                        };
+                        outIndex.Add(errPossPrimaryIndex);
+                    }
+
+                    if (notPrimaryColumnNames.Count > 0)
+                    {
+                        Index notPrimaryIndex = new Index()
+                        {
+                            Name = "PossNot" + notPrimaryColumnNames[0],
+                            FieldNames = notPrimaryColumnNames,
+                            IsPrimary = false
+                        };
+                        outIndex.Add(notPrimaryIndex);
+                    }
+                }
+
+                int outIndexCount = 0;
+
+                foreach (Index index in outIndex)
+                {
+                    foreach (string name in index.FieldNames)
+                    {
+                        outIndexCount++;
+                    }
+                }
+
+                if (indexColumns.Count != outIndexCount)
+                {
+                    MessageBox.Show("ERROR in INDEX_COUNT");
+                }
+
+                return outIndex;
+            }
+            else
+            {
+                List<string> fields = new List<string>();
+                foreach (ColumnStructure column in indexColumns)
+                {
+                    fields.Add(column.Name);
+                }
+                outIndex.Add(new Index()
+                    {
+                        Name = "LastIndex",
+                        FieldNames =  fields,
+                        IsPrimary = false
+                    }
+            );
+                return outIndex;
+            }
+        }
 
         #endregion
 
         #region FormMethods
-        
+
         public Form1()
         {
             InitializeComponent();
@@ -1598,7 +1888,8 @@ namespace MySQL_Clear_standart
             GetTree();
             _output = "";
             _output += "\r\n========Return================\r\n";
-
+            
+            
 
             textBox_tab1_Query.Text = _output;
         }
@@ -1931,7 +2222,17 @@ namespace MySQL_Clear_standart
         }
 
         #endregion
-       
+
+        #region TAB_4
+
+        private void btn_tab4_SendToClusterix_Click(object sender, EventArgs e)
+        {
+            var clinet = new ClusterixClient(comboBox_tab4_connetionIP.Text, 1234); //10.114.20.200"
+            clinet.Send(new XmlQueryPacket() { XmlQuery = richTextBox_tab4_XML.Text });
+        }
+
+        #endregion
+
         #region Актуальные методы(в разработке)
 
         private void TryConnect(JoinStructure[] joinQ, NewSortStructure sortQ, int subJoinIndex, string address)
@@ -1983,6 +2284,7 @@ namespace MySQL_Clear_standart
                         qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                                 .ToList(), joinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
+                            joinQ[index] != joinQ.Last() ?
                             //new List<Index>()
                             //{
                             //    new Index()
@@ -1991,7 +2293,8 @@ namespace MySQL_Clear_standart
                             //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
                             //    }
                             //}
-                            CreateRelationIndex(joinQ[index].LeftSelect.IndexColumns)
+                            CreateRelationIndex(joinQ[index].LeftSelect.IndexColumns, false)
+                                : CreateRelationIndex(joinQ[index].LeftSelect.IndexColumns, true)
                             : new List<Index>()));
 
                 }
@@ -2010,6 +2313,7 @@ namespace MySQL_Clear_standart
                                 qb.CreateRelationSchema(joinQ[index].RightSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                                     .ToList(), joinQ[index].RightSelect.IndexColumnNames.Count > 0 ? 
+                                    joinQ[index] != joinQ.Last( )?
                                     //new List<Index>()
                                     //{
                                     //    new Index()
@@ -2018,7 +2322,8 @@ namespace MySQL_Clear_standart
                                     //        Name = $"INDEX_{joinQ[index].RightSelect.Name}"
                                     //    }
                                     //}
-                                    CreateRelationIndex(joinQ[index].RightSelect.IndexColumns)
+                                    CreateRelationIndex(joinQ[index].RightSelect.IndexColumns, false) 
+                                        : CreateRelationIndex(joinQ[index].RightSelect.IndexColumns, true)
                                     : new List<Index>()));
                     }
                     else
@@ -2035,6 +2340,7 @@ namespace MySQL_Clear_standart
                             qb.CreateRelationSchema(joinQ[index].LeftSelect.OutTable.Columns
                                     .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                                     .ToList(), joinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
+                                joinQ[index] != joinQ.Last() ?
                                 //new List<Index>()
                                 //{
                                 //    new Index()
@@ -2042,9 +2348,12 @@ namespace MySQL_Clear_standart
                                 //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
                                 //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
                                 //    }
-                                //} 
-                                CreateRelationIndex(joinQ[index].LeftSelect.IndexColumns)
-                                : new  List<Index>()));
+                                //}
+                                //
+                                
+                                CreateRelationIndex(joinQ[index].LeftSelect.IndexColumns, false)
+                                    : CreateRelationIndex(joinQ[index].LeftSelect.IndexColumns, true)
+                                : new List<Index>()));
                 }
                 
 
@@ -2054,6 +2363,7 @@ namespace MySQL_Clear_standart
                             joinQ[index].OutTable.Columns
                                 .Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
                             joinQ[index].IndexColumnNames.Count > 0 ?
+                                joinQ[index] != joinQ.Last() ?
                                 //new List<Index>()
                                 //{
                                 //    new Index()
@@ -2062,7 +2372,8 @@ namespace MySQL_Clear_standart
                                 //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
                                 //    }
                                 //}
-                                CreateRelationIndex(joinQ[index].IndexColumn)
+                                CreateRelationIndex(joinQ[index].IndexColumn, false)
+                                    :CreateRelationIndex(joinQ[index].IndexColumn, true)
                                 : new List<Index>()), 0,
                         leftRelation, rightRelation));
             }
@@ -2135,9 +2446,13 @@ namespace MySQL_Clear_standart
             FillTextBoxWithHandQ(query);
 
             #endregion
-           
-            var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
-            clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
+
+            if (checkBox_Tab2_ClusterixN_Online.Checked)
+            {
+                var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
+                clinet.Send(new XmlQueryPacket() {XmlQuery = query.SaveToString()});
+            }
+
 
             string debug = "==========DEBUG==========";
             foreach (JoinQuery joinQuery in c_join)
@@ -2160,22 +2475,16 @@ namespace MySQL_Clear_standart
                 var cSelect = new SelectQuery();
                 cSelect = qb.CreateSelectQuery(select.Output, 0);
                 qb.AddSelectQuery(cSelect);
-                
+
                 var cRelation = qb.CreateRelation(cSelect, select.Name,
                     qb.CreateRelationSchema(
                         select.OutColumn.Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
                         select.IndexColumnNames.Count > 0 ?
-                            //new List<Index>()
-                            //{
-                            //    new Index()
-                            //    {
-                            //        FieldNames = select.IndexColumnNames,
-                            //        Name = $"INDEX_{select.Name}"
-                            //    }
-                            //} 
-                            CreateRelationIndex(select.IndexColumns)
-                            : new List<Index>()
-                       ));
+                            select != selectQ.Last() ?
+                                CreateRelationIndex(select.IndexColumns, false)
+                            : CreateRelationIndex(select.IndexColumns, true) 
+                        : new List<Index>()
+                    ));
 
                 relations.Add(cRelation);
             }
@@ -2227,204 +2536,25 @@ namespace MySQL_Clear_standart
             FillTextBoxWithHandQ(query);
 
             #endregion
-            var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
-            clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
+            if (checkBox_Tab2_ClusterixN_Online.Checked)
+            {
+                var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
+                clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
+            }
         }
 
-        private void TryConnect(SelectStructure[] selects, SelectStructure[] subSelects, JoinStructure[] joins, JoinStructure[] subJoins, string address)
+        private JoinStructure[] TransformToJoin(List<JoinStructure> inputJoins)
         {
-            QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text) - 1);
+            JoinStructure[] outputJoins = new JoinStructure[inputJoins.Count];
 
-            foreach (SelectStructure select in selects)
-            {
 
-            }
+            return outputJoins;
         }
 
-        private void FillTextBoxWithHandQ(Query query)
-        {
-            textBox_tab2_SelectResult.Clear();
-            textBox_tab2_JoinResult.Clear();
-            textBox_tab2_SortResult.Clear();
-            for (var index = 0; index < query.SelectQueries.Count; index++)
-            {
-                var selectQuery = query.SelectQueries[index];
-                textBox_tab2_SelectResult.Text += "\r\n -- ======== S_" + index + "=========\r\n";
-                textBox_tab2_SelectResult.Text += selectQuery.Query;
-            }
 
-            for (var index = 0; index < query.JoinQueries.Count; index++)
-            {
-                var joinQuery = query.JoinQueries[index];
-                textBox_tab2_JoinResult.Text += "\r\n -- ======== J_" + index + "=========\r\n";
-                textBox_tab2_JoinResult.Text += joinQuery.Query;
-            }
 
-            textBox_tab2_SortResult.Text += query.SortQuery.Query;
-        }
-
-        private List<BetweenStructure> GetCorrectBetweenList(List<BetweenStructure> listenerBetweenList, TableStructure queryDbTable)
-        {
-            List<BetweenStructure> tmpList = new List<BetweenStructure>();
-            foreach (ColumnStructure column in queryDbTable.Columns)
-            {
-                foreach (BetweenStructure betweenStructure in listenerBetweenList)
-                {
-                    if (column.Name == betweenStructure.ColumnName)
-                    {
-                        betweenStructure.Column = column;
-                        tmpList.Add(betweenStructure);
-                    }
-                }
-            }
-
-            return tmpList;
-        }
-
-        private void CheckBinaryType(BinaryComparisionPredicateStructure binary, DataBaseStructure queryDb)
-        {
-            bool isLeftCollumn = false;
-            bool isRightCollumn = false;
-            foreach (TableStructure table in queryDb.Tables)
-            {
-                foreach (var columnStructure in table.Columns)
-                {
-                    if (columnStructure.Name == binary.LeftString)
-                    {
-                        isLeftCollumn = true;
-                    }
-                    if (columnStructure.Name == binary.RightString)
-                    {
-                        isRightCollumn = true;
-                    }
-                }
-
-                if(isRightCollumn && isLeftCollumn)
-                {
-                    binary.Type = 4;
-                    break;
-                }
-                else
-                {
-                    isRightCollumn = false;
-                    isLeftCollumn = false;
-                }
-            }
-
-        }
-        
-        private void FillInStructures(DataBaseStructure queryDb, List<InStructure> listenerInStructureList)
-        {
-            foreach (InStructure inStructure in listenerInStructureList)
-            {
-                foreach (TableStructure table in queryDb.Tables)
-                {
-                    foreach (ColumnStructure column in table.Columns)
-                    {
-                        if (column.Name == inStructure.LeftColumnName)
-                        {
-                            inStructure.LeftColumn = column;
-                            inStructure.Table = table;
-                            break;
-                        }
-                    }
-                }
-            }
-
-        }
-
-        private List<Index> CreateRelationIndex(List<ColumnStructure> indexColumns)
-        {
-            List<Index> outIndex = new List<Index>();
-            Index primaryIndex = new Index();
-            Index anotherIndex = new Index();
-            List<string> notPrimaryColums = new List<string>();
-            foreach (ColumnStructure column in indexColumns)
-            {
-                if (column.IsPrimary == 1)
-                {
-                    primaryIndex = new Index()
-                    {
-                        Name = "IND1_" + column.Name,
-                        FieldNames = new List<string>() {column.Name},
-                        IsPrimary = true
-                    };
-                    outIndex.Add(primaryIndex);
-                }
-                else
-                {
-                    notPrimaryColums.Add(column.Name);
-                }
-            }
-
-            if (primaryIndex.FieldNames.Count == 0)
-            {
-                notPrimaryColums = new List<string>();
-                int primaryKeyCount = -1;
-                List<string> possPrimaryIndexColumnNames = new List<string>();
-
-                foreach (ColumnStructure column in indexColumns)
-                {
-                    if (column.IsPrimary > 1)
-                    {
-                        primaryKeyCount = column.IsPrimary;
-                        break;
-                    }
-                }
-                foreach (ColumnStructure column in indexColumns)
-                {
-                    if (column.IsPrimary > 1 && primaryKeyCount > 0)
-                    {
-                        possPrimaryIndexColumnNames.Add(column.Name);
-                        primaryKeyCount--;
-                    }
-                    else
-                    {
-                        notPrimaryColums.Add(column.Name);
-                    }
-                }
-
-                if (primaryKeyCount == 0 )
-                {
-                    primaryIndex = new Index()
-                    {
-                        Name = "IND2_" + possPrimaryIndexColumnNames[0],
-                        FieldNames = possPrimaryIndexColumnNames,
-                        IsPrimary = true
-                    };
-                    outIndex.Add(primaryIndex);
-                }
-            }
-
-            if (primaryIndex.FieldNames.Count == 0)
-            {
-                anotherIndex = new Index()
-                {
-                    Name = "IND3_" + indexColumns[0].Name,
-                    FieldNames = notPrimaryColums,
-                    IsPrimary = false
-
-                };
-                outIndex.Add(anotherIndex);
-            }
-            else
-            {
-                if (notPrimaryColums.Count > 0)
-                {
-                    anotherIndex = new Index()
-                    {
-                        Name = "IND4_" + indexColumns[0].Name,
-                        FieldNames = notPrimaryColums,
-                        IsPrimary = false
-
-                    };
-                    outIndex.Add(anotherIndex);
-                }
-            }
-            return outIndex;
-        }
         #endregion
 
-
+        
     }
 }

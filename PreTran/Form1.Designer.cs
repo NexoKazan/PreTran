@@ -33,6 +33,7 @@
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.textBox4 = new System.Windows.Forms.TextBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.checkBox_Tab2_ClusterixN_Online = new System.Windows.Forms.CheckBox();
             this.comboBox_tab2_IP = new System.Windows.Forms.ComboBox();
             this.checkBox_Tab2_ClusterXNEnable = new System.Windows.Forms.CheckBox();
             this.checkBox_tab2_DisableHeavyQuerry = new System.Windows.Forms.CheckBox();
@@ -59,12 +60,17 @@
             this.btn_tab1_CreateTree = new System.Windows.Forms.Button();
             this.textBox_tab1_Query = new System.Windows.Forms.TextBox();
             this.tabControl_main = new System.Windows.Forms.TabControl();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.richTextBox_tab4_XML = new System.Windows.Forms.RichTextBox();
+            this.btn_tab4_SendToClusterix = new System.Windows.Forms.Button();
+            this.comboBox_tab4_connetionIP = new System.Windows.Forms.ComboBox();
             this.tabPage3.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.panel_tab1_main.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_tab1_Tree)).BeginInit();
             this.tabControl_main.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabPage3
@@ -93,6 +99,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.checkBox_Tab2_ClusterixN_Online);
             this.tabPage2.Controls.Add(this.comboBox_tab2_IP);
             this.tabPage2.Controls.Add(this.checkBox_Tab2_ClusterXNEnable);
             this.tabPage2.Controls.Add(this.checkBox_tab2_DisableHeavyQuerry);
@@ -115,6 +122,16 @@
             this.tabPage2.Text = "tabPage2";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // checkBox_Tab2_ClusterixN_Online
+            // 
+            this.checkBox_Tab2_ClusterixN_Online.AutoSize = true;
+            this.checkBox_Tab2_ClusterixN_Online.Location = new System.Drawing.Point(669, 10);
+            this.checkBox_Tab2_ClusterixN_Online.Name = "checkBox_Tab2_ClusterixN_Online";
+            this.checkBox_Tab2_ClusterixN_Online.Size = new System.Drawing.Size(109, 17);
+            this.checkBox_Tab2_ClusterixN_Online.TabIndex = 18;
+            this.checkBox_Tab2_ClusterixN_Online.Text = "ClusterixN_Online";
+            this.checkBox_Tab2_ClusterixN_Online.UseVisualStyleBackColor = true;
+            // 
             // comboBox_tab2_IP
             // 
             this.comboBox_tab2_IP.FormattingEnabled = true;
@@ -133,9 +150,9 @@
             this.checkBox_Tab2_ClusterXNEnable.AutoSize = true;
             this.checkBox_Tab2_ClusterXNEnable.Location = new System.Drawing.Point(531, 10);
             this.checkBox_Tab2_ClusterXNEnable.Name = "checkBox_Tab2_ClusterXNEnable";
-            this.checkBox_Tab2_ClusterXNEnable.Size = new System.Drawing.Size(112, 17);
+            this.checkBox_Tab2_ClusterXNEnable.Size = new System.Drawing.Size(134, 17);
             this.checkBox_Tab2_ClusterXNEnable.TabIndex = 16;
-            this.checkBox_Tab2_ClusterXNEnable.Text = "ClusterXN_Enable";
+            this.checkBox_Tab2_ClusterXNEnable.Text = "Create XML for Cluterix";
             this.checkBox_Tab2_ClusterXNEnable.UseVisualStyleBackColor = true;
             // 
             // checkBox_tab2_DisableHeavyQuerry
@@ -429,12 +446,58 @@
             this.tabControl_main.Controls.Add(this.tabPage1);
             this.tabControl_main.Controls.Add(this.tabPage2);
             this.tabControl_main.Controls.Add(this.tabPage3);
+            this.tabControl_main.Controls.Add(this.tabPage4);
             this.tabControl_main.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl_main.Location = new System.Drawing.Point(0, 0);
             this.tabControl_main.Name = "tabControl_main";
             this.tabControl_main.SelectedIndex = 0;
             this.tabControl_main.Size = new System.Drawing.Size(1136, 583);
             this.tabControl_main.TabIndex = 5;
+            // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.comboBox_tab4_connetionIP);
+            this.tabPage4.Controls.Add(this.btn_tab4_SendToClusterix);
+            this.tabPage4.Controls.Add(this.richTextBox_tab4_XML);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(1128, 557);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "tabPage4";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // richTextBox_tab4_XML
+            // 
+            this.richTextBox_tab4_XML.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.richTextBox_tab4_XML.Location = new System.Drawing.Point(3, 6);
+            this.richTextBox_tab4_XML.Name = "richTextBox_tab4_XML";
+            this.richTextBox_tab4_XML.Size = new System.Drawing.Size(342, 543);
+            this.richTextBox_tab4_XML.TabIndex = 12;
+            this.richTextBox_tab4_XML.Text = "";
+            // 
+            // btn_tab4_SendToClusterix
+            // 
+            this.btn_tab4_SendToClusterix.Location = new System.Drawing.Point(351, 6);
+            this.btn_tab4_SendToClusterix.Name = "btn_tab4_SendToClusterix";
+            this.btn_tab4_SendToClusterix.Size = new System.Drawing.Size(121, 23);
+            this.btn_tab4_SendToClusterix.TabIndex = 13;
+            this.btn_tab4_SendToClusterix.Text = "Отправить в Clusterix";
+            this.btn_tab4_SendToClusterix.UseVisualStyleBackColor = true;
+            this.btn_tab4_SendToClusterix.Click += new System.EventHandler(this.btn_tab4_SendToClusterix_Click);
+            // 
+            // comboBox_tab4_connetionIP
+            // 
+            this.comboBox_tab4_connetionIP.FormattingEnabled = true;
+            this.comboBox_tab4_connetionIP.Items.AddRange(new object[] {
+            "10.114.20.200",
+            "127.0.0.1"});
+            this.comboBox_tab4_connetionIP.Location = new System.Drawing.Point(351, 35);
+            this.comboBox_tab4_connetionIP.Name = "comboBox_tab4_connetionIP";
+            this.comboBox_tab4_connetionIP.Size = new System.Drawing.Size(121, 21);
+            this.comboBox_tab4_connetionIP.TabIndex = 18;
+            this.comboBox_tab4_connetionIP.Text = "127.0.0.1";
             // 
             // Form1
             // 
@@ -458,6 +521,7 @@
             this.panel_tab1_main.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_tab1_Tree)).EndInit();
             this.tabControl_main.ResumeLayout(false);
+            this.tabPage4.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -493,6 +557,11 @@
         private System.Windows.Forms.CheckBox checkBox_tab2_DisableHeavyQuerry;
         private System.Windows.Forms.CheckBox checkBox_Tab2_ClusterXNEnable;
         private System.Windows.Forms.ComboBox comboBox_tab2_IP;
+        private System.Windows.Forms.CheckBox checkBox_Tab2_ClusterixN_Online;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.ComboBox comboBox_tab4_connetionIP;
+        private System.Windows.Forms.Button btn_tab4_SendToClusterix;
+        private System.Windows.Forms.RichTextBox richTextBox_tab4_XML;
     }
 }
 
