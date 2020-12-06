@@ -64,6 +64,32 @@ namespace PreTran.Q_Structures
             _isOuterJoin = isOuterJoin;
         }
 
+        public JoinStructure(JoinStructure inJoin)
+        {
+            _leftColumnString = inJoin.LeftColumnString;
+            _rightColumnString = inJoin.RightColumnString;
+            _comparisonOperator = inJoin.ComparisonOperator;
+            _sortRule = inJoin.SortRule;
+            _sourceInterval = inJoin.SourceInterval;
+            _isOuterJoin = inJoin.IsOuterJoin;
+            _name = inJoin.Name;
+            _indexColumnNames = inJoin.IndexColumnNames;
+            _leftColumn = inJoin.LeftColumn;
+            _rightColumn = inJoin.RightColumn;
+            _leftSelect = inJoin.LeftSelect;
+            _rightSelect = inJoin.RightSelect;
+            _columns = inJoin.Columns;
+            _output = inJoin.Output;
+            _leftJoin = inJoin.LeftJoin;
+            _isFirst = inJoin.IsFirst;
+            _switched = inJoin.Switched;
+            //_isAdditional = inJoin.IsAdditional;
+            _sourceInterval = inJoin.SourceInterval;
+            _isFilled = inJoin.IsFilled;
+            //_additionalJoins = inJoin.AdditionalJoins;
+
+        }
+
         #region Свойства
 
         public string Name
@@ -193,6 +219,13 @@ namespace PreTran.Q_Structures
             get { return _indexColumns; }
             set { _indexColumns = value; }
         }
+
+        public string ComparisonOperator => _comparisonOperator;
+
+        public BaseRule SortRule => _sortRule;
+
+        public bool IsOuterJoin => _isOuterJoin;
+
         #endregion
 
         public void CreateQuerry()

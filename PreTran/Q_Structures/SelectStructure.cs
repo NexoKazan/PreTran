@@ -166,14 +166,9 @@ namespace PreTran.Q_Structures
                 _outColumn[i] = tempList[i];
             }
             _outTable = new TableStructure(_name + "_TB", _outColumn.ToArray());
-            if (!CheckForDistinct())
-            {
-                _output = "SELECT ";
-            }
-            else
-            {
-                _output = "SELECT DISTINCT ";
-            }
+           
+            _output = "SELECT ";
+           
 
             bool commaPointer = false;
             for (int i = 0; i < _inputTable.Columns.Length; i++)
@@ -365,7 +360,7 @@ namespace PreTran.Q_Structures
             //SetIndexes();
         }
 
-        private bool CheckForDistinct()
+        private bool CheckForDistinctL()
         {
             bool isDistinct = true;
             int columsCounter = 2;
@@ -389,6 +384,14 @@ namespace PreTran.Q_Structures
                 isDistinct = false;
             }
             return isDistinct;
+        }
+
+        public void CheckForDistinct()
+        {
+            if (CheckForDistinctL())
+            {
+               _output = _output.Insert(7, "DISTINCT");
+            }
         }
 
         public void SetIndexes()

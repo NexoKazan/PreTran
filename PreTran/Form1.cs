@@ -806,8 +806,13 @@ namespace MySQL_Clear_standart
         private List<JoinStructure> FillJoins(List<JoinStructure> joinList, DataBaseStructure dataBase,
             List<SelectStructure> selectQueries)
         {
+            List<JoinStructure> outList = new List<JoinStructure>();
+            foreach (JoinStructure joinStructure in joinList)
+            {
+                outList.Add(new JoinStructure(joinStructure));
+            }
             int i = 1;
-            foreach (JoinStructure join in joinList)
+            foreach (JoinStructure join in outList)
             {
                 i++;
                 foreach (TableStructure table in dataBase.Tables)
@@ -852,31 +857,31 @@ namespace MySQL_Clear_standart
                     }
                 }
             }
-            for (i = 0; i < joinList.Count - 1; i++)
+            for (i = 0; i < outList.Count - 1; i++)
             {
-                for (int j = i + 1; j < joinList.Count - 1; j++)
+                for (int j = i + 1; j < outList.Count - 1; j++)
                 {
-                    if (joinList[i].LeftSelect != null && joinList[j].LeftSelect != null &&
-                        joinList[i].RightSelect != null && joinList[j].RightSelect != null)
+                    if (outList[i].LeftSelect != null && outList[j].LeftSelect != null &&
+                        outList[i].RightSelect != null && outList[j].RightSelect != null)
                     {
-                        if (joinList[i].LeftSelect.TableName == joinList[j].LeftSelect.TableName &&
-                         joinList[i].RightSelect.TableName == joinList[j].RightSelect.TableName ||
-                         joinList[i].LeftSelect.TableName == joinList[j].RightSelect.TableName &&
-                         joinList[i].RightSelect.TableName == joinList[j].LeftSelect.TableName
+                        if (outList[i].LeftSelect.TableName == outList[j].LeftSelect.TableName &&
+                            outList[i].RightSelect.TableName == outList[j].RightSelect.TableName ||
+                            outList[i].LeftSelect.TableName == outList[j].RightSelect.TableName &&
+                            outList[i].RightSelect.TableName == outList[j].LeftSelect.TableName
                         )
                         {
-                            joinList[i].AdditionalJoins.Add(joinList[j]);
-                            joinList[j].IsAdditional = true;
+                            outList[i].AdditionalJoins.Add(outList[j]);
+                            outList[j].IsAdditional = true;
                         }
 
                     }
                 }
             }
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
-            foreach (JoinStructure join in joinList)
+            foreach (JoinStructure join in outList)
             {
                 if(!join.IsAdditional)
-                {tmpJoins.Add(join);}
+                {tmpJoins.Add( join);}
             }
 
             return tmpJoins;
@@ -884,14 +889,19 @@ namespace MySQL_Clear_standart
         
         private List<JoinStructure> GetJoinSequence(List<JoinStructure> joinStructures, int joinDepth)
         {
-            List<JoinStructure> outJoin = joinStructures;
+            List<JoinStructure> outJoin = new List<JoinStructure>();
+            foreach (JoinStructure join in joinStructures)
+            {
+                outJoin.Add(new JoinStructure(join));
+            }
+            
             if (outJoin.Count != 0)
             {
                 List<Pares> j_list_Pares = new List<Pares>();
 
                 #region Magic
 
-                foreach (JoinStructure joinStructure in joinStructures)
+                foreach (JoinStructure joinStructure in outJoin)
                 {
                     if (joinStructure.LeftColumn != null && joinStructure.RightColumn != null)
                     {
@@ -1131,6 +1141,28 @@ namespace MySQL_Clear_standart
 
         }
 
+        private List<List<JoinStructure>> ShuffleJoin(List<JoinStructure> inputJoins)
+        {
+            List<List<JoinStructure>> outSequence = new List<List<JoinStructure>>();
+
+            for (int i = 0; i < inputJoins.Count; i++)
+            {
+                List<JoinStructure> tmpSeq = new List<JoinStructure>();
+                tmpSeq.Add(inputJoins[i]);
+                for (int j = 0; j < inputJoins.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        tmpSeq.Add(inputJoins[j]);
+                    }
+                }
+
+                outSequence.Add(tmpSeq);
+            }
+
+            return outSequence;
+        }
+
         #endregion
 
         #region Методы для Sort
@@ -1267,7 +1299,7 @@ namespace MySQL_Clear_standart
             CreateScheme(selectQueries);
             return selectQueries;
         }
-                
+
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects)
         {
             DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
@@ -1276,7 +1308,7 @@ namespace MySQL_Clear_standart
             List<JoinStructure> tmpList = new List<JoinStructure>();
             JoinStructure[] joinQueries = new JoinStructure[0];
 
-            foreach (var binary in listener.Binaries) 
+            foreach (var binary in listener.Binaries)
             {
                 if (binary.Type == 2 && binary.ComparisionSymphol == "=")
                 {
@@ -1287,6 +1319,10 @@ namespace MySQL_Clear_standart
 
             if (tmpJoins.Count > 0)
             {
+                foreach (SelectStructure select in selects)
+                {
+                    select.CheckForDistinct();
+                }
                 joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
 
                 foreach (JoinStructure join in joinQueries)
@@ -1310,13 +1346,32 @@ namespace MySQL_Clear_standart
                 if (tmpList.Count > 0)
                 {
                     List<List<JoinStructure>> shuffledJoins = ShuffleJoin(tmpList);
+                    List<List<JoinStructure>> sequencedJoins = new List<List<JoinStructure>>();
 
-                    List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
+                    foreach (List<JoinStructure> shuffledJoin in shuffledJoins)
+                    {
+                        List<JoinStructure> tmp = new List<JoinStructure>();
+                        tmp = GetJoinSequence(shuffledJoin, listener.Depth);
+                        List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
+                        sequencedJoins.Add(sortTmp);
+                    }
+
+
+                    //List<JoinStructure> unitedJoin = GetJoinSequence(FindePrimeSeq(shuffledJoins), listener.Depth);
                     //unitedJoin.AddRange(excludedJoin);
+                    //List<JoinStructure> unitedJoin = sequencedJoins[1];
+                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(sequencedJoins);
+                    List<JoinStructure> unitedJoin = primeSeq[0];
 
+                    //List<JoinStructure> tmp = GetJoinSequence(shuffledJoins[0], listener.Depth);
+                    //List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
+                    //sequencedJoins.Add(sortTmp);
 
+                    //joinQueries = SortJoin(sequencedJoins[0], listener.Depth).ToArray();
+                    joinQueries = unitedJoin.ToArray();
 
-                    joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
+                    //List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
+                    //joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
 
                     foreach (var join in joinQueries)
                     {
@@ -1343,29 +1398,7 @@ namespace MySQL_Clear_standart
 
             return joinQueries;
         }
-
-        private List<List<JoinStructure>> ShuffleJoin(List<JoinStructure> inputJoins)
-        {
-            List<List<JoinStructure>> outSequence = new List<List<JoinStructure>>();
-
-            for (int i = 0; i < inputJoins.Count; i++)
-            {
-                List<JoinStructure> tmpSeq = new List<JoinStructure>();
-                tmpSeq.Add(inputJoins[i]);
-                for (int j = 0; j < inputJoins.Count; j++)
-                {
-                    if (i != j)
-                    {
-                        tmpSeq.Add(inputJoins[j]);
-                    }
-                }
-
-                outSequence.Add(tmpSeq);
-            }
-
-            return outSequence;
-        }
-
+        
         private NewSortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, BaseRule sortRule)
         {
             SelectStructure[] selects = MakeSelect(dataBase, listener);
@@ -1469,8 +1502,16 @@ namespace MySQL_Clear_standart
                 }
             }
 
+           
+
             if (tmpJoins.Count > 0)
             {
+
+                foreach (SelectStructure select in selects)
+                {
+                    select.CheckForDistinct();
+                }
+
                 joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
 
                 List<JoinStructure> tmpList = new List<JoinStructure>();
@@ -1499,11 +1540,33 @@ namespace MySQL_Clear_standart
                 if (tmpList.Count > 0)
                 {
                     List<List<JoinStructure>> shuffledJoins = ShuffleJoin(tmpList);
+                    List<List<JoinStructure>> sequencedJoins = new List<List<JoinStructure>>();
 
-                    List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
+                    foreach (List<JoinStructure> shuffledJoin in shuffledJoins)
+                    {
+                        List<JoinStructure> tmp = new List<JoinStructure>();
+                        tmp = GetJoinSequence(shuffledJoin, listener.Depth);
+                        List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
+                        sequencedJoins.Add(sortTmp);
+                    }
+
+
+                    //List<JoinStructure> unitedJoin = GetJoinSequence(FindePrimeSeq(shuffledJoins), listener.Depth);
                     //unitedJoin.AddRange(excludedJoin);
+                    //List<JoinStructure> unitedJoin = sequencedJoins[1];
+                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(sequencedJoins);
+                    List<JoinStructure> unitedJoin = primeSeq[0];
 
-                    joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
+                    //List<JoinStructure> tmp = GetJoinSequence(shuffledJoins[0], listener.Depth);
+                    //List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
+                    //sequencedJoins.Add(sortTmp);
+
+                    //joinQueries = SortJoin(sequencedJoins[0], listener.Depth).ToArray();
+                    joinQueries = unitedJoin.ToArray();
+
+                    //List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
+                    //joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
+
                     foreach (var join in joinQueries)
                     {
                         join.CreateQuerry(left, right);
@@ -2311,7 +2374,8 @@ namespace MySQL_Clear_standart
 
         private void btn_tab4_PerformTest_Click(object sender, EventArgs e)
         {
-            int[] tphcFullTest = new int[] {21, 3, 18, 5, 11, 7, 6, 20, 17, 12, 16, 15, 13, 10, 2, 8, 14, 19, 9, 22, 1, 4,
+            int[] tphcFullTest = new int[] {
+            21, 3, 18, 5, 11, 7, 6, 20, 17, 12, 16, 15, 13, 10, 2, 8, 14, 19, 9, 22, 1, 4,
             6, 17, 14, 16, 19, 10, 9, 2, 15, 8, 5, 22, 12, 7, 13, 18, 1, 4, 20, 3, 11, 21,
             8, 5, 4, 6, 17, 7, 1, 18, 22, 14, 9, 10, 15, 11, 20, 2, 21, 19, 13, 16, 12, 3,
             5, 21, 14, 19, 15, 17, 12, 6, 4, 9, 8, 16, 11, 2, 10, 18, 1, 13, 7, 22, 3, 20,
@@ -2352,12 +2416,12 @@ namespace MySQL_Clear_standart
             3, 7, 14, 15, 6, 5, 21, 20, 18, 10, 4, 16, 19, 1, 13, 9, 8, 17, 11, 12, 22, 2,
             13, 15, 17, 1, 22, 11, 3, 4, 7, 20, 14, 21, 9, 8, 2, 18, 16, 6, 10, 12, 5, 19};
             int[] testTest = new[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
-            int[] testNoCRUSH = new[] {1, 2, 3, 4, 6, 7, 8, 9, 10, 12, 13, 14};
-            int[] testOnlyOne = new[] {11};
+            int[] testNoCRUSH = new[] {1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+            int[] testOnlyOne = new[] {4};
 
-            //testTest = testNoCRUSH;
+            testTest = testNoCRUSH;
             //tphcFullTest = testOnlyOne;
-            //tphcFullTest = testTest;
+            tphcFullTest = testTest;
 
             List<int> tpchFourteenTest = new List<int>();
             foreach (int i in tphcFullTest)
@@ -2370,8 +2434,7 @@ namespace MySQL_Clear_standart
 
             PerformTest(tpchFourteenTest.ToArray(), comboBox_tab4_connetionIP.Text, 1234);
         }
-
-
+        
         #endregion
 
         #region Актуальные методы(в разработке)
@@ -2740,8 +2803,13 @@ namespace MySQL_Clear_standart
                 }
             }
 
-            bool isNoMainjoin = connectJoins.Length == subJoinQ.Length;
-            
+            bool isNoMainjoin = false;
+
+            if (subJoinQ != null)
+            {
+                isNoMainjoin = connectJoins.Length == subJoinQ.Length;
+            }
+
             if (connectJoins.Length > 0)
             {
                 if (subJoinQ != null)
@@ -3102,17 +3170,17 @@ namespace MySQL_Clear_standart
             {
                 List<SelectStructure> cSelects = new List<SelectStructure>();
 
-                cSelects.AddRange(selectQ);
                 if (subSelectQ != null)
                 {
                     cSelects.AddRange(subSelectQ);
                 }
-                
+                cSelects.AddRange(selectQ);
+
                 //TryConnect(cSelects.ToArray(), sortQ, _connectionIP);
 
                 QueryBuilder qb = new QueryBuilder(number);
                 List<Relation> relations = new List<Relation>();
-                foreach (SelectStructure select in selectQ)
+                foreach (SelectStructure select in cSelects)
                 {
                     var cSelect = new SelectQuery();
                     cSelect = qb.CreateSelectQuery(select.Output, 0);
@@ -3122,7 +3190,7 @@ namespace MySQL_Clear_standart
                         qb.CreateRelationSchema(
                             select.OutColumn.Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
                             select.IndexColumnNames.Count > 0 ?
-                                select != selectQ.Last() ?
+                                select != cSelects.Last() ?
                                     CreateRelationIndex(select.IndexColumns, false)
                                 : CreateRelationIndex(select.IndexColumns, true)
                             : new List<Index>()
@@ -3671,6 +3739,77 @@ namespace MySQL_Clear_standart
             }
         }
 
+        private List<List<JoinStructure>> FindePrimeSeq(List<List<JoinStructure>> joinSequences)
+        {
+            List<List<JoinStructure>> outSequence = new List<List<JoinStructure>>();
+
+            for (var index = 0; index < joinSequences.Count; index++)
+            {
+                List<JoinStructure> joinSequence = joinSequences[index];
+                bool isGOOD = true;
+                Console.WriteLine(Environment.NewLine + "=====SEQ_" + index  + "=====" + Environment.NewLine);
+                if (joinSequence.Count > 1)
+                {
+                    for (var i = 0; i < joinSequence.Count; i++)
+                    {
+                        Console.WriteLine("\t" + joinSequence[i].LeftColumn.Name + " " +
+                                          joinSequence[i].LeftColumn.IsPrimary + " = " +
+                                          joinSequence[i].RightColumn.Name + " " +
+                                          joinSequence[i].RightColumn.IsPrimary + Environment.NewLine);
+                        JoinStructure @join = joinSequence[i];
+
+                        if (@join.AdditionalJoins.Count > 0)
+                        {
+                            foreach (JoinStructure additionalJoin in @join.AdditionalJoins)
+                            {
+                                if (additionalJoin.LeftColumn.IsPrimary != 1)
+                                {
+                                    if (additionalJoin.RightColumn.IsPrimary != 1)
+                                    {
+                                        if (@join.LeftColumn.IsPrimary != 1)
+                                        {
+                                            if (@join.RightColumn.IsPrimary != 1)
+                                            {
+                                                isGOOD = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (@join.LeftColumn.IsPrimary != 1)
+                            {
+                                if (@join.RightColumn.IsPrimary != 1)
+                                {
+                                    isGOOD = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (isGOOD)
+                    {
+                        outSequence.Add(joinSequence);
+                    }
+                }
+            }
+
+            if (outSequence.Count > 0)
+            {
+                return outSequence;
+            }
+            else
+            {
+                return joinSequences;
+            }
+        }
+
+
+        
 
         #endregion
 
