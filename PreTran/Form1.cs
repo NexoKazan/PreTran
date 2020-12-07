@@ -2420,8 +2420,8 @@ namespace MySQL_Clear_standart
             int[] testOnlyOne = new[] {4};
 
             testTest = testNoCRUSH;
-            //tphcFullTest = testOnlyOne;
-            tphcFullTest = testTest;
+            tphcFullTest = testOnlyOne;
+            //tphcFullTest = testTest;
 
             List<int> tpchFourteenTest = new List<int>();
             foreach (int i in tphcFullTest)
@@ -3170,11 +3170,11 @@ namespace MySQL_Clear_standart
             {
                 List<SelectStructure> cSelects = new List<SelectStructure>();
 
+                cSelects.AddRange(selectQ);
                 if (subSelectQ != null)
                 {
                     cSelects.AddRange(subSelectQ);
                 }
-                cSelects.AddRange(selectQ);
 
                 //TryConnect(cSelects.ToArray(), sortQ, _connectionIP);
 
