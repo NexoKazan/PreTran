@@ -1076,13 +1076,13 @@ namespace MySQL_Clear_standart
             {
                 if (joinStructure.Name == null)
                 {
-                    joinStructure.IsAdditional = true;
-                    tmp.LastOrDefault().AdditionalJoins.Add(joinStructure);
-                    //joinStructure.Name = "J_" + joinDepth + "_"  + tmp.Count.ToString();
-                    //joinStructure.LeftJoin = tmp.Last();
-                    //joinStructure.LeftSelect = null;
-                    //joinStructure.RightSelect = null;
-                    //tmp.Add(joinStructure);
+                    //joinStructure.IsAdditional = true;
+                    //tmp.LastOrDefault().AdditionalJoins.Add(joinStructure);
+                    joinStructure.Name = "J_" + joinDepth + "_" + tmp.Count.ToString();
+                    joinStructure.LeftJoin = tmp.Last();
+                    joinStructure.LeftSelect = null;
+                    joinStructure.RightSelect = null;
+                    tmp.Add(joinStructure);
                 }
             }
             return tmp;
@@ -1357,17 +1357,10 @@ namespace MySQL_Clear_standart
                     }
 
 
-                    //List<JoinStructure> unitedJoin = GetJoinSequence(FindePrimeSeq(shuffledJoins), listener.Depth);
-                    //unitedJoin.AddRange(excludedJoin);
-                    //List<JoinStructure> unitedJoin = sequencedJoins[1];
+
+
                     List<List<JoinStructure>> primeSeq = FindePrimeSeq(sequencedJoins);
                     List<JoinStructure> unitedJoin = primeSeq[0];
-
-                    //List<JoinStructure> tmp = GetJoinSequence(shuffledJoins[0], listener.Depth);
-                    //List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
-                    //sequencedJoins.Add(sortTmp);
-
-                    //joinQueries = SortJoin(sequencedJoins[0], listener.Depth).ToArray();
                     joinQueries = unitedJoin.ToArray();
 
                     //List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
@@ -1751,14 +1744,17 @@ namespace MySQL_Clear_standart
 
                 if (notPrimaryColumns.Count > 0)
                 {
-                    anotherIndex = new Index()
+                    foreach (string column in notPrimaryColumns)
                     {
-                        Name = "TotalyNoPrim_" + indexColumns[0].Name,
-                        FieldNames = notPrimaryColumns,
-                        IsPrimary = false
+                        anotherIndex = new Index()
+                        {
+                            Name = "TotalyNoPrim_" + column,
+                            FieldNames = new List<string>() { column },
+                            IsPrimary = false
 
-                    };
-                    outIndex.Add(anotherIndex);
+                        };
+                        outIndex.Add(anotherIndex);
+                    }
                 }
 
                 //тут будет куча проблем, потому что нужно проверять таблицы изначальные, а по ним информации нет, надо сделать привязку столбца к таблице column.TableName
@@ -1792,34 +1788,43 @@ namespace MySQL_Clear_standart
 
                     if (primaryKeyCount == 0)
                     {
-                        Index possPrimaryIndex = new Index()
+                        foreach (string column in possPrimaryIndexColumnNames)
                         {
-                            Name = "PossPrim" + possPrimaryIndexColumnNames[0],
-                            FieldNames = possPrimaryIndexColumnNames,
-                            IsPrimary = true
-                        };
-                        outIndex.Add(possPrimaryIndex);
+                            Index possPrimaryIndex = new Index()
+                            {
+                                Name = "PossPrim" + column,
+                                FieldNames = new List<string>() { column },
+                                IsPrimary = true
+                            };
+                            outIndex.Add(possPrimaryIndex);
+                        }
                     }
                     else
                     {
-                        Index errPossPrimaryIndex = new Index()
+                        foreach (string column in possPrimaryIndexColumnNames)
                         {
-                            Name = "PossPrim" + possPrimaryIndexColumnNames[0],
-                            FieldNames = possPrimaryIndexColumnNames,
-                            IsPrimary = false
-                        };
-                        outIndex.Add(errPossPrimaryIndex);
+                            Index errPossPrimaryIndex = new Index()
+                            {
+                                Name = "PossPrim" + column,
+                                FieldNames = new List<string>() {column},
+                                IsPrimary = false
+                            };
+                            outIndex.Add(errPossPrimaryIndex);
+                        }
                     }
 
                     if (notPrimaryColumnNames.Count > 0)
                     {
-                        Index notPrimaryIndex = new Index()
+                        foreach (string column in notPrimaryColumns)
                         {
-                            Name = "PossNot" + notPrimaryColumnNames[0],
-                            FieldNames = notPrimaryColumnNames,
-                            IsPrimary = false
-                        };
-                        outIndex.Add(notPrimaryIndex);
+                            Index notPrimaryIndex = new Index()
+                            {
+                                Name = "PossNot" + column,
+                                FieldNames = new List<string>() {column},
+                                IsPrimary = false
+                            };
+                            outIndex.Add(notPrimaryIndex);
+                        }
                     }
                 }
 
@@ -2532,8 +2537,9 @@ namespace MySQL_Clear_standart
                     }
                     else
                     {
-                        rightRelation.IsEmpty = true;
                         rightRelation = qb.CreateEmptyRelation();
+                        rightRelation.IsEmpty = true;
+                        
                     }
                 }
                 else
@@ -2898,8 +2904,9 @@ namespace MySQL_Clear_standart
                             }
                             else
                             {
-                                rightRelation.IsEmpty = true;
                                 rightRelation = qb.CreateEmptyRelation();
+                                rightRelation.IsEmpty = true;
+                                
                             }
                         }
                         else
@@ -3082,8 +3089,9 @@ namespace MySQL_Clear_standart
                             }
                             else
                             {
-                                rightRelation.IsEmpty = true;
                                 rightRelation = qb.CreateEmptyRelation();
+                                rightRelation.IsEmpty = true;
+                                
                             }
                         }
                         else
@@ -3384,8 +3392,8 @@ namespace MySQL_Clear_standart
                             }
                             else
                             {
-                                rightRelation.IsEmpty = true;
                                 rightRelation = qb.CreateEmptyRelation();
+                                rightRelation.IsEmpty = true;
                             }
                         }
                         else
@@ -3564,8 +3572,8 @@ namespace MySQL_Clear_standart
                             }
                             else
                             {
-                                rightRelation.IsEmpty = true;
                                 rightRelation = qb.CreateEmptyRelation();
+                                rightRelation.IsEmpty = true;
                             }
                         }
                         else

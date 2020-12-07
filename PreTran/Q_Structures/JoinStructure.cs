@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
@@ -83,10 +84,14 @@ namespace PreTran.Q_Structures
             _leftJoin = inJoin.LeftJoin;
             _isFirst = inJoin.IsFirst;
             _switched = inJoin.Switched;
-            //_isAdditional = inJoin.IsAdditional;
+            _isAdditional = inJoin.IsAdditional;
             _sourceInterval = inJoin.SourceInterval;
             _isFilled = inJoin.IsFilled;
-            //_additionalJoins = inJoin.AdditionalJoins;
+
+            foreach (JoinStructure addjoin in inJoin.AdditionalJoins)
+            {
+                _additionalJoins.Add(new JoinStructure(addjoin));
+            }
 
         }
 
@@ -233,8 +238,8 @@ namespace PreTran.Q_Structures
             if (_isFilled)
             {
 
-                string left = "ERROR";
-                string right = "ERROR";
+                string left = "ERROR CreateQuerryLeft";
+                string right = "ERROR CreateQuerryRight";
 
                 #region  старая тема
 
@@ -321,6 +326,17 @@ namespace PreTran.Q_Structures
                     }
                 }
 
+                if (left == "ERROR CreateQuerryLeft" )
+                {
+                    MessageBox.Show("WARNING in JoinStructure" + left);
+                    left = "";
+                }
+
+                if (right == "ERROR CreateQuerryRight")
+                {
+                    MessageBox.Show("WARNING in JoinStructure" + right);
+                    right = "";
+                }
                 this.CreateQuerry(left, right);
 
             }
@@ -415,7 +431,14 @@ namespace PreTran.Q_Structures
                 if (!_isOuterJoin)
                 {
                     //ПРЕДПОЛАГАЕМ ЧТО ТОЛЬКО LEFT
-                    _output += left + ", " + Environment.NewLine + "\t" + right;
+                    if (left != "" && right != "")
+                    {
+                        _output += left + ", " + Environment.NewLine + "\t" + right;
+                    }
+                    else
+                    {
+                        _output += left + Environment.NewLine + "\t" + right;
+                    }
                 }
                 else
                 {
@@ -941,19 +964,23 @@ namespace PreTran.Q_Structures
                 }
                 else
                 {
-                    if (_rightSelect.IndexColumnNames.Count > 0)
+                    if (_rightSelect != null)
                     {
-                        _rightSelect.IndexColumnNames = new List<string>();
-                        _rightSelect.IndexColumns = new List<ColumnStructure>();
-                    }
-                    foreach (string name in possibleIndexNames)
-                    {
-                        foreach (ColumnStructure column in _rightSelect.OutTable.Columns)
+                        if (_rightSelect.IndexColumnNames.Count > 0)
                         {
-                            if (column.Name == name)
+                            _rightSelect.IndexColumnNames = new List<string>();
+                            _rightSelect.IndexColumns = new List<ColumnStructure>();
+                        }
+
+                        foreach (string name in possibleIndexNames)
+                        {
+                            foreach (ColumnStructure column in _rightSelect.OutTable.Columns)
                             {
-                                _rightSelect.IndexColumnNames.Add(column.Name);
-                                _rightSelect.IndexColumns.Add(column);
+                                if (column.Name == name)
+                                {
+                                    _rightSelect.IndexColumnNames.Add(column.Name);
+                                    _rightSelect.IndexColumns.Add(column);
+                                }
                             }
                         }
                     }
@@ -1293,23 +1320,29 @@ namespace PreTran.Q_Structures
                 }
                 if (_switched)
                 {
-                    foreach (ColumnStructure column in _leftSelect.IndexColumns)
+                    if (_leftSelect != null)
                     {
-                        if (column.IsPrimary == 1)
+                        foreach (ColumnStructure column in _leftSelect.IndexColumns)
                         {
-                            isDistinct = false;
-                            break;
+                            if (column.IsPrimary == 1)
+                            {
+                                isDistinct = false;
+                                break;
+                            }
                         }
                     }
                 }
                 else
                 {
-                    foreach (ColumnStructure column in _rightSelect.IndexColumns)
+                    if (_rightSelect != null)
                     {
-                        if (column.IsPrimary == 1)
+                        foreach (ColumnStructure column in _rightSelect.IndexColumns)
                         {
-                            isDistinct = false;
-                            break;
+                            if (column.IsPrimary == 1)
+                            {
+                                isDistinct = false;
+                                break;
+                            }
                         }
                     }
                 }
