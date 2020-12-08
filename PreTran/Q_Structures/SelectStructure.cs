@@ -388,11 +388,14 @@ namespace PreTran.Q_Structures
 
         public void CheckForDistinct()
         {
-            if (CheckForDistinctL())
+            if (!IsWithDistinct && CheckForDistinctL())
             {
-               _output = _output.Insert(7, "DISTINCT");
+                IsWithDistinct = true;
+                _output = _output.Insert(7, "DISTINCT");
             }
         }
+        
+        public bool IsWithDistinct { get; set; }
 
         public void SetIndexes()
         {

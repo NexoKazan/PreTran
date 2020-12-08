@@ -328,13 +328,13 @@ namespace PreTran.Q_Structures
 
                 if (left == "ERROR CreateQuerryLeft" )
                 {
-                    MessageBox.Show("WARNING in JoinStructure" + left);
+                    //MessageBox.Show("WARNING in JoinStructure" + left);
                     left = "";
                 }
 
                 if (right == "ERROR CreateQuerryRight")
                 {
-                    MessageBox.Show("WARNING in JoinStructure" + right);
+                    //MessageBox.Show("WARNING in JoinStructure" + right);
                     right = "";
                 }
                 this.CreateQuerry(left, right);
@@ -1331,6 +1331,10 @@ namespace PreTran.Q_Structures
                             }
                         }
                     }
+                    else
+                    {
+                        isDistinct = false;
+                    }
                 }
                 else
                 {
@@ -1344,6 +1348,10 @@ namespace PreTran.Q_Structures
                                 break;
                             }
                         }
+                    }
+                    else
+                    {
+                        isDistinct = false;
                     }
                 }
             }
