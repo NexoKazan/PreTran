@@ -64,6 +64,17 @@ namespace MySQL_Clear_standart
 
         #region Глобальные переменные
 
+        
+
+        #region переменные эмулирующие свойства таблиц/кластера
+
+        private string _badTableName = "NATION";
+        private int _tableLenght = 25;
+        private int _clusterCores = 256;
+        
+        #endregion
+
+
         private DataBaseStructure _dbName;
         //private DataBaseStructure _queryDB;
         // объявляются переменный для построения дерева
@@ -1355,8 +1366,8 @@ namespace MySQL_Clear_standart
 
 
 
-
-                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(sequencedJoins);
+                    List<List<JoinStructure>> filtredSeq = FilterClusterSize(sequencedJoins);
+                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(filtredSeq);
                     List<JoinStructure> unitedJoin = primeSeq[0];
                     joinQueries = unitedJoin.ToArray();
 
@@ -1557,7 +1568,8 @@ namespace MySQL_Clear_standart
                     //List<JoinStructure> unitedJoin = GetJoinSequence(FindePrimeSeq(shuffledJoins), listener.Depth);
                     //unitedJoin.AddRange(excludedJoin);
                     //List<JoinStructure> unitedJoin = sequencedJoins[1];
-                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(sequencedJoins);
+                    List<List<JoinStructure>> filtredSeq = FilterClusterSize(sequencedJoins);
+                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(filtredSeq);
                     List<JoinStructure> unitedJoin = primeSeq[0];
 
                     //List<JoinStructure> tmp = GetJoinSequence(shuffledJoins[0], listener.Depth);
@@ -2610,7 +2622,7 @@ namespace MySQL_Clear_standart
 
             };
             int[] testTest = new[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
-            int[] testNoCRUSH = new[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+            int[] testNoCRUSH = new[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14};
             int[] testOnlyOne = new[] {4};
 
             testTest = testNoCRUSH;
@@ -4026,7 +4038,46 @@ namespace MySQL_Clear_standart
             }
         }
 
+        private List<List<JoinStructure>> FilterClusterSize(List<List<JoinStructure>> joinSequences)
+        {
+            List<List<JoinStructure>> outSequence = new List<List<JoinStructure>>();
+            int badPosition = 0;
+            foreach (List<JoinStructure> sequence in joinSequences)
+            {
+                for (int i = 0; i < sequence.Count; i++)
+                {
+                    if (sequence[i].LeftSelect.TableName == _badTableName ||
+                        sequence[i].RightSelect.TableName == _badTableName)
+                    {
+                        if (i > badPosition)
+                        {
+                            badPosition = i;
+                            outSequence = new List<List<JoinStructure>>();
+                            outSequence.Add(sequence);
+                        }
+                        else
+                        {
+                            if (i == badPosition)
+                            {
+                                outSequence.Add(sequence);
+                            }
+                        }
+                    }
+                }
+            }
+            
+
+            if (outSequence.Count > 0)
+            {
+                return outSequence;
+            }
+            else
+            {
+                return joinSequences;
+            }
+        }
+
         #endregion
 
-       }
+    }
 }
