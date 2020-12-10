@@ -2623,11 +2623,11 @@ namespace MySQL_Clear_standart
             };
             int[] testTest = new[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
             int[] testNoCRUSH = new[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14};
-            int[] testOnlyOne = new[] {4};
+            int[] testOnlyOne = new[] {2, 7};
 
             //testTest = testNoCRUSH;
-           // tphcFullTest = testOnlyOne;
-            tphcFullTest = testTest;
+            tphcFullTest = testOnlyOne;
+            //tphcFullTest = testTest;
 
             List<int> tpchFourteenTest = new List<int>();
             foreach (int i in tphcFullTest)
@@ -3187,7 +3187,10 @@ namespace MySQL_Clear_standart
                     //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
 
                     var sortRealtion = qb.CreateRelation(c_join[subJoinQ.Length - 1]);
-                    sortRealtion.Shema.Indexes = new List<Index>();
+                    if (connectJoins.Length == subJoinQ.Length)
+                    {
+                        sortRealtion.Shema.Indexes = new List<Index>();
+                    }
 
                     if (!isNoMainjoin)
                     {
