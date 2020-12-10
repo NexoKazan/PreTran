@@ -2622,12 +2622,12 @@ namespace MySQL_Clear_standart
 
             };
             int[] testTest = new[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
-            int[] testNoCRUSH = new[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14};
+            int[] testNoCRUSH = new[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
             int[] testOnlyOne = new[] {2, 7};
 
             //testTest = testNoCRUSH;
-            tphcFullTest = testOnlyOne;
-            //tphcFullTest = testTest;
+            //tphcFullTest = testOnlyOne;
+            tphcFullTest = testTest;
 
             List<int> tpchFourteenTest = new List<int>();
             foreach (int i in tphcFullTest)
@@ -2831,17 +2831,24 @@ namespace MySQL_Clear_standart
                 }
                 else
                 {
+                    var sortRealtion = qb.CreateRelation(c_join[subJoinIndex]);
+                    sortRealtion.Shema.Indexes = new List<Index>();
                     qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
                             .Columns
                             .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
                             .ToList(),
                         new List<Index>()
                         {
-                        }), 0, resultSelect , qb.CreateRelation(c_join[subJoinIndex])));
+                        }), 0, resultSelect , 
+                        //qb.CreateRelation(c_join[subJoinIndex])
+                        sortRealtion
+                        ));
                 }
             }
             else
             {
+                var sortRealtion = qb.CreateRelation(c_join.Last());
+                sortRealtion.Shema.Indexes = new List<Index>();
                 qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
                         .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
                         .ToList(),
@@ -2899,7 +2906,7 @@ namespace MySQL_Clear_standart
                             : CreateRelationIndex(select.IndexColumns, true) 
                         : new List<Index>()
                     ));
-
+                if (selectQ.Length == 1) cRelation.Shema.Indexes = new List<Index>();
                 relations.Add(cRelation);
             }
 
