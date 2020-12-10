@@ -2625,7 +2625,7 @@ namespace MySQL_Clear_standart
             int[] testNoCRUSH = new[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14};
             int[] testOnlyOne = new[] {4};
 
-            testTest = testNoCRUSH;
+            //testTest = testNoCRUSH;
            // tphcFullTest = testOnlyOne;
             tphcFullTest = testTest;
 
@@ -3186,6 +3186,9 @@ namespace MySQL_Clear_standart
                     resultSelect += " FROM " + Constants.RelationNameTag + ";";
                     //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
 
+                    var sortRealtion = qb.CreateRelation(c_join[subJoinQ.Length - 1]);
+                    sortRealtion.Shema.Indexes = new List<Index>();
+
                     if (!isNoMainjoin)
                     {
 
@@ -3196,7 +3199,9 @@ namespace MySQL_Clear_standart
                                 new List<Index>()
                                 {
                                 }), 0, resultSelect, qb.CreateRelation(c_join.Last()),
-                            qb.CreateRelation(c_join[subJoinQ.Length-1])));
+                            //qb.CreateRelation(c_join[subJoinQ.Length-1])
+                            sortRealtion
+                            ));
                     }
                     else
                     {
@@ -3206,7 +3211,10 @@ namespace MySQL_Clear_standart
                                 .ToList(),
                             new List<Index>()
                             {
-                            }), 0, resultSelect, qb.CreateRelation(c_join[subJoinQ.Length - 1])));
+                            }), 0, resultSelect,
+                            //qb.CreateRelation(c_join[subJoinQ.Length - 1])
+                            sortRealtion
+                            ));
                     }
                     var query = qb.GetQuery();
                     outputXML = new XmlQueryPacket() { XmlQuery = query.SaveToString() };
@@ -3376,12 +3384,18 @@ namespace MySQL_Clear_standart
                     resultSelect += " FROM " + Constants.RelationNameTag + ";";
                     //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
 
+                    var sortRealtion = qb.CreateRelation(c_join.Last());
+                    sortRealtion.Shema.Indexes = new List<Index>();
+
                     qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
                             .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
                             .ToList(),
                         new List<Index>()
                         {
-                        }), 0, resultSelect, qb.CreateRelation(c_join.Last())));
+                        }), 0, resultSelect, 
+                        //qb.CreateRelation(c_join.Last())
+                        sortRealtion
+                        ));
 
 
                     var query = qb.GetQuery();
@@ -3417,7 +3431,7 @@ namespace MySQL_Clear_standart
                                 : CreateRelationIndex(select.IndexColumns, true)
                             : new List<Index>()
                         ));
-
+                    if (cSelects.Count == 1) cRelation.Shema.Indexes = new List<Index>();
                     relations.Add(cRelation);
                 }
 
@@ -4046,20 +4060,23 @@ namespace MySQL_Clear_standart
             {
                 for (int i = 0; i < sequence.Count; i++)
                 {
-                    if (sequence[i].LeftSelect.TableName == _badTableName ||
-                        sequence[i].RightSelect.TableName == _badTableName)
+                    if (sequence[i].LeftSelect != null && sequence[i].RightSelect != null)
                     {
-                        if (i > badPosition)
+                        if (sequence[i].LeftSelect.TableName == _badTableName ||
+                            sequence[i].RightSelect.TableName == _badTableName)
                         {
-                            badPosition = i;
-                            outSequence = new List<List<JoinStructure>>();
-                            outSequence.Add(sequence);
-                        }
-                        else
-                        {
-                            if (i == badPosition)
+                            if (i > badPosition)
                             {
+                                badPosition = i;
+                                outSequence = new List<List<JoinStructure>>();
                                 outSequence.Add(sequence);
+                            }
+                            else
+                            {
+                                if (i == badPosition)
+                                {
+                                    outSequence.Add(sequence);
+                                }
                             }
                         }
                     }
