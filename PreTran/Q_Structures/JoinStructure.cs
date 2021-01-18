@@ -1380,6 +1380,51 @@ namespace PreTran.Q_Structures
                 _output = _output.Insert(6, " DISTINCT");
             }
 
+
+            List<ColumnStructure> joiningColumns = new List<ColumnStructure>();
+
+            foreach (JoinStructure additionalJoin in AdditionalJoins)
+            {
+                joiningColumns.Add(additionalJoin.LeftColumn);
+                joiningColumns.Add(additionalJoin.RightColumn);
+            }
+
+            joiningColumns.Add(_leftColumn);
+            joiningColumns.Add(_rightColumn);
+
+            bool isPrimarykey = false;
+
+            foreach (ColumnStructure columnStructure in joiningColumns)
+            {
+                if (columnStructure.IsPrimary == 1)
+                {
+                    isPrimarykey = true;
+                    break;
+                }
+            }
+
+            if (!isPrimarykey)
+            {
+                if (_leftJoin != null)
+                {
+                    if (!_switched)
+                    {
+                        if (_rightSelect != null)
+
+                            _rightSelect.CheckForDistinct();
+                    }
+                    else
+                    {
+                        if(_leftSelect != null)
+                            _leftSelect.CheckForDistinct();
+                    }
+                }
+                else
+                {
+                    _rightSelect.CheckForDistinct();
+                    _leftSelect.CheckForDistinct();
+                }
+            }
             //Console.WriteLine(Environment.NewLine + "========" + _name + "========" );
             //Console.WriteLine(Environment.NewLine + "Имена" + "========");
             //foreach (string name in _indexColumnNames)

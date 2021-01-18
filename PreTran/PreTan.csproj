@@ -72,6 +72,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Q_Gen\JoinGenerator.cs" />
+    <Compile Include="Q_Gen\QuerryGenerator.cs" />
+    <Compile Include="Q_Gen\SelectGenerator.cs" />
+    <Compile Include="Q_Gen\SortGenerator.cs" />
     <Compile Include="Q_Part_Structures\InStructure.cs" />
     <Compile Include="SchemeCreator\SchemeAsListener.cs" />
     <Compile Include="SchemeCreator\SchemeAsStructure.cs" />

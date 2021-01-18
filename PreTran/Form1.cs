@@ -70,7 +70,7 @@ namespace MySQL_Clear_standart
 
         private string _badTableName = "NATION";
         private int _tableLenght = 25;
-        private int _clusterCores = 256;
+        private int _clusterCores = 72;
         
         #endregion
 
@@ -1399,15 +1399,7 @@ namespace MySQL_Clear_standart
 
             for (int k = 0; k < joinQueries.Length - 1; k++)
             {
-                if (joinQueries[k].LeftSelect != null)
-                {
-                    joinQueries[k].LeftSelect.CheckForDistinct();
-                }
-
-                if (joinQueries[k].RightSelect != null)
-                {
-                    joinQueries[k].RightSelect.CheckForDistinct();
-                }
+               joinQueries[k].CheckIsDistinct();
             }
 
             return joinQueries;
@@ -1623,15 +1615,7 @@ namespace MySQL_Clear_standart
             for (int k = 0; k < joinQueries.Length - 1; k++)
             {
 
-                if (joinQueries[k].LeftSelect != null)
-                {
-                    joinQueries[k].LeftSelect.CheckForDistinct();
-                }
-
-                if (joinQueries[k].RightSelect != null)
-                {
-                    joinQueries[k].RightSelect.CheckForDistinct();
-                }
+                joinQueries[k].CheckIsDistinct();
             }
 
             return joinQueries;

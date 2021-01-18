@@ -161,7 +161,6 @@ namespace PreTran.Q_Structures
                         rule.IsRealised = false;
                         rule.Text = tmpName;
                         rule.IsRealised = true;
-                        Console.WriteLine(tmpName);
                     }
                 }
             }
