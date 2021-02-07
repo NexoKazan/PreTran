@@ -37,6 +37,7 @@ using PreTran.Network;
 using PreTran.Q_Part_Structures;
 using PreTran.Q_Structures;
 using PreTran.SchemeCreator;
+using PreTran.Services;
 using PreTran.TestClasses;
 using PreTran.TestClasses.Listeners;
 using PreTran.TestClasses.Rules;
@@ -635,125 +636,135 @@ namespace MySQL_Clear_standart
                 asStructure.AsColumns = tmpColumns.ToArray();
 
                 // Расчёт размера столбца ведётся из предположения, что операнды математического выражения имеют один тип, т.е. учитывается только количество математических операций, но не их положение
-               
-                int resultParam1 = -1;
-                int resultParam2 = -1;
-                if (asStructure.AsString != "*")
-                {
-                    int multCount = asStructure.AsString.Count(c => c == '*');
-                    int sumCount = asStructure.AsString.Count(c => c == '+');
-                    int divideCount = asStructure.AsString.Count(c => c == '/');
+
+                #region OLD
+
+                //int resultParam1 = -1;
+                //int resultParam2 = -1;
+                //if (asStructure.AsString != "*")
+                //{
+                //    int multCount = asStructure.AsString.Count(c => c == '*');
+                //    int sumCount = asStructure.AsString.Count(c => c == '+');
+                //    int divideCount = asStructure.AsString.Count(c => c == '/');
                     
-                    foreach (ColumnStructure asColumn in asStructure.AsColumns)
-                    {
-                        if (asColumn.Type.Name.Contains("DECIMAL"))
-                        {
-                            if (multCount > 0)
-                            {
-                                if (resultParam1 == -1 || resultParam2 == -1)
-                                {
-                                    resultParam1 = asColumn.Type.Param1;
-                                    resultParam2 = asColumn.Type.Param2;
-                                    multCount--;
-                                }
-                                else
-                                {
-                                    resultParam1 = resultParam1 + asColumn.Type.Param1;
-                                    resultParam2 = resultParam2 + asColumn.Type.Param2;
-                                    multCount--;
-                                }
-                            }
-                        }
-                    }
+                //    foreach (ColumnStructure asColumn in asStructure.AsColumns)
+                //    {
+                //        if (asColumn.Type.Name.Contains("DECIMAL"))
+                //        {
+                //            if (multCount > 0)
+                //            {
+                //                if (resultParam1 == -1 || resultParam2 == -1)
+                //                {
+                //                    resultParam1 = asColumn.Type.Param1;
+                //                    resultParam2 = asColumn.Type.Param2;
+                //                    multCount--;
+                //                }
+                //                else
+                //                {
+                //                    resultParam1 = resultParam1 + asColumn.Type.Param1;
+                //                    resultParam2 = resultParam2 + asColumn.Type.Param2;
+                //                    multCount--;
+                //                }
+                //            }
+                //        }
+                //    }
 
-                    foreach (ColumnStructure asColumn in asStructure.AsColumns)
-                    {
-                        if (asColumn.Type.Name.Contains("DECIMAL"))
-                        {
-                            if (sumCount > 0)
-                            {
-                                if (resultParam1 == -1 || resultParam2 == -1)
-                                {
-                                    resultParam1 = asColumn.Type.Param1;
-                                    resultParam2 = asColumn.Type.Param2;
-                                    sumCount--;
-                                }
-                                else
-                                {
-                                    resultParam1 = resultParam1 + 1;
-                                    sumCount--;
-                                }
-                            }
-                        }
-                    }
+                //    foreach (ColumnStructure asColumn in asStructure.AsColumns)
+                //    {
+                //        if (asColumn.Type.Name.Contains("DECIMAL"))
+                //        {
+                //            if (sumCount > 0)
+                //            {
+                //                if (resultParam1 == -1 || resultParam2 == -1)
+                //                {
+                //                    resultParam1 = asColumn.Type.Param1;
+                //                    resultParam2 = asColumn.Type.Param2;
+                //                    sumCount--;
+                //                }
+                //                else
+                //                {
+                //                    resultParam1 = resultParam1 + 1;
+                //                    sumCount--;
+                //                }
+                //            }
+                //        }
+                //    }
 
-                    foreach (ColumnStructure asColumn in asStructure.AsColumns)
-                    {
-                        if( divideCount > 0)
-                        {
-                            if (asColumn.Type.Name.Contains("DECIMAL"))
-                            {
+                //    foreach (ColumnStructure asColumn in asStructure.AsColumns)
+                //    {
+                //        if( divideCount > 0)
+                //        {
+                //            if (asColumn.Type.Name.Contains("DECIMAL"))
+                //            {
                               
-                                resultParam2 = 8;
-                                divideCount--;
-                            }
-                        }
-                    }
+                //                resultParam2 = 8;
+                //                divideCount--;
+                //            }
+                //        }
+                //    }
 
-                    if (resultParam1 > 32)
-                    {
-                        resultParam1 = 32;
-                    }
+                //    if (resultParam1 > 32)
+                //    {
+                //        resultParam1 = 32;
+                //    }
 
-                    if (resultParam2 > 8)
-                    {
-                        resultParam2 = 8;
-                    }
-                }
+                //    if (resultParam2 > 8)
+                //    {
+                //        resultParam2 = 8;
+                //    }
+                //}
 
-                if (asStructure.AggregateFunctionName.ToLower() == "avg")
-                {
-                    resultParam2 = 8;
-                }
+                //if (asStructure.AggregateFunctionName.ToLower() == "avg")
+                //{
+                //    resultParam2 = 8;
+                //}
 
-                if (resultParam1 == -1)
-                {
-                    resultParam1 = 16;
-                }
+                //if (resultParam1 == -1)
+                //{
+                //    resultParam1 = 16;
+                //}
 
-                if (resultParam2 == -1)
-                {
-                    resultParam2 = 20;
-                }
+                //if (resultParam2 == -1)
+                //{
+                //    resultParam2 = 20;
+                //}
 
-                if (rightColumn.Type == null)
-                {
-                    S_Type rightType= new S_Type();
+                //if (rightColumn.Type == null)
+                //{
+                //    S_Type rightType= new S_Type();
 
-                    foreach (S_Type type in dataBase.Types)
-                    {
-                        if (type.Name.ToLower().Contains("decimal") && type.Param1 == resultParam1
-                                                                    && type.Param2 == resultParam2)
-                        {
-                            rightType = type;
-                        }
-                    }
+                //    foreach (S_Type type in dataBase.Types)
+                //    {
+                //        if (type.Name.ToLower().Contains("decimal") && type.Param1 == resultParam1
+                //                                                    && type.Param2 == resultParam2)
+                //        {
+                //            rightType = type;
+                //        }
+                //    }
 
 
-                    if (rightType.Name == null)
-                    {
-                        rightType = new S_Type("DECIMAL(" + resultParam1 + "," + resultParam2 + ")", 10,
-                            (dataBase.Types.Length + 1).ToString(), resultParam1,
-                            resultParam2);
-                        List<S_Type> dbTypes = dataBase.Types.ToList();
-                        dbTypes.Add(rightType);
-                        dataBase.Types = dbTypes.ToArray();
-                    }
+                //    if (rightType.Name == null)
+                //    {
+                //        rightType = new S_Type("DECIMAL(" + resultParam1 + "," + resultParam2 + ")", 10,
+                //            (dataBase.Types.Length + 1).ToString(), resultParam1,
+                //            resultParam2);
+                //        List<S_Type> dbTypes = dataBase.Types.ToList();
+                //        dbTypes.Add(rightType);
+                //        dataBase.Types = dbTypes.ToArray();
+                //    }
 
-                    rightColumn.Size = rightType.Size;
-                    rightColumn.Type = rightType;
-                    rightColumn.TypeID = rightType.ID;
-                }
+                //    rightColumn.Size = rightType.Size;
+                //    rightColumn.Type = rightType;
+                //    rightColumn.TypeID = rightType.ID;
+                //}
+
+                #endregion
+
+                AsTypeCalculator asCalculator = new AsTypeCalculator(asStructure.AsString, dataBase, asStructure.AggregateFunctionName, asStructure.AsColumns.ToList());
+                rightColumn.Type = asCalculator.CalculateType();
+                rightColumn.Size = rightColumn.Type.Size;
+                rightColumn.TypeID = rightColumn.Type.ID;
+
                 asStructure.AsRightColumn = rightColumn;
                 asTables = asTables.Distinct().ToList();
                 if (asTables.Count == 1)
