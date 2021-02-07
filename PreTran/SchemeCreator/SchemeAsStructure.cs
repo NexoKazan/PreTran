@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using PreTran.DataBaseSchemeStructure;
+using PreTran.Services;
 
 namespace PreTran.SchemeCreator
 {
     class SchemeAsStructure
     {
         private string _asRightColumnName;
+        private string _aggregationFunctionName;
         private bool _isExtract = false;
         private List<string> _columnNames = new List<string>();
 
@@ -24,6 +26,7 @@ namespace PreTran.SchemeCreator
 
         public SchemeAsStructure(ParserRuleContext context)
         {
+            _aggregationFunctionName = context.Start.Text;
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
             _context = context;
@@ -70,7 +73,7 @@ namespace PreTran.SchemeCreator
                 {
                     if (column.Size > biggestColumn.Size)
                     {
-                        biggestColumn = column;
+                        //biggestColumn = column;
                     }
                 }
 
@@ -141,7 +144,12 @@ namespace PreTran.SchemeCreator
                     }
                 }
 
-                _asRightColumn = new ColumnStructure(_asRightColumnName, biggestColumn.Type);
+                //_asRightColumn = new ColumnStructure(_asRightColumnName, biggestColumn.Type);
+                //_asRightColumn.Size = _asRightColumn.Type.Size;
+                AsTypeCalculator asCalc = new AsTypeCalculator(_context.GetText(), dataBase, _aggregationFunctionName, _columns);
+                _asRightColumn = new ColumnStructure(_asRightColumnName, asCalc.CalculateType());
+
+                Console.WriteLine(asCalc.CalculateType().Name);
                 _asRightColumn.Size = _asRightColumn.Type.Size;
             }
             else

@@ -121,6 +121,7 @@ namespace PreTran.Q_Structures
                 {
                     _indexColumnNames = _indexColumnNames.Distinct().ToList();
                 }
+
                 return _indexColumnNames;
             }
             set { _indexColumnNames = value; }
@@ -202,15 +203,10 @@ namespace PreTran.Q_Structures
             set => _sourceInterval = value;
         }
 
-        public bool IsFilled {
-            get
-            {
-                return _isFilled;
-            }
-            set
-            {
-                _isFilled = value;
-            }
+        public bool IsFilled
+        {
+            get { return _isFilled; }
+            set { _isFilled = value; }
         }
 
         public List<JoinStructure> AdditionalJoins
@@ -241,7 +237,7 @@ namespace PreTran.Q_Structures
                 string left = "ERROR CreateQuerryLeft";
                 string right = "ERROR CreateQuerryRight";
 
-                #region  старая тема
+                #region старая тема
 
 
                 //if (_leftJoin != null)
@@ -297,12 +293,12 @@ namespace PreTran.Q_Structures
                 if (_leftJoin != null)
                 {
                     left = _leftJoin.Name;
-                   
+
                     if (_switched)
                     {
                         if (_leftSelect != null)
                         {
-                            right =  _leftSelect.Name;
+                            right = _leftSelect.Name;
                         }
                     }
                     else
@@ -322,11 +318,11 @@ namespace PreTran.Q_Structures
 
                     if (_rightSelect != null)
                     {
-                        right= _rightSelect.Name;
+                        right = _rightSelect.Name;
                     }
                 }
 
-                if (left == "ERROR CreateQuerryLeft" )
+                if (left == "ERROR CreateQuerryLeft")
                 {
                     //MessageBox.Show("WARNING in JoinStructure" + left);
                     left = "";
@@ -337,6 +333,7 @@ namespace PreTran.Q_Structures
                     //MessageBox.Show("WARNING in JoinStructure" + right);
                     right = "";
                 }
+
                 this.CreateQuerry(left, right);
 
             }
@@ -344,7 +341,8 @@ namespace PreTran.Q_Structures
 
         public bool CheckIsFilled()
         {
-            if (_leftColumnString == null || _rightColumnString == null || _comparisonOperator == null || _leftColumn == null || _rightColumn == null || _leftSelect == null || _rightSelect == null )
+            if (_leftColumnString == null || _rightColumnString == null || _comparisonOperator == null ||
+                _leftColumn == null || _rightColumn == null || _leftSelect == null || _rightSelect == null)
             {
                 _isFilled = false;
             }
@@ -353,6 +351,7 @@ namespace PreTran.Q_Structures
             {
                 _isFirst = true;
             }
+
             return _isFilled;
         }
 
@@ -610,75 +609,86 @@ namespace PreTran.Q_Structures
 
                 foreach (JoinStructure addJoin in _additionalJoins)
                 {
-                   if (addJoin.LeftColumn != null && addJoin.RightColumn != null)
-                   {
-                       if (addJoin.LeftColumn.DotTableId == null && addJoin.RightColumn.DotTableId == null)
-                       {
-                           if (!_switched)
-                           {
-                               _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.Name + " " + _comparisonOperator +
-                                          " " + addJoin.RightColumn.Name;
+                    if (addJoin.LeftColumn != null && addJoin.RightColumn != null)
+                    {
+                        if (addJoin.LeftColumn.DotTableId == null && addJoin.RightColumn.DotTableId == null)
+                        {
+                            if (!_switched)
+                            {
+                                _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.Name + " " +
+                                           _comparisonOperator +
+                                           " " + addJoin.RightColumn.Name;
 
-                           }
-                           else
-                           {
-                               _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.Name + " " + _comparisonOperator +
-                                          " " + addJoin.LeftColumn.Name;
-                           }
-                       }
-                       else
-                       {
-                           if (addJoin.LeftColumn.DotTableId != null && addJoin.RightColumn.DotTableId != null)
-                           {
-                               if (!_switched)
-                               {
-                                   _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name + " " + _comparisonOperator +
-                                              " " + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
-                               }
-                               else
-                               {
-                                   _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name + " " + _comparisonOperator +
-                                              " " + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
-                               }
+                            }
+                            else
+                            {
+                                _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.Name + " " +
+                                           _comparisonOperator +
+                                           " " + addJoin.LeftColumn.Name;
+                            }
+                        }
+                        else
+                        {
+                            if (addJoin.LeftColumn.DotTableId != null && addJoin.RightColumn.DotTableId != null)
+                            {
+                                if (!_switched)
+                                {
+                                    _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.DotTableId +
+                                               addJoin.LeftColumn.Name + " " + _comparisonOperator +
+                                               " " + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
+                                }
+                                else
+                                {
+                                    _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.DotTableId +
+                                               addJoin.RightColumn.Name + " " + _comparisonOperator +
+                                               " " + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
+                                }
 
-                               addJoin.LeftColumn.Name = addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
-                               addJoin.RightColumn.Name = addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
-                           }
-                           else
-                           {
-                               if (addJoin.RightColumn.DotTableId != null)
-                               {
-                                   if (!_switched)
-                                   {
-                                       _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.Name + " " + _comparisonOperator +
-                                                  " " + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
+                                addJoin.LeftColumn.Name = addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
+                                addJoin.RightColumn.Name = addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
+                            }
+                            else
+                            {
+                                if (addJoin.RightColumn.DotTableId != null)
+                                {
+                                    if (!_switched)
+                                    {
+                                        _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.Name + " " +
+                                                   _comparisonOperator +
+                                                   " " + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
 
-                                   }
-                                   else
-                                   {
-                                       _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name + " " + _comparisonOperator +
-                                                  " " + addJoin.LeftColumn.Name;
-                                   }
-                                   addJoin.RightColumn.Name = addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
-                               }
+                                    }
+                                    else
+                                    {
+                                        _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.DotTableId +
+                                                   addJoin.RightColumn.Name + " " + _comparisonOperator +
+                                                   " " + addJoin.LeftColumn.Name;
+                                    }
 
-                               if (addJoin.LeftColumn.DotTableId != null)
-                               {
-                                   if (!_switched)
-                                   {
-                                       _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name + " " + _comparisonOperator +
-                                                  " " + addJoin.RightColumn.Name;
-                                   }
-                                   else
-                                   {
-                                       _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.Name + " " + _comparisonOperator +
-                                                  " " + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
-                                   }
-                                   addJoin.LeftColumn.Name = addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
-                               }
-                           }
-                       }
-                   }
+                                    addJoin.RightColumn.Name =
+                                        addJoin.RightColumn.DotTableId + addJoin.RightColumn.Name;
+                                }
+
+                                if (addJoin.LeftColumn.DotTableId != null)
+                                {
+                                    if (!_switched)
+                                    {
+                                        _output += Environment.NewLine + "AND\r\n\t" + addJoin.LeftColumn.DotTableId +
+                                                   addJoin.LeftColumn.Name + " " + _comparisonOperator +
+                                                   " " + addJoin.RightColumn.Name;
+                                    }
+                                    else
+                                    {
+                                        _output += Environment.NewLine + "AND\r\n\t" + addJoin.RightColumn.Name + " " +
+                                                   _comparisonOperator +
+                                                   " " + addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
+                                    }
+
+                                    addJoin.LeftColumn.Name = addJoin.LeftColumn.DotTableId + addJoin.LeftColumn.Name;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 //SetIndex();
@@ -694,7 +704,7 @@ namespace PreTran.Q_Structures
         {
             List<ColumnStructure> tmpColumns = new List<ColumnStructure>();
             tmpColumns.Add(columns[0]);
-            bool isForAdd ;
+            bool isForAdd;
             foreach (ColumnStructure column in columns)
             {
                 isForAdd = true;
@@ -711,6 +721,7 @@ namespace PreTran.Q_Structures
                     tmpColumns.Add(column);
                 }
             }
+
             return tmpColumns;
         }
 
@@ -917,6 +928,7 @@ namespace PreTran.Q_Structures
                 }
             }
             */
+
             #endregion
 
             List<string> possibleIndexNames = new List<string>();
@@ -929,7 +941,7 @@ namespace PreTran.Q_Structures
                 possibleIndexNames.Add(additionalJoin.LeftColumn.Name);
                 possibleIndexNames.Add(additionalJoin.RightColumn.Name);
             }
-            
+
             if (_leftJoin != null)
             {
                 foreach (string name in possibleIndexNames)
@@ -943,6 +955,7 @@ namespace PreTran.Q_Structures
                         }
                     }
                 }
+
                 if (_switched)
                 {
                     if (_leftSelect.IndexColumnNames.Count > 0)
@@ -950,6 +963,7 @@ namespace PreTran.Q_Structures
                         _leftSelect.IndexColumnNames = new List<string>();
                         _leftSelect.IndexColumns = new List<ColumnStructure>();
                     }
+
                     foreach (string name in possibleIndexNames)
                     {
                         foreach (ColumnStructure column in _leftSelect.OutTable.Columns)
@@ -993,6 +1007,7 @@ namespace PreTran.Q_Structures
                     _leftSelect.IndexColumnNames = new List<string>();
                     _leftSelect.IndexColumns = new List<ColumnStructure>();
                 }
+
                 foreach (string name in possibleIndexNames)
                 {
                     foreach (ColumnStructure column in _leftSelect.OutTable.Columns)
@@ -1004,12 +1019,13 @@ namespace PreTran.Q_Structures
                         }
                     }
                 }
-                
+
                 if (_rightSelect.IndexColumnNames.Count > 0)
                 {
                     _rightSelect.IndexColumnNames = new List<string>();
                     _rightSelect.IndexColumns = new List<ColumnStructure>();
                 }
+
                 foreach (string name in possibleIndexNames)
                 {
                     foreach (ColumnStructure column in _rightSelect.OutTable.Columns)
@@ -1047,6 +1063,7 @@ namespace PreTran.Q_Structures
                         break;
                     }
                 }
+
                 foreach (ColumnStructure column in _outTable.Columns)
                 {
                     if (column.IsPrimary > 1 && primaryKeyCount > 0)
@@ -1071,7 +1088,7 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            
+
         }
 
         private void SetCreateTableColumnList()
@@ -1299,142 +1316,168 @@ namespace PreTran.Q_Structures
                 foreach (JoinStructure addJoin in _additionalJoins)
                 {
                     ///ЫЫЫ кривой хардкод, переделать. Слишком много делается, а нужно только сделать метод setSortFrom
-                    addJoin.CreateQuerry(_name,_name);
+                    addJoin.CreateQuerry(_name, _name);
                 }
             }
         }
 
         public void CheckIsDistinct()
         {
-            bool isDistinct = true;
-
-            if (_leftJoin != null)
+            if (_isAdditional == false)
             {
-                foreach (ColumnStructure column in _leftJoin.IndexColumn)
-                {
-                    if (column.IsPrimary == 1)
-                    {
-                        isDistinct = false;
-                        break;
-                    }
-                }
-                if (_switched)
-                {
-                    if (_leftSelect != null)
-                    {
-                        foreach (ColumnStructure column in _leftSelect.IndexColumns)
-                        {
-                            if (column.IsPrimary == 1)
-                            {
-                                isDistinct = false;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        isDistinct = false;
-                    }
-                }
-                else
-                {
-                    if (_rightSelect != null)
-                    {
-                        foreach (ColumnStructure column in _rightSelect.IndexColumns)
-                        {
-                            if (column.IsPrimary == 1)
-                            {
-                                isDistinct = false;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        isDistinct = false;
-                    }
-                }
-            }
-            else
-            {
-                foreach (ColumnStructure column in _leftSelect.IndexColumns)
-                {
-                    if (column.IsPrimary == 1)
-                    {
-                        isDistinct = false;
-                        break;
-                    }
-                }
-                foreach (ColumnStructure column in _rightSelect.IndexColumns)
-                {
-                    if (column.IsPrimary == 1)
-                    {
-                        isDistinct = false;
-                        break;
-                    }
-                }
-            }
+                bool isDistinct = true;
 
-            if (isDistinct)
-            {
-                _output = _output.Insert(6, " DISTINCT");
-            }
-
-
-            List<ColumnStructure> joiningColumns = new List<ColumnStructure>();
-
-            foreach (JoinStructure additionalJoin in AdditionalJoins)
-            {
-                joiningColumns.Add(additionalJoin.LeftColumn);
-                joiningColumns.Add(additionalJoin.RightColumn);
-            }
-
-            joiningColumns.Add(_leftColumn);
-            joiningColumns.Add(_rightColumn);
-
-            bool isPrimarykey = false;
-
-            foreach (ColumnStructure columnStructure in joiningColumns)
-            {
-                if (columnStructure.IsPrimary == 1)
-                {
-                    isPrimarykey = true;
-                    break;
-                }
-            }
-
-            if (!isPrimarykey)
-            {
                 if (_leftJoin != null)
                 {
-                    if (!_switched)
+                    foreach (ColumnStructure column in _leftJoin.IndexColumn)
                     {
-                        if (_rightSelect != null)
+                        if (column.IsPrimary == 1)
+                        {
+                            isDistinct = false;
+                            break;
+                        }
+                    }
 
-                            _rightSelect.CheckForDistinct();
+                    if (_switched)
+                    {
+                        if (_leftSelect != null)
+                        {
+                            foreach (ColumnStructure column in _leftSelect.IndexColumns)
+                            {
+                                if (column.IsPrimary == 1)
+                                {
+                                    isDistinct = false;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            isDistinct = false;
+                        }
                     }
                     else
                     {
-                        if(_leftSelect != null)
-                            _leftSelect.CheckForDistinct();
+                        if (_rightSelect != null)
+                        {
+                            foreach (ColumnStructure column in _rightSelect.IndexColumns)
+                            {
+                                if (column.IsPrimary == 1)
+                                {
+                                    isDistinct = false;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            isDistinct = false;
+                        }
                     }
                 }
                 else
                 {
-                    _rightSelect.CheckForDistinct();
-                    _leftSelect.CheckForDistinct();
+                    List<ColumnStructure> possIndexColumns = new List<ColumnStructure>();
+                    possIndexColumns.AddRange(_leftSelect.IndexColumns);
+                    possIndexColumns.AddRange(_rightSelect.IndexColumns);
+                    foreach (JoinStructure additionalJoin in _additionalJoins)
+                    {
+                        possIndexColumns.AddRange(additionalJoin.LeftSelect.IndexColumns);
+                        possIndexColumns.AddRange(additionalJoin.RightSelect.IndexColumns);
+                    }
+
+                    int keyLenght = -1;
+                    string keyTableName = "";
+                    foreach (ColumnStructure column in possIndexColumns)
+                    {
+                        if (column.IsPrimary == 1)
+                        {
+                            isDistinct = false;
+                            break;
+                        }
+
+                        if (column.IsPrimary > 1 && keyLenght == -1)
+                        {
+                            keyLenght = column.IsPrimary;
+                            keyTableName = column.Table.Name;
+                        }
+
+                        if (column.IsPrimary > 1 && column.Table.Name == keyTableName)
+                        {
+                            keyLenght--;
+                        }
+                    }
+
+                    if (keyLenght == 0)
+                    {
+                        isDistinct = false;
+                    }
                 }
+
+
+
+                if (isDistinct && _isAdditional == false)
+                {
+                    _output = _output.Insert(6, " DISTINCT");
+                }
+
+
+                List<ColumnStructure> joiningColumns = new List<ColumnStructure>();
+
+                foreach (JoinStructure additionalJoin in AdditionalJoins)
+                {
+                    joiningColumns.Add(additionalJoin.LeftColumn);
+                    joiningColumns.Add(additionalJoin.RightColumn);
+                }
+
+                joiningColumns.Add(_leftColumn);
+                joiningColumns.Add(_rightColumn);
+
+                bool isPrimarykey = false;
+
+                foreach (ColumnStructure columnStructure in joiningColumns)
+                {
+                    if (columnStructure.IsPrimary == 1)
+                    {
+                        isPrimarykey = true;
+                        break;
+                    }
+                }
+
+                if (!isPrimarykey && _isAdditional == false)
+                {
+                    if (_leftJoin != null)
+                    {
+                        if (!_switched)
+                        {
+                            if (_rightSelect != null)
+
+                                _rightSelect.CheckForDistinct();
+                        }
+                        else
+                        {
+                            if (_leftSelect != null)
+                                _leftSelect.CheckForDistinct();
+                        }
+                    }
+                    else
+                    {
+                        _rightSelect.CheckForDistinct();
+                        _leftSelect.CheckForDistinct();
+                    }
+                }
+
+                //Console.WriteLine(Environment.NewLine + "========" + _name + "========" );
+                //Console.WriteLine(Environment.NewLine + "Имена" + "========");
+                //foreach (string name in _indexColumnNames)
+                //{
+                //    Console.WriteLine(Environment.NewLine + name);
+                //}
+                //Console.WriteLine(Environment.NewLine + "Столбцы" + "========");
+                //foreach (ColumnStructure column in _indexColumns)
+                //{
+                //    Console.WriteLine(Environment.NewLine + column.Name);
             }
-            //Console.WriteLine(Environment.NewLine + "========" + _name + "========" );
-            //Console.WriteLine(Environment.NewLine + "Имена" + "========");
-            //foreach (string name in _indexColumnNames)
-            //{
-            //    Console.WriteLine(Environment.NewLine + name);
-            //}
-            //Console.WriteLine(Environment.NewLine + "Столбцы" + "========");
-            //foreach (ColumnStructure column in _indexColumns)
-            //{
-            //    Console.WriteLine(Environment.NewLine + column.Name);
         }
     }
 }

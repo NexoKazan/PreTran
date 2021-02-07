@@ -81,6 +81,7 @@
     <Compile Include="SchemeCreator\SchemeAsStructure.cs" />
     <Compile Include="SchemeCreator\SortRuleListener.cs" />
     <Compile Include="Q_Structures\NewSortStructure.cs" />
+    <Compile Include="Services\AsTypeCalculator.cs" />
     <Compile Include="TestClasses\BaseRule.cs" />
     <Compile Include="Listeners\BetweenPredicateListener.cs" />
     <Compile Include="Listeners\MainListener.cs" />
