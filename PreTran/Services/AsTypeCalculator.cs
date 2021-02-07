@@ -168,7 +168,7 @@ namespace PreTran.Services
                     resIntegerPart = _columns[0].Type.Param1;
                     if (FindeByName(_inDatabase, "DECIMAL(" + resIntegerPart + "," + resDecimalPart + ")") == null)
                     {
-                        outputType = new S_Type("DECIMAL(" + resIntegerPart + ", " + resDecimalPart + ")", 77,
+                        outputType = new S_Type("DECIMAL(" + resIntegerPart + "," + resDecimalPart + ")", 77,
                             (_inDatabase.Types.Length + 1).ToString());
                         //определить размер
                         List<S_Type> tmpTypes = new List<S_Type>();

@@ -1384,8 +1384,7 @@ namespace MySQL_Clear_standart
         
         private SelectStructure[] MakeSelect(DataBaseStructure dataBase, MainListener listener)
         {
-            //DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
-            DataBaseStructure queryDB = dataBase;
+            DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
             SetIsForSelectFlags(queryDB, listener.SelectColumnNames);
             SelectStructure[] selectQueries = new SelectStructure[queryDB.Tables.Length];
             List<WhereStructure> tmpWhere = new List<WhereStructure>();
@@ -1449,8 +1448,7 @@ namespace MySQL_Clear_standart
 
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects)
         {
-            //DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
-            DataBaseStructure queryDB = dataBase;
+            DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
             //List<JoinStructure> excludedJoin = new List<JoinStructure>();
             List<JoinStructure> tmpList = new List<JoinStructure>();
@@ -1638,8 +1636,7 @@ namespace MySQL_Clear_standart
         
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects, string left, string right)
         {
-            //DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
-            DataBaseStructure queryDB = dataBase;
+            DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
             List<JoinStructure> tmpJoins = new List<JoinStructure>();
             JoinStructure[] joinQueries = new JoinStructure[0];
 
@@ -1833,21 +1830,19 @@ namespace MySQL_Clear_standart
             //CreateScheme(sortQuery);
 
             #endregion
-            //DataBaseStructure qDB = CreateSubDatabase(dataBase, listener);
-            DataBaseStructure qDB  = dataBase;
+            DataBaseStructure qDB = CreateSubDatabase(dataBase, listener);
             SelectStructure[] selects = MakeSelect(qDB, listener);
             SelectStructure[] subSelects = new SelectStructure []{};
             JoinStructure[] joins = MakeJoin(qDB, listener, selects);
             JoinStructure[] subJoins = new JoinStructure[] { };
             if (_listener.SubQueryListeners.Count != 0)
             {
-                DataBaseStructure subQDB = CreateSubDatabase(dataBase,listener.SubQueryListeners[0]);
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
                     subSelects =
-                        MakeSelect(subQDB, subQlistener);
+                        MakeSelect(qDB, subQlistener);
 
-                    subJoins = MakeJoin(subQDB, subQlistener, subSelects);
+                    subJoins = MakeJoin(qDB, subQlistener, subSelects);
                 }
             }
 
@@ -2378,8 +2373,8 @@ namespace MySQL_Clear_standart
             
             textBox_tab2_SelectResult.Clear();
             GetTree( textBox_tab2_Query.Text);
-            DataBaseStructure qDataBase = CreateSubDatabase(_dbName, _listener);
-            _selectQuery = MakeSelect(qDataBase, _listener);
+            //DataBaseStructure qDataBase = CreateSubDatabase(_dbName, _listener);
+            _selectQuery = MakeSelect(_dbName, _listener);
             for (int i = 0; i < _selectQuery.Length; i++)
             {
                 textBox_tab2_SelectResult.Text += "\r\n=======" + _selectQuery[i].Name + "=========\r\n";
@@ -2391,9 +2386,8 @@ namespace MySQL_Clear_standart
                 textBox_tab2_SelectResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
-                    DataBaseStructure subQuerryDataBase = CreateSubDatabase(_dbName, subQlistener);
                     _subSelectQuery =
-                        MakeSelect(subQuerryDataBase, subQlistener);
+                        MakeSelect(_dbName, subQlistener);
                 }
 
                 foreach (SelectStructure subSelect in _subSelectQuery)
@@ -2407,9 +2401,8 @@ namespace MySQL_Clear_standart
         private void btn_CreateJoin_Click(object sender, EventArgs e)
         {
             GetTree(textBox_tab2_Query.Text);
-            DataBaseStructure querryDataBase = CreateSubDatabase(_dbName, _listener);
             _joinQuery =
-                MakeJoin(querryDataBase, _listener, MakeSelect(querryDataBase, _listener)).ToList();
+                MakeJoin(_dbName, _listener, MakeSelect(_dbName, _listener)).ToList();
             List<JoinStructure> subJoin = new List<JoinStructure>();
             textBox_tab2_JoinResult.Clear();
             foreach (var join in _joinQuery)
@@ -2421,8 +2414,7 @@ namespace MySQL_Clear_standart
                 textBox_tab2_JoinResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
-                    DataBaseStructure subQuerryDataBase = CreateSubDatabase(_dbName, subQlistener);
-                    subJoin = MakeJoin(subQuerryDataBase, subQlistener, MakeSelect(subQuerryDataBase, subQlistener)).ToList();
+                    subJoin = MakeJoin(_dbName, subQlistener, MakeSelect(_dbName, subQlistener)).ToList();
                 }
 
                 foreach (var join in subJoin)
@@ -2435,8 +2427,8 @@ namespace MySQL_Clear_standart
         private void btn_CreateSort_Click(object sender, EventArgs e)
         {
             GetTree(textBox_tab2_Query.Text);
-            DataBaseStructure querryDataBase = CreateSubDatabase(_dbName, _listener);
-            NewSortStructure sortQ = MakeSort(querryDataBase, _listener, _sortRule);
+            //DataBaseStructure querryDataBase = CreateSubDatabase(_dbName, _listener);
+            NewSortStructure sortQ = MakeSort(_dbName, _listener, _sortRule);
             textBox_tab2_SortResult.Text = sortQ.Output;
         }
         
@@ -2446,7 +2438,6 @@ namespace MySQL_Clear_standart
             SelectStructure[] selectQ, subSelectQ;
             JoinStructure[] joinQ, subJoinQ;
             NewSortStructure sortQ;
-            DataBaseStructure querryDataBase = CreateSubDatabase(_dbName, _listener);
 
             if (_connectionIP == null)
             {
@@ -2454,15 +2445,15 @@ namespace MySQL_Clear_standart
             }
             if (checkBox_Tab2_ClusterXNEnable.Checked)
             {
-                selectQ = MakeSelect(querryDataBase, _listener);
-                joinQ = MakeJoin(querryDataBase, _listener, selectQ, Constants.LeftRelationNameTag,
+                selectQ = MakeSelect(_dbName, _listener);
+                joinQ = MakeJoin(_dbName, _listener, selectQ, Constants.LeftRelationNameTag,
                     Constants.RightRelationNameTag);
 
                 if (_listener.SubQueryListeners.Count > 0)
                 {
-                    DataBaseStructure subQuerryDataBase = CreateSubDatabase(_dbName, _listener.SubQueryListeners[0]);
-                    subSelectQ = MakeSelect(subQuerryDataBase, _listener.SubQueryListeners[0]); //Добавить foreach
-                        subJoinQ = MakeJoin(subQuerryDataBase, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
+                   
+                    subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
+                        subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
                 }
                 else
                 {
@@ -2470,22 +2461,21 @@ namespace MySQL_Clear_standart
                     subJoinQ = null;
                 }
 
-                sortQ = MakeSort(querryDataBase, _listener, _sortRule, Constants.RelationNameTag);
+                sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
             }
             else
             {
-                selectQ = MakeSelect(querryDataBase, _listener);
-                joinQ = MakeJoin(querryDataBase, _listener, selectQ);
+                selectQ = MakeSelect(_dbName, _listener);
+                joinQ = MakeJoin(_dbName, _listener, selectQ);
                 if (_listener.SubQueryListeners.Count > 0)
                 {
-                    DataBaseStructure subQuerryDataBase = CreateSubDatabase(_dbName, _listener.SubQueryListeners[0]);
-                    subSelectQ = MakeSelect(subQuerryDataBase, _listener.SubQueryListeners[0]); //Добавить foreach
-                    subJoinQ = MakeJoin(subQuerryDataBase, _listener.SubQueryListeners[0], subSelectQ);
-                    sortQ = MakeSort(querryDataBase, _listener, _sortRule);
+                    subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
+                    subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ);
+                    sortQ = MakeSort(_dbName, _listener, _sortRule);
                 }
                 else
                 {
-                    sortQ = MakeSort(querryDataBase, _listener, _sortRule);
+                    sortQ = MakeSort(_dbName, _listener, _sortRule);
                     subSelectQ = null;
                     subJoinQ = null;
                 }
@@ -3125,17 +3115,17 @@ namespace MySQL_Clear_standart
             JoinStructure[] joinQ, subJoinQ;
             NewSortStructure sortQ;
 
-            DataBaseStructure querryDB = CreateSubDatabase(_dbName, _listener);
+            
 
 
-            selectQ = MakeSelect(querryDB, _listener);
-            joinQ = MakeJoin(querryDB, _listener, selectQ, Constants.LeftRelationNameTag,
+            selectQ = MakeSelect(_dbName, _listener);
+            joinQ = MakeJoin(_dbName, _listener, selectQ, Constants.LeftRelationNameTag,
                 Constants.RightRelationNameTag);
 
             if (_listener.SubQueryListeners.Count > 0)
             {
-                subSelectQ = MakeSelect(querryDB, _listener.SubQueryListeners[0]); //Добавить foreach
-                subJoinQ = MakeJoin(querryDB, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
+                subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
+                subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
             }
             else
             {
@@ -3143,7 +3133,7 @@ namespace MySQL_Clear_standart
                 subJoinQ = null;
             }
 
-            sortQ = MakeSort(querryDB, _listener, _sortRule, Constants.RelationNameTag);
+            sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
             
             JoinStructure[] connectJoins;
             if (_listener.SubQueryListeners.Count > 0)
