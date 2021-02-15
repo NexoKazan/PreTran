@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using PreTran.DataBaseSchemeStructure;
@@ -76,8 +77,9 @@ namespace PreTran.SchemeCreator
                         //biggestColumn = column;
                     }
                 }
-
-                _asRightColumn = new ColumnStructure(_asRightColumnName, biggestColumn.Type);
+                AsTypeCalculator asCalc = new AsTypeCalculator(_context.GetText(), dataBase, _aggregationFunctionName, _columns);
+                _asRightColumn = new ColumnStructure(_asRightColumnName, asCalc.CalculateType());
+                //Console.WriteLine(asCalc.CalculateType().Name);
                 _asRightColumn.Size = _asRightColumn.Type.Size;
             }
             else
@@ -104,25 +106,47 @@ namespace PreTran.SchemeCreator
                     _asRightColumn.Type = FindeByName(dataBase, "INT");
                 }
             }
+
+            if (FindeColumnByName(_asRightColumnName, dataBase).Name == "ERROR")
+            {
+                if (FindeTableByName("ASTABLE", dataBase).Name == null)
+                {
+                    TableStructure asTable = new TableStructure();
+                    asTable.Name = "ASTABLE";
+                    List<ColumnStructure> columns = new List<ColumnStructure>();
+                    columns.Add(_asRightColumn);
+                    asTable.Columns = columns.ToArray();
+
+                    List<TableStructure> tmpTables = dataBase.Tables.ToList();
+                    tmpTables.Add(asTable);
+                    dataBase.Tables = tmpTables.ToArray();
+
+                }
+                else
+                {
+                    TableStructure asTable = FindeTableByName("ASTABLE", dataBase);
+                    List<ColumnStructure> columns = asTable.Columns.ToList();
+                    columns.Add(_asRightColumn);
+                    asTable.Columns = columns.ToArray();
+                }
+                
+            }
         }
 
-        private S_Type FindeByName(DataBaseStructure inDb, string typeName)
-        {
-            S_Type output = null;
-            foreach (S_Type type in inDb.Types)
-            {
-                if (type.Name == typeName)
-                {
-                    output = type;
-                    break;
-                }
-            }
-            return output;
-        }
+       
 
         public void FillCrossAsStructutre(List<SchemeAsStructure> listenerAsStructures, DataBaseStructure dataBase)
         {
-            foreach (SchemeAsStructure asStructure in listenerAsStructures)
+            List<SchemeAsStructure> reversedAsStructures = listenerAsStructures;
+
+            for (int i = listenerAsStructures.Count - 1; i >= 0; i--)
+            {
+                //reversedAsStructures.Add(listenerAsStructures[i]);
+            }
+            //reversedAsStructures.Reverse();
+            
+
+            foreach (SchemeAsStructure asStructure in reversedAsStructures)
             {
                 asStructure.FillAsStructure(dataBase);
                 foreach (string columnName in ColumnNames)
@@ -140,7 +164,7 @@ namespace PreTran.SchemeCreator
                 {
                     if (column.Size > biggestColumn.Size)
                     {
-                        biggestColumn = column;
+                        //biggestColumn = column;
                     }
                 }
 
@@ -148,8 +172,7 @@ namespace PreTran.SchemeCreator
                 //_asRightColumn.Size = _asRightColumn.Type.Size;
                 AsTypeCalculator asCalc = new AsTypeCalculator(_context.GetText(), dataBase, _aggregationFunctionName, _columns);
                 _asRightColumn = new ColumnStructure(_asRightColumnName, asCalc.CalculateType());
-
-                Console.WriteLine(asCalc.CalculateType().Name);
+                //Console.WriteLine(asCalc.CalculateType().Name);
                 _asRightColumn.Size = _asRightColumn.Type.Size;
             }
             else
@@ -175,6 +198,90 @@ namespace PreTran.SchemeCreator
                     _asRightColumn.Type = FindeByName(dataBase, "INT");
                 }
             }
+
+            if (FindeColumnByName(_asRightColumnName, dataBase).Name == "ERROR")
+            {
+                if (FindeTableByName("ASTABLE", dataBase).Name == null)
+                {
+                    TableStructure asTable = new TableStructure();
+                    asTable.Name = "ASTABLE";
+                    List<ColumnStructure> columns = new List<ColumnStructure>();
+                    columns.Add(_asRightColumn);
+                    asTable.Columns = columns.ToArray();
+
+                    List<TableStructure> tmpTables = dataBase.Tables.ToList();
+                    tmpTables.Add(asTable);
+                    dataBase.Tables = tmpTables.ToArray();
+                }
+                else
+                {
+                    TableStructure asTable = FindeTableByName("ASTABLE", dataBase);
+                    List<ColumnStructure> columns = asTable.Columns.ToList();
+                    columns.Add(_asRightColumn);
+                    asTable.Columns = columns.ToArray();
+                }
+
+            }
+        }
+
+        private ColumnStructure FindeColumnByName(string columnName, DataBaseStructure inDatabase)
+        {
+            ColumnStructure outColumn = new ColumnStructure("ERROR");
+
+            foreach (TableStructure inDatabaseTable in inDatabase.Tables)
+            {
+                foreach (ColumnStructure column in inDatabaseTable.Columns)
+                {
+                    if (column.OldName == columnName)
+                    {
+                        outColumn = column;
+                    }
+                    else
+                    {
+                        if (column.Name == columnName)
+                        {
+                            outColumn = column;
+                        }
+                    }
+                }
+            }
+
+            if (outColumn.Name == "ERROR")
+            {
+               // MessageBox.Show(this.GetType().Name + "FindeColumnByName");
+            }
+
+            return outColumn;
+        }
+
+        private TableStructure FindeTableByName(string tableName, DataBaseStructure inDatabase)
+        {
+            TableStructure table = new TableStructure();
+            table.Name = null;
+
+            foreach (TableStructure inDatabaseTable in inDatabase.Tables)
+            {
+                if (inDatabaseTable.Name == tableName)
+                {
+                    table = inDatabaseTable;
+                }
+            }
+            return table;
+        }
+
+
+        private S_Type FindeByName(DataBaseStructure inDb, string typeName)
+        {
+            S_Type output = null;
+            foreach (S_Type type in inDb.Types)
+            {
+                if (type.Name == typeName)
+                {
+                    output = type;
+                    break;
+                }
+            }
+            return output;
         }
     }
 }

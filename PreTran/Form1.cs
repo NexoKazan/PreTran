@@ -1417,6 +1417,9 @@ namespace MySQL_Clear_standart
                     GetCorrectAsStructures(listener.AsList, queryDB.Tables[i]), _sortRule, GetCorrectBetweenList(listener.BetweenList, queryDB.Tables[i])
                     );
             }
+
+            List<TableStructure> tables = dataBase.Tables.ToList();
+
             foreach (SelectStructure select in selectQueries)
             {
                 foreach (LikeStructure like in listener.LkeList)
@@ -1438,9 +1441,12 @@ namespace MySQL_Clear_standart
                 }
                 select.CreateQuerry();
                 select.SetIndexes();
+
+                tables.Add(select.OutTable);
             }
 
-            
+            //dataBase.Tables = tables.ToArray();
+
             CreateScheme(selectQueries);
             
             return selectQueries;
@@ -1542,6 +1548,15 @@ namespace MySQL_Clear_standart
                     joinQueries[k].CheckIsDistinct();
                 }
             }
+
+            List<TableStructure> tables = dataBase.Tables.ToList();
+
+            foreach (JoinStructure query in joinQueries)
+            {
+                tables.Add(query.OutTable);
+            }
+
+            //dataBase.Tables = tables.ToArray();
 
             return joinQueries;
         }
@@ -1764,6 +1779,15 @@ namespace MySQL_Clear_standart
                 }
             }
 
+            List<TableStructure> tables = dataBase.Tables.ToList();
+
+            foreach (JoinStructure query in joinQueries)
+            {
+                tables.Add(query.OutTable);
+            }
+
+            //dataBase.Tables = tables.ToArray();
+
             return joinQueries;
         }
 
@@ -1830,19 +1854,19 @@ namespace MySQL_Clear_standart
             //CreateScheme(sortQuery);
 
             #endregion
-            DataBaseStructure qDB = CreateSubDatabase(dataBase, listener);
-            SelectStructure[] selects = MakeSelect(qDB, listener);
+            //DataBaseStructure qDB = CreateSubDatabase(dataBase, listener);
+            SelectStructure[] selects = MakeSelect(dataBase, listener);
             SelectStructure[] subSelects = new SelectStructure []{};
-            JoinStructure[] joins = MakeJoin(qDB, listener, selects);
+            JoinStructure[] joins = MakeJoin(dataBase, listener, selects);
             JoinStructure[] subJoins = new JoinStructure[] { };
             if (_listener.SubQueryListeners.Count != 0)
             {
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
                     subSelects =
-                        MakeSelect(qDB, subQlistener);
+                        MakeSelect(dataBase, subQlistener);
 
-                    subJoins = MakeJoin(qDB, subQlistener, subSelects);
+                    subJoins = MakeJoin(dataBase, subQlistener, subSelects);
                 }
             }
 

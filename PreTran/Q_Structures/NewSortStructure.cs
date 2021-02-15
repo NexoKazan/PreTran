@@ -32,7 +32,7 @@ namespace PreTran.Q_Structures
             _inDataBase = fullDataBase;
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, sortRule.Context);
-            _asStructures = _listener.AsStructures;
+            _asStructures.Reverse();
             List<TableStructure> tmpTableList = new List<TableStructure>();
             List<ColumnStructure> tmpColumnList = new List<ColumnStructure>();
             List<ColumnStructure> orderedColumnList = new List<ColumnStructure>();
@@ -136,6 +136,7 @@ namespace PreTran.Q_Structures
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, sortRule.Context);
             _asStructures = _listener.AsStructures;
+            _asStructures.Reverse();
             List<TableStructure> tmpTableList = new List<TableStructure>();
             List<ColumnStructure> tmpColumnList = new List<ColumnStructure>();
             List<ColumnStructure> orderedColumnList = new List<ColumnStructure>();

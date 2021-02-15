@@ -85,7 +85,6 @@ namespace PreTran.DataBaseSchemeStructure
         [XmlIgnore]
         public int Param1
         {
-           
             get
             {
                 SetParams();

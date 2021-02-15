@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
 using PreTran.TestClasses.Listeners;
@@ -189,10 +190,16 @@ namespace PreTran.Services
                 {
                     if (_columns.Count == 1)
                     {
-                        outputType = _columns[0].Type;
+                        //outputType = _columns[0].Type;
+                        outputType = FindeColumnByName(_columns[0].Name, _inDatabase).Type;
                     }
                 }
 
+            }
+
+            if (outputType == null)
+            {
+                MessageBox.Show("AYAAYAYA");
             }
             return outputType;
         }
@@ -209,6 +216,36 @@ namespace PreTran.Services
                 }
             }
             return output;
+        }
+
+        private ColumnStructure FindeColumnByName(string columnName, DataBaseStructure inDatabase)
+        {
+            ColumnStructure outColumn = new ColumnStructure("ERROR");
+
+            foreach (TableStructure inDatabaseTable in inDatabase.Tables)
+            {
+                foreach (ColumnStructure column in inDatabaseTable.Columns)
+                {
+                    if (column.OldName == columnName )
+                    {
+                        outColumn = column;
+                    }
+                    else
+                    {
+                        if (column.Name == columnName)
+                        {
+                            outColumn = column;
+                        }
+                    }
+                }
+            }
+
+            if (outColumn.Name == "ERROR")
+            {
+               // MessageBox.Show(this.GetType().Name + "FindeColumnByName");
+            }
+
+            return outColumn;
         }
     }
 }
