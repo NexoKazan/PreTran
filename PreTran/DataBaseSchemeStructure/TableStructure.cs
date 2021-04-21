@@ -29,6 +29,8 @@ namespace PreTran.DataBaseSchemeStructure
         private string _name;
         private string _shortName;
         private string _dotedID;
+        private int _rowSize;
+        private int _rowCount;
         private Interval _sourceInterval;
 
         public TableStructure() { }
@@ -56,6 +58,8 @@ namespace PreTran.DataBaseSchemeStructure
             _shortName = mainTable.ShortName;
             _sourceInterval = mainTable.SourceInterval;
             _dotedID = mainTable.DotedId;
+            _rowCount = mainTable.RowCount;
+            _rowSize = mainTable.RowSize;
         }
 
         [XmlArray]
@@ -80,6 +84,30 @@ namespace PreTran.DataBaseSchemeStructure
             set { _shortName = value; }
         }
 
+        [XmlAttribute]
+        public int RowCount
+        {
+            get { return _rowCount; }
+            set { _rowCount = value; }
+
+        }
+
+        [XmlIgnore]
+        public int RowCountRight
+        {
+            get;
+            set;
+
+        }
+
+        [XmlIgnore]
+        public int RowCountLeft
+        {
+            get;
+            set;
+
+        }
+
         [XmlIgnore]
         public Interval SourceInterval
         {
@@ -92,6 +120,20 @@ namespace PreTran.DataBaseSchemeStructure
         {
             get => _dotedID;
             set => _dotedID = value;
+        }
+
+        [XmlIgnore]
+        public int RowSize
+        {
+            get
+            {
+                _rowSize = 0;
+                foreach (ColumnStructure column in _columns)
+                {
+                    _rowSize += column.Size;
+                }
+                return _rowSize;
+            }
         }
     }
 }

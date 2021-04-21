@@ -33,7 +33,6 @@ namespace PreTran.Q_Structures
         private string _name;
         private string _output = "error";
         private string _tableName;
-        private static int _id = 0;
         private List<string> _indexColumnNames = new List<string>();
         private List<ColumnStructure> _indexColumns = new List<ColumnStructure>();
         private string _createTableColumnNames;
@@ -57,6 +56,34 @@ namespace PreTran.Q_Structures
             _betweenList = betweenList;
             _sortRule = sortRule;
         }
+
+        public SelectStructure(SelectStructure inSelect)
+        {
+            _name = inSelect.Name;
+            _output = inSelect.Output;
+            _tableName = inSelect.TableName;
+
+            _indexColumnNames = inSelect.IndexColumnNames;
+            foreach (ColumnStructure column in inSelect.IndexColumns)
+            {
+                _indexColumns.Add(new ColumnStructure(column));
+            }
+            _createTableColumnNames = inSelect.CreateTableColumnNames;
+            _sortRule = inSelect.SortRule;
+            _inputTable = inSelect.InputTable;
+            _whereList = inSelect._whereList;
+            _asList = inSelect._asList;
+            _likeList = inSelect.LikeList;
+            _betweenList = inSelect._betweenList;
+            _inStructureList = inSelect.InStructureList;
+            _outTable = inSelect.OutTable;
+            List<ColumnStructure> tmpColumns = new List<ColumnStructure>();
+            foreach (ColumnStructure column in inSelect.OutColumn)
+            {
+                tmpColumns.Add(new ColumnStructure(column));
+            }
+            _outColumn = tmpColumns.ToArray();
+    }
 
         public string Output
         {
@@ -166,7 +193,7 @@ namespace PreTran.Q_Structures
                 _outColumn[i] = tempList[i];
             }
             _outTable = new TableStructure(_name + "_TB", _outColumn.ToArray());
-           
+            _outTable.RowCount = _inputTable.RowCount;
             _output = "SELECT ";
            
 
@@ -226,32 +253,11 @@ namespace PreTran.Q_Structures
                 {
                     _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
                 }
-                //_sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = false;
-                if (asStructure.AggregateFunctionName != null)
-                {
-                    if (asStructure.AggregateFunctionName.ToLower() != "extract")
-                    {
-                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
-                            asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.Name + ")" + " AS " +
-                            asStructure.AsRightColumn.OldName;
-                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
-                    }
-                    else
-                    {
-                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
-                            asStructure.AsRightColumn.Name + " AS " +
-                            asStructure.AsRightColumn.OldName;
-                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
-                    }
-                }
             }
 
             _output += "\r\n" + "FROM " + "\r\n\t" + _tableName + "\r\n" ;
 
-            BaseRule tableRule = _sortRule.GetRule(_inputTable.SourceInterval, "atomtableitem");
-            tableRule.IsRealised = false;
-            tableRule.Text = _name;
-            tableRule.IsRealised = true;
+            
 
             if (_whereList.Count != 0 || _likeList != null || _inStructureList != null || _betweenList.Count > 0)
             {
@@ -261,10 +267,7 @@ namespace PreTran.Q_Structures
                     if (whereStructure.Table == _tableName)
                     {
                         _output += "\r\n\t" + whereStructure.getWhereString;
-                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
-                        _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).Text = "";
-                        _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).IsRealised = true;
-                        
+
                     }
 
                     if (whereStructure != _whereList.LastOrDefault() || (_likeList != null && _likeList.Count>0) || 
@@ -278,9 +281,6 @@ namespace PreTran.Q_Structures
                 {
                     foreach (LikeStructure like in _likeList)
                     {
-                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
-                        _sortRule.GetRuleBySourceInterval(like.SourceInterval).Text = "";
-                        _sortRule.GetRuleBySourceInterval(like.SourceInterval).IsRealised = true;
                         if (!like.IsNot)
                         {
 
@@ -304,9 +304,6 @@ namespace PreTran.Q_Structures
                 {
                     foreach (InStructure inStructure  in _inStructureList)
                     {
-                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
-                        _sortRule.GetRuleBySourceInterval(inStructure.SourceInterval).Text = "";
-                        _sortRule.GetRuleBySourceInterval(inStructure.SourceInterval).IsRealised = true;
                         _output += Environment.NewLine + "\t" + inStructure.FullString;
                         if (inStructure != _inStructureList.LastOrDefault() || _betweenList.Count > 0)
                         {
@@ -320,9 +317,6 @@ namespace PreTran.Q_Structures
                 {
                     foreach (BetweenStructure betweenStructure in _betweenList)
                     {
-                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
-                        _sortRule.GetRuleBySourceInterval(betweenStructure.SourceInterval).Text = "";
-                        _sortRule.GetRuleBySourceInterval(betweenStructure.SourceInterval).IsRealised = true;
                         _output += Environment.NewLine + "\t" + betweenStructure.Text;
                         if (betweenStructure != _betweenList.LastOrDefault() )
                         {
@@ -350,9 +344,6 @@ namespace PreTran.Q_Structures
                     foreach (Interval sourceInterval in column.SoureInterval)
                     {
                         tmpRules.Add(_sortRule.GetRuleBySourceInterval(sourceInterval));
-                        _sortRule.GetRuleBySourceInterval(sourceInterval).IsRealised = false;
-                        _sortRule.GetRuleBySourceInterval(sourceInterval).Text = column.Name;
-                        _sortRule.GetRuleBySourceInterval(sourceInterval).IsRealised = true;
                     }
                 }
             }
@@ -441,6 +432,95 @@ namespace PreTran.Q_Structures
                         _indexColumns.Add(column);
                         _indexColumnNames.Add(column.Name);
                         break;
+                    }
+                }
+            }
+        }
+
+        public void ChangeSort()
+        {
+            foreach (var asStructure in _asList)
+            {
+                
+                //_sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = false;
+                if (asStructure.AggregateFunctionName != null)
+                {
+                    if (asStructure.AggregateFunctionName.ToLower() != "extract")
+                    {
+                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
+                            asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.Name + ")" + " AS " +
+                            asStructure.AsRightColumn.OldName;
+                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
+                    }
+                    else
+                    {
+                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
+                            asStructure.AsRightColumn.Name + " AS " +
+                            asStructure.AsRightColumn.OldName;
+                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
+                    }
+                }
+            }
+
+            BaseRule tableRule = _sortRule.GetRule(_inputTable.SourceInterval, "atomtableitem");
+            tableRule.IsRealised = false;
+            tableRule.Text = _name;
+            tableRule.IsRealised = true;
+
+            if (_whereList.Count != 0 || _likeList != null || _inStructureList != null || _betweenList.Count > 0)
+            {
+                foreach (WhereStructure whereStructure in _whereList)
+                {
+                    if (whereStructure.Table == _tableName)
+                    {
+                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
+                        _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).Text = "";
+                        _sortRule.GetRuleBySourceInterval(whereStructure.SourceInterval).IsRealised = true;
+
+                    }
+                }
+
+                if (_likeList != null)
+                {
+                    foreach (LikeStructure like in _likeList)
+                    {
+                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
+                        _sortRule.GetRuleBySourceInterval(like.SourceInterval).Text = "";
+                        _sortRule.GetRuleBySourceInterval(like.SourceInterval).IsRealised = true;
+                    }
+                }
+
+                if (_inStructureList != null)
+                {
+                    foreach (InStructure inStructure in _inStructureList)
+                    {
+                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
+                        _sortRule.GetRuleBySourceInterval(inStructure.SourceInterval).Text = "";
+                        _sortRule.GetRuleBySourceInterval(inStructure.SourceInterval).IsRealised = true;
+                    }
+                }
+
+
+                if (_betweenList.Count > 0)
+                {
+                    foreach (BetweenStructure betweenStructure in _betweenList)
+                    {
+                        _sortRule.GetRuleBySourceInterval(_inputTable.SourceInterval).IsRealised = false;
+                        _sortRule.GetRuleBySourceInterval(betweenStructure.SourceInterval).Text = "";
+                        _sortRule.GetRuleBySourceInterval(betweenStructure.SourceInterval).IsRealised = true;
+                    }
+                }
+            }
+
+            foreach (ColumnStructure column in _outTable.Columns)
+            {
+                if (column.DotTableId != null)
+                {
+                    foreach (Interval sourceInterval in column.SoureInterval)
+                    {
+                        _sortRule.GetRuleBySourceInterval(sourceInterval).IsRealised = false;
+                        _sortRule.GetRuleBySourceInterval(sourceInterval).Text = column.Name;
+                        _sortRule.GetRuleBySourceInterval(sourceInterval).IsRealised = true;
                     }
                 }
             }

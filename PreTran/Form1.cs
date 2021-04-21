@@ -213,7 +213,6 @@ namespace MySQL_Clear_standart
                 XmlSerializer dbCreateSerializer = new XmlSerializer(typeof(DataBaseStructure));
                 _dbName = (DataBaseStructure) dbCreateSerializer.Deserialize(dbCreateFileStream);
             }
-
             SetID(_dbName);
             SetTables(_dbName);
         }
@@ -579,6 +578,16 @@ namespace MySQL_Clear_standart
 
 
             subDataBase = new DataBaseStructure("sub_" + listener.Depth + "_" + fullDataBase.Name, inputMainTables.ToArray(), fullDataBase.Types);
+            //Console.WriteLine("=======Изначально============");
+            //foreach (TableStructure table in subDataBase.Tables)
+            //{
+            //    foreach (ColumnStructure column in table.Columns)
+            //    {
+            //        Console.WriteLine(column.Name + " " + column.UsageCounter);
+            //    }
+            //}
+            //Console.WriteLine();
+
             return subDataBase;
         }
 
@@ -954,7 +963,7 @@ namespace MySQL_Clear_standart
             List<JoinStructure> outList = new List<JoinStructure>();
             foreach (JoinStructure joinStructure in joinList)
             {
-                outList.Add(new JoinStructure(joinStructure));
+                outList.Add(joinStructure);
             }
             int i = 1;
             foreach (JoinStructure join in outList)
@@ -1037,7 +1046,7 @@ namespace MySQL_Clear_standart
             List<JoinStructure> outJoin = new List<JoinStructure>();
             foreach (JoinStructure join in joinStructures)
             {
-                outJoin.Add(new JoinStructure(join));
+                outJoin.Add(join);
             }
             
             if (outJoin.Count != 0)
@@ -1219,15 +1228,15 @@ namespace MySQL_Clear_standart
 
             foreach (JoinStructure joinStructure in joinStructures)
             {
-                if (joinStructure.Name == null)
+                if (joinStructure.Name == null && joinStructure.IsAdditional == false)
                 {
-                    //joinStructure.IsAdditional = true;
-                    //tmp.LastOrDefault().AdditionalJoins.Add(joinStructure);
-                    joinStructure.Name = "J_" + joinDepth + "_" + tmp.Count.ToString();
+                    joinStructure.IsAdditional = true;
+                    tmp.LastOrDefault().AdditionalJoins.Add(joinStructure);
+                    //joinStructure.Name = "J_" + joinDepth + "_" + tmp.Count.ToString();
                     joinStructure.LeftJoin = tmp.Last();
-                    joinStructure.LeftSelect = null;
-                    joinStructure.RightSelect = null;
-                    tmp.Add(joinStructure);
+                    //joinStructure.LeftSelect = null;
+                    //joinStructure.RightSelect = null;
+                    //tmp.Add(joinStructure);
                 }
             }
             return tmp;
@@ -1289,16 +1298,17 @@ namespace MySQL_Clear_standart
         private List<List<JoinStructure>> ShuffleJoin(List<JoinStructure> inputJoins)
         {
             List<List<JoinStructure>> outSequence = new List<List<JoinStructure>>();
-
             for (int i = 0; i < inputJoins.Count; i++)
             {
                 List<JoinStructure> tmpSeq = new List<JoinStructure>();
-                tmpSeq.Add(inputJoins[i]);
+                tmpSeq.Add(new JoinStructure(inputJoins[i]));
+                //tmpSeq.Add(inputJoins[i]);
                 for (int j = 0; j < inputJoins.Count; j++)
                 {
                     if (i != j)
                     {
-                        tmpSeq.Add(inputJoins[j]);
+                        tmpSeq.Add(new JoinStructure(inputJoins[j]));
+                        //tmpSeq.Add(inputJoins[j]);
                     }
                 }
 
@@ -1441,6 +1451,7 @@ namespace MySQL_Clear_standart
                 }
                 select.CreateQuerry();
                 select.SetIndexes();
+                select.ChangeSort();
 
                 tables.Add(select.OutTable);
             }
@@ -1452,132 +1463,122 @@ namespace MySQL_Clear_standart
             return selectQueries;
         }
 
-        private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects)
+        private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects, int agasf)
         {
-            DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
-            List<JoinStructure> tmpJoins = new List<JoinStructure>();
-            //List<JoinStructure> excludedJoin = new List<JoinStructure>();
-            List<JoinStructure> tmpList = new List<JoinStructure>();
-            JoinStructure[] joinQueries = new JoinStructure[0];
+            //DataBaseStructure queryDB = CreateSubDatabase(dataBase, listener);
+            //List<JoinStructure> tmpJoins = new List<JoinStructure>();
+            ////List<JoinStructure> excludedJoin = new List<JoinStructure>();
+            //List<JoinStructure> tmpList = new List<JoinStructure>();
+            //JoinStructure[] joinQueries = new JoinStructure[0];
 
-            foreach (var binary in listener.Binaries)
-            {
-                if (binary.Type == 2 && binary.ComparisionSymphol == "=")
-                {
-                    JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule, binary.IsOuterJoin);
-                    tmpJoins.Add(tmp);
-                }
-            }
+            //foreach (var binary in listener.Binaries)
+            //{
+            //    if (binary.Type == 2 && binary.ComparisionSymphol == "=")
+            //    {
+            //        JoinStructure tmp = new JoinStructure(binary.LeftString, binary.RightString, binary.ComparisionSymphol, binary.SourceInterval, _sortRule, binary.IsOuterJoin);
+            //        tmpJoins.Add(tmp);
+            //    }
+            //}
 
-            if (tmpJoins.Count > 0)
-            {
+            //if (tmpJoins.Count > 0)
+            //{
                 
-                joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
+            //    joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
 
-                foreach (JoinStructure join in joinQueries)
-                {
-                    join.CheckIsFilled();
-                    if (join.IsFilled)
-                    {
-                        tmpList.Add(join);
-                        //if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
-                        //{
-                        //    tmpList.Add(join);
-                        //}
-                        //else
-                        //{
-                        //    join.IsAdditional = true;
-                        //    excludedJoin.Add(join);
-                        //}
-                    }
-                }
+            //    foreach (JoinStructure join in joinQueries)
+            //    {
+            //        join.CheckIsFilled();
+            //        if (join.IsFilled)
+            //        {
+            //            tmpList.Add(join);
+            //        }
+            //    }
 
-                if (tmpList.Count > 0)
-                {
-                    List<List<JoinStructure>> shuffledJoins = ShuffleJoin(tmpList);
-                    List<List<JoinStructure>> sequencedJoins = new List<List<JoinStructure>>();
+            //    if (tmpList.Count > 0)
+            //    {
+            //        List<List<JoinStructure>> shuffledJoins = ShuffleJoin(tmpList);
+            //        List<List<JoinStructure>> sequencedJoins = new List<List<JoinStructure>>();
 
-                    foreach (List<JoinStructure> shuffledJoin in shuffledJoins)
-                    {
-                        List<JoinStructure> tmp = new List<JoinStructure>();
-                        tmp = GetJoinSequence(shuffledJoin, listener.Depth);
-                        List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
-                        sequencedJoins.Add(sortTmp);
-                    }
+            //        foreach (List<JoinStructure> shuffledJoin in shuffledJoins)
+            //        {
+            //            List<JoinStructure> tmp = new List<JoinStructure>();
+            //            tmp = GetJoinSequence(shuffledJoin, listener.Depth);
+            //            List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
+            //            sequencedJoins.Add(sortTmp);
+            //        }
 
 
 
-                    List<List<JoinStructure>> filtredSeq = FilterClusterSize(sequencedJoins);
-                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(filtredSeq);
-                    List<JoinStructure> unitedJoin = primeSeq[0];
-                    joinQueries = unitedJoin.ToArray();
+            //        List<List<JoinStructure>> filtredSeq = FilterClusterSize(sequencedJoins);
+            //        List<List<JoinStructure>> primeSeq = FindePrimeSeq(filtredSeq);
+            //        List<JoinStructure> unitedJoin = primeSeq[0];
+            //        joinQueries = unitedJoin.ToArray();
 
-                    //List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
-                    //joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
 
-                    foreach (var join in joinQueries)
-                    {
-                        join.CreateQuerry();
-                    }
+            //        foreach (var join in joinQueries)
+            //        {
+            //            join.CreateQuerry();
+            //        }
 
-                    for (int i = joinQueries.Length - 1; i >= 0; i--)
-                    {
-                        joinQueries[i].SetIndex();
-                    }
+            //        for (int i = joinQueries.Length - 1; i >= 0; i--)
+            //        {
+            //            joinQueries[i].SetIndex();
+            //        }
 
-                    foreach (JoinStructure joinQuery in joinQueries)
-                    {
-                        if (joinQuery.IsAdditional == false)
-                        {
-                            //joinQuery.CheckIsDistinct();
-                        }
-                    }
+            //        foreach (JoinStructure joinQuery in joinQueries)
+            //        {
+            //            if (joinQuery.IsAdditional == false)
+            //            {
+            //                //joinQuery.CheckIsDistinct();
+            //            }
+            //        }
 
-                    CreateScheme(joinQueries.ToList());
-                }
-                else
-                {
-                    joinQueries = tmpList.ToArray();
-                }
-            }
+            //        CreateScheme(joinQueries.ToList());
+            //    }
+            //    else
+            //    {
+            //        joinQueries = tmpList.ToArray();
+            //    }
+            //}
 
-            for (int k = 0; k < joinQueries.Length - 1; k++)
-            {
-                if (joinQueries[k].IsAdditional == false)
-                {
-                    joinQueries[k].CheckIsDistinct();
-                }
-            }
+            //for (int k = 0; k < joinQueries.Length - 1; k++)
+            //{
+            //    if (joinQueries[k].IsAdditional == false)
+            //    {
+            //        joinQueries[k].CheckIsDistinct();
+            //    }
+            //}
 
-            List<TableStructure> tables = dataBase.Tables.ToList();
+            //List<TableStructure> tables = dataBase.Tables.ToList();
 
-            foreach (JoinStructure query in joinQueries)
-            {
-                tables.Add(query.OutTable);
-            }
+            //foreach (JoinStructure query in joinQueries)
+            //{
+            //    tables.Add(query.OutTable);
+            //}
 
-            //dataBase.Tables = tables.ToArray();
+            ////dataBase.Tables = tables.ToArray();
 
-            return joinQueries;
+            //return joinQueries;
+            return null;
         }
         
-        private NewSortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, BaseRule sortRule)
+        private NewSortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, BaseRule sortRule, int point)
         {
             SelectStructure[] selects = MakeSelect(dataBase, listener);
             SelectStructure[] subSelects = new SelectStructure[] { };
-            JoinStructure[] joins = MakeJoin(dataBase, listener, selects);
+            JoinStructure[] joins = MakeJoin(dataBase, listener, selects, null, null);
             JoinStructure[] subJoins = new JoinStructure[] { };
             if (_listener.SubQueryListeners.Count != 0)
             {
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
                     subSelects = MakeSelect(dataBase, subQlistener);
-                    subJoins = MakeJoin(dataBase, subQlistener, subSelects);
+                    subJoins = MakeJoin(dataBase, subQlistener, subSelects, null, null);
                 }
 
             }
 
-            NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase);
+            NewSortStructure sortQuery = new NewSortStructure("So_1", sortRule, dataBase, null);
             sortQuery.SetIndexes();
             #region OLD
 
@@ -1647,7 +1648,6 @@ namespace MySQL_Clear_standart
         #endregion
 
         #region Make-методы со string
-
         
         private JoinStructure[] MakeJoin(DataBaseStructure dataBase, MainListener listener, SelectStructure[] selects, string left, string right)
         {
@@ -1711,44 +1711,67 @@ namespace MySQL_Clear_standart
                         List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
                         sequencedJoins.Add(sortTmp);
                     }
+                    
+                    //List<List<JoinStructure>> filtredSeq = FilterClusterSize(sequencedJoins);
+
+                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(sequencedJoins);
 
 
-                    //List<JoinStructure> unitedJoin = GetJoinSequence(FindePrimeSeq(shuffledJoins), listener.Depth);
-                    //unitedJoin.AddRange(excludedJoin);
-                    //List<JoinStructure> unitedJoin = sequencedJoins[1];
-                    List<List<JoinStructure>> filtredSeq = FilterClusterSize(sequencedJoins);
-                    List<List<JoinStructure>> primeSeq = FindePrimeSeq(filtredSeq);
+
+                    //List<List<JoinStructure>> joinWeghtFilter = FilterByOutTableSizeMaxFirst(primeSeq);
+                    //List<List<JoinStructure>> joinWeghtFilter = FilterByOutTableSizeMinFirst(primeSeq);
+
+                    //List<JoinStructure> unitedJoin = joinWeghtFilter[0];
                     List<JoinStructure> unitedJoin = primeSeq[0];
 
-                    //List<JoinStructure> tmp = GetJoinSequence(shuffledJoins[0], listener.Depth);
-                    //List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
-                    //sequencedJoins.Add(sortTmp);
+                    if (primeSeq.Count > 1)
+                    {
+                        unitedJoin = primeSeq[1];
+                    }
+                    else
+                    {
+                        Console.WriteLine("========Ошибка количество праймСек меньше 2х=========");
+                    }
 
-                    //joinQueries = SortJoin(sequencedJoins[0], listener.Depth).ToArray();
                     joinQueries = unitedJoin.ToArray();
 
-                    //List<JoinStructure> unitedJoin = GetJoinSequence(shuffledJoins[0], listener.Depth);
-                    //joinQueries = SortJoin(unitedJoin.ToList(), listener.Depth).ToArray();
 
-                    foreach (var join in joinQueries)
+                    if (left != null && right != null)
                     {
-                        //странно но пусть будет
-                        if (join.LeftSelect == null)
+                        foreach (var join in joinQueries)
                         {
-                            join.CreateQuerry(left, "");
-                        }
-                        else
-                        {
-                            if (join.RightSelect == null)
+                            join.FillTable();
+                            //странно но пусть будет
+                            if (join.LeftSelect == null)
                             {
-                                join.CreateQuerry("", right);
+                                join.CreateQuerry(left, "");
                             }
                             else
                             {
-                                join.CreateQuerry(left, right);
+                                if (join.RightSelect == null)
+                                {
+                                    join.CreateQuerry("", right);
+                                    
+                                }
+                                else
+                                {
+                                    join.CreateQuerry(left, right);
+                                    
+                                }
                             }
                         }
                     }
+                    else
+                    {
+                        foreach (var join in joinQueries)
+                        {
+                            join.FillTable();
+                            join.CreateQuerry();
+                            
+                        }
+                    }
+
+                    _sortRule = joinQueries.Last().SortRule;
 
                     for (int i = joinQueries.Length - 1; i >= 0; i--)
                     {
@@ -1785,12 +1808,16 @@ namespace MySQL_Clear_standart
             {
                 tables.Add(query.OutTable);
             }
-
             //dataBase.Tables = tables.ToArray();
+
+            foreach (JoinStructure joinQuery in joinQueries)
+            {
+                joinQuery.ChangeSort();
+            }
 
             return joinQueries;
         }
-
+        
         private NewSortStructure MakeSort(DataBaseStructure dataBase, MainListener listener, BaseRule sortRule,  string tag)
         {
             #region OLD
@@ -1857,7 +1884,7 @@ namespace MySQL_Clear_standart
             //DataBaseStructure qDB = CreateSubDatabase(dataBase, listener);
             SelectStructure[] selects = MakeSelect(dataBase, listener);
             SelectStructure[] subSelects = new SelectStructure []{};
-            JoinStructure[] joins = MakeJoin(dataBase, listener, selects);
+            JoinStructure[] joins = MakeJoin(dataBase, listener, selects, null, null);
             JoinStructure[] subJoins = new JoinStructure[] { };
             if (_listener.SubQueryListeners.Count != 0)
             {
@@ -1866,7 +1893,7 @@ namespace MySQL_Clear_standart
                     subSelects =
                         MakeSelect(dataBase, subQlistener);
 
-                    subJoins = MakeJoin(dataBase, subQlistener, subSelects);
+                    subJoins = MakeJoin(dataBase, subQlistener, subSelects, null, null);
                 }
             }
 
@@ -2424,9 +2451,10 @@ namespace MySQL_Clear_standart
 
         private void btn_CreateJoin_Click(object sender, EventArgs e)
         {
+            Console.Clear();
             GetTree(textBox_tab2_Query.Text);
             _joinQuery =
-                MakeJoin(_dbName, _listener, MakeSelect(_dbName, _listener)).ToList();
+                MakeJoin(_dbName, _listener, MakeSelect(_dbName, _listener), null, null).ToList();
             List<JoinStructure> subJoin = new List<JoinStructure>();
             textBox_tab2_JoinResult.Clear();
             foreach (var join in _joinQuery)
@@ -2438,7 +2466,7 @@ namespace MySQL_Clear_standart
                 textBox_tab2_JoinResult.Text += "\r\n========SUB_Q==========================\r\n";
                 foreach (var subQlistener in _listener.SubQueryListeners)
                 {
-                    subJoin = MakeJoin(_dbName, subQlistener, MakeSelect(_dbName, subQlistener)).ToList();
+                    subJoin = MakeJoin(_dbName, subQlistener, MakeSelect(_dbName, subQlistener), null, null).ToList();
                 }
 
                 foreach (var join in subJoin)
@@ -2452,7 +2480,7 @@ namespace MySQL_Clear_standart
         {
             GetTree(textBox_tab2_Query.Text);
             //DataBaseStructure querryDataBase = CreateSubDatabase(_dbName, _listener);
-            NewSortStructure sortQ = MakeSort(_dbName, _listener, _sortRule);
+            NewSortStructure sortQ = MakeSort(_dbName, _listener, _sortRule, null);
             textBox_tab2_SortResult.Text = sortQ.Output;
         }
         
@@ -2490,16 +2518,16 @@ namespace MySQL_Clear_standart
             else
             {
                 selectQ = MakeSelect(_dbName, _listener);
-                joinQ = MakeJoin(_dbName, _listener, selectQ);
+                joinQ = MakeJoin(_dbName, _listener, selectQ, null, null);
                 if (_listener.SubQueryListeners.Count > 0)
                 {
                     subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
-                    subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ);
-                    sortQ = MakeSort(_dbName, _listener, _sortRule);
+                    subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ, null, null);
+                    sortQ = MakeSort(_dbName, _listener, _sortRule, null);
                 }
                 else
                 {
-                    sortQ = MakeSort(_dbName, _listener, _sortRule);
+                    sortQ = MakeSort(_dbName, _listener, _sortRule, null);
                     subSelectQ = null;
                     subJoinQ = null;
                 }
@@ -2945,8 +2973,8 @@ namespace MySQL_Clear_standart
                                 //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
                                 //    }
                                 //}
-                                CreateRelationIndex(inJoinQ[index].IndexColumn, false)
-                                    :CreateRelationIndex(inJoinQ[index].IndexColumn, true)
+                                CreateRelationIndex(inJoinQ[index].IndexColumns, false)
+                                    :CreateRelationIndex(inJoinQ[index].IndexColumns, true)
                                 : new List<Index>()), 0,
                         leftRelation, rightRelation));
             }
@@ -3326,8 +3354,8 @@ namespace MySQL_Clear_standart
                                         //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
                                         //    }
                                         //}
-                                        CreateRelationIndex(connectJoins[index].IndexColumn, false)
-                                            : CreateRelationIndex(connectJoins[index].IndexColumn, true)
+                                        CreateRelationIndex(connectJoins[index].IndexColumns, false)
+                                            : CreateRelationIndex(connectJoins[index].IndexColumns, true)
                                         : new List<Index>()), 0,
                                 leftRelation, rightRelation));
                     }
@@ -3527,8 +3555,8 @@ namespace MySQL_Clear_standart
                                         //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
                                         //    }
                                         //}
-                                        CreateRelationIndex(connectJoins[index].IndexColumn, false)
-                                            : CreateRelationIndex(connectJoins[index].IndexColumn, true)
+                                        CreateRelationIndex(connectJoins[index].IndexColumns, false)
+                                            : CreateRelationIndex(connectJoins[index].IndexColumns, true)
                                         : new List<Index>()), 0,
                                 leftRelation, rightRelation));
                     }
@@ -3783,6 +3811,54 @@ namespace MySQL_Clear_standart
             {
                 return joinSequences;
             }
+        }
+
+        private List<List<JoinStructure>> FilterByOutTableSizeMaxFirst(List<List<JoinStructure>> joinSeqList)
+        {
+            
+            List<List<JoinStructure>> outSeq = new List<List<JoinStructure>>();
+            outSeq.Add(joinSeqList[0]);
+            for (int i = 1; i < joinSeqList.Count; i++)
+            {
+                if (joinSeqList[i][0].OutTable.RowCount > outSeq[0][0].OutTable.RowCount)
+                {
+                    outSeq = new List<List<JoinStructure>>();
+                    outSeq.Add(joinSeqList[i]);
+                }
+                else
+                {
+                    if (joinSeqList[i][0].OutTable.RowCount == outSeq[0][0].OutTable.RowCount)
+                    {
+                        outSeq.Add(joinSeqList[i]);
+                    }
+                }
+            }
+
+            return outSeq;
+        }
+
+        private List<List<JoinStructure>> FilterByOutTableSizeMinFirst(List<List<JoinStructure>> joinSeqList)
+        {
+
+            List<List<JoinStructure>> outSeq = new List<List<JoinStructure>>();
+            outSeq.Add(joinSeqList[0]);
+            for (int i = 1; i < joinSeqList.Count; i++)
+            {
+                if (joinSeqList[i][0].OutTable.RowCount < outSeq[0][0].OutTable.RowCount)
+                {
+                    outSeq = new List<List<JoinStructure>>();
+                    outSeq.Add(joinSeqList[i]);
+                }
+                else
+                {
+                    if (joinSeqList[i][0].OutTable.RowCount == outSeq[0][0].OutTable.RowCount)
+                    {
+                        outSeq.Add(joinSeqList[i]);
+                    }
+                }
+            }
+
+            return outSeq;
         }
 
         #endregion

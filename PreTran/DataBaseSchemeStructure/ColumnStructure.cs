@@ -43,6 +43,22 @@ namespace PreTran.DataBaseSchemeStructure
         {
         }
 
+        public ColumnStructure(ColumnStructure inColumn)
+        {
+            _name = inColumn.Name;
+            _typeID = inColumn.TypeID;
+            _oldName = inColumn.OldName;
+            _dotTableID = inColumn.DotTableId;
+            _size = inColumn.Size;
+            _isPrimary = inColumn.IsPrimary;
+            _usageCounter = inColumn.UsageCounter;
+            _isForSelect = inColumn.IsForSelect;
+            _isRenamed = inColumn.IsRenamed;
+            _type = inColumn.Type;
+            _table = inColumn.Table;
+            _sourceInterval = inColumn.SoureInterval;
+        }
+
         public ColumnStructure(string name, string typeID, int isPrimary)
         {
             _isPrimary = isPrimary;
@@ -74,21 +90,7 @@ namespace PreTran.DataBaseSchemeStructure
             _sourceInterval = sourceInterval;
         }
 
-        public ColumnStructure(ColumnStructure inColumn)
-        {
-            _name = inColumn.Name;
-            _typeID = inColumn.TypeID;
-            _oldName = inColumn.OldName;
-            _size = inColumn.Size;
-            _isPrimary = inColumn.IsPrimary;
-            _usageCounter = inColumn.UsageCounter;
-            _isForSelect = inColumn.IsForSelect;
-            _isRenamed = inColumn.IsRenamed;
-            _type = inColumn.Type;
-            _table = inColumn.Table;
-            _sourceInterval = inColumn.SoureInterval;
-            _dotTableID = inColumn.DotTableId;
-        }
+        
 
         [XmlAttribute]
         public int IsPrimary

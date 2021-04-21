@@ -7,6 +7,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
 using PreTran.SchemeCreator;
+using PreTran.TestClasses.Rules;
 
 namespace PreTran.Listeners
 {
@@ -17,7 +18,7 @@ namespace PreTran.Listeners
 
         private List<string> _selectColumnNames = new List<string>();
         private List<string> _selectAsRightColumns = new List<string>();
-        private List<string> _selectColumnsOrded = new List<string>();
+        private List<string> _selectColumnsOrded = new List<string>();  //нужны для правильного порядка создаваемой таблицы
 
         List<BaseRule> _asRules = new List<BaseRule>();
         private List<SchemeAsStructure> _asStructures = new List<SchemeAsStructure>();
@@ -98,6 +99,13 @@ namespace PreTran.Listeners
         public override void ExitSelectColumnElement(MySqlParser.SelectColumnElementContext context)
         {
             _selectColumnElementFlag = false;
+        }
+
+        public override void EnterOrderByClause(MySqlParser.OrderByClauseContext context)
+        {
+            //OrderByClause orderByClauseRule = new OrderByClause(context.SourceInterval, context, context.GetText());
+            //_selectColumnsOrded = orderByClauseRule.ColumnNames;
+
         }
     }
 }

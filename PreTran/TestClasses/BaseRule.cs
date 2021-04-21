@@ -34,6 +34,19 @@ namespace PreTran
             }
         }
 
+        public BaseRule(BaseRule inRule)
+        {
+            _sourceInterval = inRule.SourceInterval;
+            _context = inRule.Context;
+            _text = inRule.Text;
+            _divideSym = inRule.DivideSym;
+            _ruleType = inRule.RuleType;
+            _isRealised = inRule.IsRealised;
+            foreach (BaseRule rule in inRule.Rules)
+            {
+                _rules.Add(new BaseRule(rule));
+            }
+        }
 
         #region Свойства
 

@@ -23,7 +23,7 @@ namespace PreTran.Q_Structures
         private SortRuleListener _listener = new SortRuleListener();
         private List<SchemeAsStructure> _asStructures = new List<SchemeAsStructure>();
 
-        public NewSortStructure(string name, BaseRule sortRule, DataBaseStructure fullDataBase)
+        public NewSortStructure(string name, BaseRule sortRule, DataBaseStructure fullDataBase, int DELETER)
         {
             _name = name;
             _sortRule = sortRule;
@@ -32,6 +32,7 @@ namespace PreTran.Q_Structures
             _inDataBase = fullDataBase;
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, sortRule.Context);
+            _asStructures = _listener.AsStructures;
             _asStructures.Reverse();
             List<TableStructure> tmpTableList = new List<TableStructure>();
             List<ColumnStructure> tmpColumnList = new List<ColumnStructure>();
@@ -55,6 +56,8 @@ namespace PreTran.Q_Structures
                 //    tmpTableList.Add(new TableStructure(inTable.Name, tmpColumnList.ToArray()));
                 //}
             }
+
+
 
             foreach (string columnName in _listener.SelectAsRightColumns)
             {
@@ -93,7 +96,7 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            tmpColumnList = orderedColumnList;
+            //tmpColumnList = orderedColumnList;
 
             if (tmpColumnList.Count > 0)
             {
@@ -142,7 +145,6 @@ namespace PreTran.Q_Structures
             List<ColumnStructure> orderedColumnList = new List<ColumnStructure>();
             foreach (TableStructure inTable in _inDataBase.Tables)
             {
-
                 foreach (ColumnStructure inColumn in inTable.Columns)
                 {
                     foreach (string columnName in _listener.SelectColumnNames)
@@ -214,11 +216,14 @@ namespace PreTran.Q_Structures
                 _outDataBase = new DataBaseStructure("SORT_OUT_DB", tmpTableList.ToArray(), _inDataBase.Types);
             }
 
+           
             for (int i = 0; i < _outDataBase.Tables[0].Columns.Length; i++)
             {
+                   
                 if (_outDataBase.Tables[0].Columns[i].Type != null)
                 {
-                    _createTableColumnNames += _outDataBase.Tables[0].Columns[i].Name + " " + _outDataBase.Tables[0].Columns[i].Type.Name;
+                    _createTableColumnNames += _outDataBase.Tables[0].Columns[i].Name + " " +
+                                               _outDataBase.Tables[0].Columns[i].Type.Name;
                 }
                 else
                 {
@@ -229,16 +234,21 @@ namespace PreTran.Q_Structures
                 {
                     _createTableColumnNames += ",\r\n";
                 }
+                    
             }
+            
 
-            List<BaseRule> fromList = _sortRule.GetRulesByType("atomtableitem");
-            foreach (BaseRule rule in fromList)
+            if (tag != null)
             {
-                if (rule.Text != "")
+                List<BaseRule> fromList = _sortRule.GetRulesByType("atomtableitem");
+                foreach (BaseRule rule in fromList)
                 {
-                    rule.IsRealised = false;
-                    rule.Text = tag;
-                    rule.IsRealised = true;
+                    if (rule.Text != "")
+                    {
+                        rule.IsRealised = false;
+                        rule.Text = tag;
+                        rule.IsRealised = true;
+                    }
                 }
             }
 

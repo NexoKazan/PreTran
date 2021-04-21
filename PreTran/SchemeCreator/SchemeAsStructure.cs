@@ -141,7 +141,7 @@ namespace PreTran.SchemeCreator
 
             for (int i = listenerAsStructures.Count - 1; i >= 0; i--)
             {
-                //reversedAsStructures.Add(listenerAsStructures[i]);
+               //reversedAsStructures.Add(listenerAsStructures[i]);
             }
             //reversedAsStructures.Reverse();
             

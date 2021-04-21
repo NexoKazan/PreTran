@@ -197,6 +197,14 @@ namespace PreTran.Services
 
             }
 
+            if (outputType.Name == "INT")
+            {
+                if (_columns.Count == 1)
+                {
+                    outputType = _columns[0].Type;
+                }
+            }
+
             if (outputType == null)
             {
                 MessageBox.Show("AYAAYAYA");

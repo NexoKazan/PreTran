@@ -38,6 +38,30 @@ namespace PreTran.TestClasses.Listeners
             }
         }
 
+        public override void EnterFullColumnName(MySqlParser.FullColumnNameContext context)
+        {
+            if (_isOtherListener == 1)
+            {
+                if (context.ChildCount > 1)
+                {
+                    Rules.Remove(Rules[Rules.Count - 1]);
+                }
+
+                FullColumnName fullColumnName =
+                    new FullColumnName(context.SourceInterval, context, context.GetText());
+
+                Rules.Add(fullColumnName);
+
+            }
+            _isOtherListener++;
+        }
+
+        public override void ExitFullColumnName(MySqlParser.FullColumnNameContext context)
+        {
+            _isOtherListener--;
+        }
+
+
         public override void EnterOrderByExpression(MySqlParser.OrderByExpressionContext context)
         {
             if (_isOtherListener == 1 && Rules.Count > 0 && _isFirst)
