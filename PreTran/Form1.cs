@@ -1669,34 +1669,16 @@ namespace MySQL_Clear_standart
             if (tmpJoins.Count > 0)
             {
 
-                //foreach (SelectStructure select in selects)
-                //{
-                //    select.CheckForDistinct();
-                //}
-
                 joinQueries = FillJoins(tmpJoins.ToList(), queryDB, selects.ToList()).ToArray();
 
                 List<JoinStructure> tmpList = new List<JoinStructure>();
-                List<JoinStructure> excludedJoin = new List<JoinStructure>();
                 foreach (JoinStructure join in joinQueries)
                 {
                     join.CheckIsFilled();
                     if (join.IsFilled)
                     {
                         tmpList.Add(join);
-                        //if (join.LeftColumn.IsPrimary == 1 || join.RightColumn.IsPrimary == 1)
-                        //{
-                        //    tmpList.Add(join);
-                        //}
-                        //else
-                        //{
-                        //    join.IsAdditional = true;
-                        //    excludedJoin.Add(join);
-                        //}
                     }
-
-
-
                 }
 
                 if (tmpList.Count > 0)
@@ -1713,16 +1695,23 @@ namespace MySQL_Clear_standart
                     }
                     
                     //List<List<JoinStructure>> filtredSeq = FilterClusterSize(sequencedJoins);
+                    foreach (List<JoinStructure> joinStructures in sequencedJoins)
+                    {
+                        foreach (JoinStructure joinStructure in joinStructures)
+                        {
+                            joinStructure.FillTable();
+                        }
+                    }
 
                     List<List<JoinStructure>> primeSeq = FindePrimeSeq(sequencedJoins);
 
 
 
                     //List<List<JoinStructure>> joinWeghtFilter = FilterByOutTableSizeMaxFirst(primeSeq);
-                    //List<List<JoinStructure>> joinWeghtFilter = FilterByOutTableSizeMinFirst(primeSeq);
+                    List<List<JoinStructure>> joinWeghtFilter = FilterByOutTableSizeMinFirst(primeSeq);
 
-                    //List<JoinStructure> unitedJoin = joinWeghtFilter[0];
-                    List<JoinStructure> unitedJoin = primeSeq[0];
+                    List<JoinStructure> unitedJoin = joinWeghtFilter[0];
+                    //List<JoinStructure> unitedJoin = primeSeq[0];
 
                     if (primeSeq.Count > 1)
                     {
@@ -1740,7 +1729,7 @@ namespace MySQL_Clear_standart
                     {
                         foreach (var join in joinQueries)
                         {
-                            join.FillTable();
+                            //join.FillTable();
                             //странно но пусть будет
                             if (join.LeftSelect == null)
                             {
@@ -1765,7 +1754,7 @@ namespace MySQL_Clear_standart
                     {
                         foreach (var join in joinQueries)
                         {
-                            join.FillTable();
+                            //join.FillTable();
                             join.CreateQuerry();
                             
                         }
