@@ -1230,13 +1230,13 @@ namespace MySQL_Clear_standart
             {
                 if (joinStructure.Name == null && joinStructure.IsAdditional == false)
                 {
-                    joinStructure.IsAdditional = true;
-                    tmp.LastOrDefault().AdditionalJoins.Add(joinStructure);
-                    //joinStructure.Name = "J_" + joinDepth + "_" + tmp.Count.ToString();
+                    //joinStructure.IsAdditional = true;
+                    //tmp.LastOrDefault().AdditionalJoins.Add(joinStructure);
+                    joinStructure.Name = "J_" + joinDepth + "_" + tmp.Count.ToString();
                     joinStructure.LeftJoin = tmp.Last();
-                    //joinStructure.LeftSelect = null;
-                    //joinStructure.RightSelect = null;
-                    //tmp.Add(joinStructure);
+                    joinStructure.LeftSelect = null;
+                    joinStructure.RightSelect = null;
+                    tmp.Add(joinStructure);
                 }
             }
             return tmp;
