@@ -1705,7 +1705,7 @@ namespace MySQL_Clear_standart
 
                     List<List<JoinStructure>> primeSeq = FindePrimeSeq(sequencedJoins);
 
-
+                    
 
                     //List<List<JoinStructure>> joinWeghtFilter = FilterByOutTableSizeMaxFirst(primeSeq);
                     List<List<JoinStructure>> joinWeghtFilter = FilterByOutTableSizeMinFirst(primeSeq);
@@ -1713,14 +1713,14 @@ namespace MySQL_Clear_standart
                     List<JoinStructure> unitedJoin = joinWeghtFilter[0];
                     //List<JoinStructure> unitedJoin = primeSeq[0];
 
-                    if (primeSeq.Count > 1)
-                    {
-                        unitedJoin = primeSeq[1];
-                    }
-                    else
-                    {
-                        Console.WriteLine("========Ошибка количество праймСек меньше 2х=========");
-                    }
+                    //if (primeSeq.Count > 1)
+                    //{
+                    //    unitedJoin = primeSeq[1];
+                    //}
+                    //else
+                    //{
+                    //    Console.WriteLine("========Ошибка количество праймСек меньше 2х=========");
+                    //}
 
                     joinQueries = unitedJoin.ToArray();
 
@@ -2228,6 +2228,869 @@ namespace MySQL_Clear_standart
                 );
                     return outIndex;
                 }
+            }
+        }
+
+        private void TryConnect(JoinStructure[] inJoinQ, NewSortStructure sortQ, int subJoinIndex, string address)
+        {
+            int qNumber = 1;
+            if (comboBox_tab2_QueryNumber.Text != "0")
+            {
+                qNumber = int.Parse(comboBox_tab2_QueryNumber.Text) - 1;
+            }
+            else
+            {
+                qNumber = 14;
+            }
+            QueryBuilder qb = new QueryBuilder(qNumber);
+            bool isNoMainjoin = inJoinQ.Length == subJoinIndex + 1;
+
+            var c_join = new JoinQuery[inJoinQ.Length];
+
+            for (var index = 0; index < inJoinQ.Length; index++)
+            {
+                SelectQuery select = null;
+                if (!inJoinQ[index].Switched)
+                {
+                    if (inJoinQ[index].RightSelect != null && inJoinQ[index].RightSelect.Output != "")
+                    {
+                        select = qb.CreateSelectQuery(inJoinQ[index].RightSelect.Output, 0);
+                    }
+                    else
+                    {
+                        // select.;
+
+                    }
+                }
+                else
+                {
+                    if (inJoinQ[index].LeftSelect != null && inJoinQ[index].LeftSelect.Output != "")
+                    {
+                        select = qb.CreateSelectQuery(inJoinQ[index].LeftSelect.Output, 0);
+                    }
+                }
+
+                if (select != null)
+                    qb.AddSelectQuery(select);
+
+                var leftRelation = new Relation();
+                if (inJoinQ[index].IsFirst)
+                {
+                    var select2 = qb.CreateSelectQuery(inJoinQ[index].LeftSelect.Output, 0);
+                    qb.AddSelectQuery(select2);
+
+                    leftRelation = qb.CreateRelation(
+                        select2, "a", //joinQ[index].LeftSelect.Name,
+                        qb.CreateRelationSchema(inJoinQ[index].LeftSelect.OutTable.Columns
+                                .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                .ToList(), inJoinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
+                            inJoinQ[index] != inJoinQ.Last() ?
+                            //new List<Index>()
+                            //{
+                            //    new Index()
+                            //    {
+                            //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                            //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
+                            //    }
+                            //}
+                            CreateRelationIndex(inJoinQ[index].LeftSelect.IndexColumns, false)
+                                : CreateRelationIndex(inJoinQ[index].LeftSelect.IndexColumns, true)
+                            : new List<Index>()));
+
+                }
+                else
+                {
+                    leftRelation = qb.CreateRelation(c_join[index - 1]);
+                }
+                var rightRelation = new Relation();
+                if (!inJoinQ[index].Switched)
+                {
+                    if (inJoinQ[index].RightSelect != null)
+                    {
+                        rightRelation =
+                            qb.CreateRelation(
+                                select, "b", //joinQ[index].RightSelect.Name,
+                                qb.CreateRelationSchema(inJoinQ[index].RightSelect.OutTable.Columns
+                                    .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                    .ToList(), inJoinQ[index].RightSelect.IndexColumnNames.Count > 0 ?
+                                    inJoinQ[index] != inJoinQ.Last() ?
+                                    //new List<Index>()
+                                    //{
+                                    //    new Index()
+                                    //    {
+                                    //        FieldNames = joinQ[index].RightSelect.IndexColumnNames,
+                                    //        Name = $"INDEX_{joinQ[index].RightSelect.Name}"
+                                    //    }
+                                    //}
+                                    CreateRelationIndex(inJoinQ[index].RightSelect.IndexColumns, false)
+                                        : CreateRelationIndex(inJoinQ[index].RightSelect.IndexColumns, true)
+                                    : new List<Index>()));
+                    }
+                    else
+                    {
+                        rightRelation = qb.CreateEmptyRelation();
+                        rightRelation.IsEmpty = true;
+
+                    }
+                }
+                else
+                {
+                    rightRelation =
+                        qb.CreateRelation(
+                            select, "c", //joinQ[index].LeftSelect.Name,
+                            qb.CreateRelationSchema(inJoinQ[index].LeftSelect.OutTable.Columns
+                                    .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                    .ToList(), inJoinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
+                                inJoinQ[index] != inJoinQ.Last() ?
+                                //new List<Index>()
+                                //{
+                                //    new Index()
+                                //    {
+                                //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                                //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
+                                //    }
+                                //}
+                                //
+
+                                CreateRelationIndex(inJoinQ[index].LeftSelect.IndexColumns, false)
+                                    : CreateRelationIndex(inJoinQ[index].LeftSelect.IndexColumns, true)
+                                : new List<Index>()));
+                }
+
+
+                c_join[index] = qb.AddJoinQuery(
+                    qb.CreateJoinQuery(inJoinQ[index].Output,
+                        qb.CreateRelationSchema(
+                            inJoinQ[index].OutTable.Columns
+                                .Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
+                            inJoinQ[index].IndexColumnNames.Count > 0 ?
+                                inJoinQ[index] != inJoinQ.Last() ?
+                                //new List<Index>()
+                                //{
+                                //    new Index()
+                                //    {
+                                //        FieldNames = joinQ[index].IndexColumnNames,
+                                //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
+                                //    }
+                                //}
+                                CreateRelationIndex(inJoinQ[index].IndexColumns, false)
+                                    : CreateRelationIndex(inJoinQ[index].IndexColumns, true)
+                                : new List<Index>()), 0,
+                        leftRelation, rightRelation));
+            }
+
+            string resultSelect = "SELECT ";
+            if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
+            {
+                foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
+                {
+                    if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
+                    {
+                        resultSelect += column.Name + ", ";
+                    }
+                    else
+                    {
+                        resultSelect += column.Name;
+                    }
+                }
+            }
+            else
+            {
+                resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
+            }
+
+            resultSelect += " FROM " + Constants.RelationNameTag + ";";
+            //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
+            if (subJoinIndex > -1) //ПАЧИНИТЬ
+            {
+                if (!isNoMainjoin)
+                {
+
+                    qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                                .Columns
+                                .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                .ToList(),
+                            new List<Index>()
+                            {
+                            }), 0, resultSelect, qb.CreateRelation(c_join.Last()),
+                        qb.CreateRelation(c_join[subJoinIndex])));
+                }
+                else
+                {
+                    var sortRealtion = qb.CreateRelation(c_join[subJoinIndex]);
+                    sortRealtion.Shema.Indexes = new List<Index>();
+                    qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                            .Columns
+                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                            .ToList(),
+                        new List<Index>()
+                        {
+                        }), 0, resultSelect,
+                        //qb.CreateRelation(c_join[subJoinIndex])
+                        sortRealtion
+                        ));
+                }
+            }
+            else
+            {
+                var sortRealtion = qb.CreateRelation(c_join.Last());
+                sortRealtion.Shema.Indexes = new List<Index>();
+                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
+                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                        .ToList(),
+                    new List<Index>()
+                    {
+                    }), 0, resultSelect, qb.CreateRelation(c_join.Last())));
+
+            }
+
+
+            var query = qb.GetQuery();
+            query.Save(query.Number + ".xml");
+
+            #region Вывод ручных запросов
+
+            FillTextBoxWithHandQ(query);
+
+            #endregion
+
+            if (checkBox_Tab2_ClusterixN_Online.Checked)
+            {
+                var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
+                clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
+            }
+
+
+            string debug = "==========DEBUG==========";
+            foreach (JoinQuery joinQuery in c_join)
+            {
+                debug += Environment.NewLine + joinQuery.QueryId;
+                debug += Environment.NewLine + "\t" + joinQuery.LeftRelation.Name + " = " +
+                         joinQuery.RightRelation.Name;
+
+            }
+
+            //Console.WriteLine(debug);
+        }
+
+        private void TryConnect(SelectStructure[] selectQ, NewSortStructure sortQ, string address)
+        {
+            QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text) - 1);
+            List<Relation> relations = new List<Relation>();
+            foreach (SelectStructure select in selectQ)
+            {
+                var cSelect = new SelectQuery();
+                cSelect = qb.CreateSelectQuery(select.Output, 0);
+                qb.AddSelectQuery(cSelect);
+
+                var cRelation = qb.CreateRelation(cSelect, select.Name,
+                    qb.CreateRelationSchema(
+                        select.OutColumn.Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
+                        select.IndexColumnNames.Count > 0 ?
+                            select != selectQ.Last() ?
+                                CreateRelationIndex(select.IndexColumns, false)
+                            : CreateRelationIndex(select.IndexColumns, true)
+                        : new List<Index>()
+                    ));
+                if (selectQ.Length == 1) cRelation.Shema.Indexes = new List<Index>();
+                relations.Add(cRelation);
+            }
+
+            string resultSelect = "SELECT ";
+            if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
+            {
+                foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
+                {
+                    if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
+                    {
+                        resultSelect += column.Name + ", ";
+                    }
+                    else
+                    {
+                        resultSelect += column.Name;
+                    }
+                }
+            }
+            else
+            {
+                resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
+            }
+
+            resultSelect += " FROM " + Constants.RelationNameTag + ";";
+            //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
+
+            qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                        .Columns
+                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                        .ToList(),
+                    new List<Index>()
+                    {
+                    }), 0, resultSelect, relations.ToArray()));
+
+            //qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+            //            .Columns
+            //            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+            //            .ToList(),
+            //        new List<Index>()
+            //        {
+            //        }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", qb.CreateRelation(c_join.Last()),
+            //    qb.CreateRelation(c_join[subJoinIndex])));
+
+            var query = qb.GetQuery();
+            query.Save(query.Number + ".xml");
+            #region Вывод ручных запросов
+
+            FillTextBoxWithHandQ(query);
+
+            #endregion
+            if (checkBox_Tab2_ClusterixN_Online.Checked)
+            {
+                var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
+                clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
+            }
+        }
+
+        private XmlQueryPacket PerformQuerry(int number, string qText)
+        {
+            XmlQueryPacket outputXML = new XmlQueryPacket();
+            string querryText = qText;
+            GetTree(querryText);
+            SelectStructure[] selectQ, subSelectQ;
+            JoinStructure[] joinQ, subJoinQ;
+            NewSortStructure sortQ;
+
+
+
+
+            selectQ = MakeSelect(_dbName, _listener);
+            joinQ = MakeJoin(_dbName, _listener, selectQ, Constants.LeftRelationNameTag,
+                Constants.RightRelationNameTag);
+
+            if (_listener.SubQueryListeners.Count > 0)
+            {
+                subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
+                subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
+            }
+            else
+            {
+                subSelectQ = null;
+                subJoinQ = null;
+            }
+
+            sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
+
+            JoinStructure[] connectJoins;
+            if (_listener.SubQueryListeners.Count > 0)
+            {
+                connectJoins = new JoinStructure[subJoinQ.Length + joinQ.Length];
+                for (int i = 0; i < subJoinQ.Length; i++)
+                {
+                    connectJoins[i] = subJoinQ[i];
+                }
+
+                for (int i = subJoinQ.Length, j = 0; i < joinQ.Length + subJoinQ.Length; i++, j++)
+                {
+                    connectJoins[i] = joinQ[j];
+                }
+            }
+            else
+            {
+                connectJoins = new JoinStructure[joinQ.Length];
+                for (int i = 0; i < joinQ.Length; i++)
+                {
+                    connectJoins[i] = joinQ[i];
+                }
+            }
+
+            bool isNoMainjoin = false;
+
+            if (subJoinQ != null)
+            {
+                isNoMainjoin = connectJoins.Length == subJoinQ.Length;
+            }
+
+            if (connectJoins.Length > 0)
+            {
+                if (subJoinQ != null)
+                {
+                    //TryConnect(connectJoins, sortQ, subJoinQ.Length - 1, _connectionIP);
+
+                    QueryBuilder qb = new QueryBuilder(number);
+                    //bool isNoMainjoin = connectJoins.Length == subJoinIndex + 1;
+
+                    var c_join = new JoinQuery[connectJoins.Length];
+
+                    for (var index = 0; index < connectJoins.Length; index++)
+                    {
+                        SelectQuery select = null;
+                        if (!connectJoins[index].Switched)
+                        {
+                            if (connectJoins[index].RightSelect != null && connectJoins[index].RightSelect.Output != "")
+                            {
+                                select = qb.CreateSelectQuery(connectJoins[index].RightSelect.Output, 0);
+                            }
+                            else
+                            {
+                                // select.;
+
+                            }
+                        }
+                        else
+                        {
+                            if (connectJoins[index].LeftSelect != null && connectJoins[index].LeftSelect.Output != "")
+                            {
+                                select = qb.CreateSelectQuery(connectJoins[index].LeftSelect.Output, 0);
+                            }
+                        }
+
+                        if (select != null)
+                            qb.AddSelectQuery(select);
+
+                        var leftRelation = new Relation();
+                        if (connectJoins[index].IsFirst)
+                        {
+                            var select2 = qb.CreateSelectQuery(connectJoins[index].LeftSelect.Output, 0);
+                            qb.AddSelectQuery(select2);
+
+                            leftRelation = qb.CreateRelation(
+                                select2, "a", //joinQ[index].LeftSelect.Name,
+                                qb.CreateRelationSchema(connectJoins[index].LeftSelect.OutTable.Columns
+                                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                        .ToList(), connectJoins[index].LeftSelect.IndexColumnNames.Count > 0 ?
+                                    connectJoins[index] != connectJoins.Last() ?
+                                    //new List<Index>()
+                                    //{
+                                    //    new Index()
+                                    //    {
+                                    //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                                    //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
+                                    //    }
+                                    //}
+                                    CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, false)
+                                        : CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, true)
+                                    : new List<Index>()));
+
+                        }
+                        else
+                        {
+                            leftRelation = qb.CreateRelation(c_join[index - 1]);
+                        }
+                        var rightRelation = new Relation();
+                        if (!connectJoins[index].Switched)
+                        {
+                            if (connectJoins[index].RightSelect != null)
+                            {
+                                rightRelation =
+                                    qb.CreateRelation(
+                                        select, "b", //joinQ[index].RightSelect.Name,
+                                        qb.CreateRelationSchema(connectJoins[index].RightSelect.OutTable.Columns
+                                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                            .ToList(), connectJoins[index].RightSelect.IndexColumnNames.Count > 0 ?
+                                            connectJoins[index] != connectJoins.Last() ?
+                                            //new List<Index>()
+                                            //{
+                                            //    new Index()
+                                            //    {
+                                            //        FieldNames = joinQ[index].RightSelect.IndexColumnNames,
+                                            //        Name = $"INDEX_{joinQ[index].RightSelect.Name}"
+                                            //    }
+                                            //}
+                                            CreateRelationIndex(connectJoins[index].RightSelect.IndexColumns, false)
+                                                : CreateRelationIndex(connectJoins[index].RightSelect.IndexColumns, true)
+                                            : new List<Index>()));
+                            }
+                            else
+                            {
+                                rightRelation = qb.CreateEmptyRelation();
+                                rightRelation.IsEmpty = true;
+
+                            }
+                        }
+                        else
+                        {
+                            rightRelation =
+                                qb.CreateRelation(
+                                    select, "c", //joinQ[index].LeftSelect.Name,
+                                    qb.CreateRelationSchema(connectJoins[index].LeftSelect.OutTable.Columns
+                                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                            .ToList(), connectJoins[index].LeftSelect.IndexColumnNames.Count > 0 ?
+                                        connectJoins[index] != connectJoins.Last() ?
+                                        //new List<Index>()
+                                        //{
+                                        //    new Index()
+                                        //    {
+                                        //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                                        //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
+                                        //    }
+                                        //}
+                                        //
+
+                                        CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, false)
+                                            : CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, true)
+                                        : new List<Index>()));
+                        }
+
+
+                        c_join[index] = qb.AddJoinQuery(
+                            qb.CreateJoinQuery(connectJoins[index].Output,
+                                qb.CreateRelationSchema(
+                                    connectJoins[index].OutTable.Columns
+                                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
+                                    connectJoins[index].IndexColumnNames.Count > 0 ?
+                                        connectJoins[index] != connectJoins.Last() ?
+                                        //new List<Index>()
+                                        //{
+                                        //    new Index()
+                                        //    {
+                                        //        FieldNames = joinQ[index].IndexColumnNames,
+                                        //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
+                                        //    }
+                                        //}
+                                        CreateRelationIndex(connectJoins[index].IndexColumns, false)
+                                            : CreateRelationIndex(connectJoins[index].IndexColumns, true)
+                                        : new List<Index>()), 0,
+                                leftRelation, rightRelation));
+                    }
+
+                    string resultSelect = "SELECT ";
+                    if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
+                    {
+                        foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
+                        {
+                            if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
+                            {
+                                resultSelect += column.Name + ", ";
+                            }
+                            else
+                            {
+                                resultSelect += column.Name;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
+                    }
+                    resultSelect += " FROM " + Constants.RelationNameTag + ";";
+                    //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
+
+                    var sortRealtion = qb.CreateRelation(c_join[subJoinQ.Length - 1]);
+                    if (connectJoins.Length == subJoinQ.Length)
+                    {
+                        sortRealtion.Shema.Indexes = new List<Index>();
+                    }
+
+                    if (!isNoMainjoin)
+                    {
+
+                        qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                                    .Columns
+                                    .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                    .ToList(),
+                                new List<Index>()
+                                {
+                                }), 0, resultSelect, qb.CreateRelation(c_join.Last()),
+                            //qb.CreateRelation(c_join[subJoinQ.Length-1])
+                            sortRealtion
+                            ));
+                    }
+                    else
+                    {
+                        qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                                .Columns
+                                .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                .ToList(),
+                            new List<Index>()
+                            {
+                            }), 0, resultSelect,
+                            //qb.CreateRelation(c_join[subJoinQ.Length - 1])
+                            sortRealtion
+                            ));
+                    }
+                    var query = qb.GetQuery();
+                    outputXML = new XmlQueryPacket() { XmlQuery = query.SaveToString() };
+
+                }
+                else
+                {
+                    //TryConnect(connectJoins, sortQ, -1, _connectionIP);
+
+                    QueryBuilder qb = new QueryBuilder(number);
+                    //bool isNoMainjoin = connectJoins.Length == subJoinIndex + 1;
+
+                    var c_join = new JoinQuery[connectJoins.Length];
+
+                    for (var index = 0; index < connectJoins.Length; index++)
+                    {
+
+                        SelectQuery select = null;
+                        if (!connectJoins[index].Switched)
+                        {
+                            if (connectJoins[index].RightSelect != null && connectJoins[index].RightSelect.Output != "")
+                            {
+                                select = qb.CreateSelectQuery(connectJoins[index].RightSelect.Output, 0);
+                            }
+                            else
+                            {
+                                // select.;
+
+                            }
+                        }
+                        else
+                        {
+                            if (connectJoins[index].LeftSelect != null && connectJoins[index].LeftSelect.Output != "")
+                            {
+                                select = qb.CreateSelectQuery(connectJoins[index].LeftSelect.Output, 0);
+                            }
+                        }
+
+                        if (select != null)
+                            qb.AddSelectQuery(select);
+
+                        var leftRelation = new Relation();
+                        if (connectJoins[index].IsFirst)
+                        {
+                            var select2 = qb.CreateSelectQuery(connectJoins[index].LeftSelect.Output, 0);
+                            qb.AddSelectQuery(select2);
+
+                            leftRelation = qb.CreateRelation(
+                                select2, "a", //joinQ[index].LeftSelect.Name,
+                                qb.CreateRelationSchema(connectJoins[index].LeftSelect.OutTable.Columns
+                                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                        .ToList(), connectJoins[index].LeftSelect.IndexColumnNames.Count > 0 ?
+                                    connectJoins[index] != connectJoins.Last() ?
+                                    //new List<Index>()
+                                    //{
+                                    //    new Index()
+                                    //    {
+                                    //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                                    //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
+                                    //    }
+                                    //}
+                                    CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, false)
+                                        : CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, true)
+                                    : new List<Index>()));
+
+                        }
+                        else
+                        {
+                            leftRelation = qb.CreateRelation(c_join[index - 1]);
+                        }
+                        var rightRelation = new Relation();
+                        if (!connectJoins[index].Switched)
+                        {
+                            if (connectJoins[index].RightSelect != null)
+                            {
+                                rightRelation =
+                                    qb.CreateRelation(
+                                        select, "b", //joinQ[index].RightSelect.Name,
+                                        qb.CreateRelationSchema(connectJoins[index].RightSelect.OutTable.Columns
+                                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                            .ToList(), connectJoins[index].RightSelect.IndexColumnNames.Count > 0 ?
+                                            connectJoins[index] != connectJoins.Last() ?
+                                            //new List<Index>()
+                                            //{
+                                            //    new Index()
+                                            //    {
+                                            //        FieldNames = joinQ[index].RightSelect.IndexColumnNames,
+                                            //        Name = $"INDEX_{joinQ[index].RightSelect.Name}"
+                                            //    }
+                                            //}
+                                            CreateRelationIndex(connectJoins[index].RightSelect.IndexColumns, false)
+                                                : CreateRelationIndex(connectJoins[index].RightSelect.IndexColumns, true)
+                                            : new List<Index>()));
+                            }
+                            else
+                            {
+                                rightRelation = qb.CreateEmptyRelation();
+                                rightRelation.IsEmpty = true;
+
+                            }
+                        }
+                        else
+                        {
+                            rightRelation =
+                                qb.CreateRelation(
+                                    select, "c", //joinQ[index].LeftSelect.Name,
+                                    qb.CreateRelationSchema(connectJoins[index].LeftSelect.OutTable.Columns
+                                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                                            .ToList(), connectJoins[index].LeftSelect.IndexColumnNames.Count > 0 ?
+                                        connectJoins[index] != connectJoins.Last() ?
+                                        //new List<Index>()
+                                        //{
+                                        //    new Index()
+                                        //    {
+                                        //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
+                                        //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
+                                        //    }
+                                        //}
+                                        //
+
+                                        CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, false)
+                                            : CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, true)
+                                        : new List<Index>()));
+                        }
+
+
+                        c_join[index] = qb.AddJoinQuery(
+                            qb.CreateJoinQuery(connectJoins[index].Output,
+                                qb.CreateRelationSchema(
+                                    connectJoins[index].OutTable.Columns
+                                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
+                                    connectJoins[index].IndexColumnNames.Count > 0 ?
+                                        connectJoins[index] != connectJoins.Last() ?
+                                        //new List<Index>()
+                                        //{
+                                        //    new Index()
+                                        //    {
+                                        //        FieldNames = joinQ[index].IndexColumnNames,
+                                        //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
+                                        //    }
+                                        //}
+                                        CreateRelationIndex(connectJoins[index].IndexColumns, false)
+                                            : CreateRelationIndex(connectJoins[index].IndexColumns, true)
+                                        : new List<Index>()), 0,
+                                leftRelation, rightRelation));
+                    }
+
+                    string resultSelect = "SELECT ";
+                    if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
+                    {
+                        foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
+                        {
+                            if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
+                            {
+                                resultSelect += column.Name + ", ";
+                            }
+                            else
+                            {
+                                resultSelect += column.Name;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
+                    }
+                    resultSelect += " FROM " + Constants.RelationNameTag + ";";
+                    //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
+
+                    var sortRealtion = qb.CreateRelation(c_join.Last());
+                    sortRealtion.Shema.Indexes = new List<Index>();
+
+                    qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
+                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                            .ToList(),
+                        new List<Index>()
+                        {
+                        }), 0, resultSelect,
+                        //qb.CreateRelation(c_join.Last())
+                        sortRealtion
+                        ));
+
+
+                    var query = qb.GetQuery();
+                    outputXML = new XmlQueryPacket() { XmlQuery = query.SaveToString() };
+                }
+            }
+            else
+            {
+                List<SelectStructure> cSelects = new List<SelectStructure>();
+
+                cSelects.AddRange(selectQ);
+                if (subSelectQ != null)
+                {
+                    cSelects.AddRange(subSelectQ);
+                }
+
+                //TryConnect(cSelects.ToArray(), sortQ, _connectionIP);
+
+                QueryBuilder qb = new QueryBuilder(number);
+                List<Relation> relations = new List<Relation>();
+                foreach (SelectStructure select in cSelects)
+                {
+                    var cSelect = new SelectQuery();
+                    cSelect = qb.CreateSelectQuery(select.Output, 0);
+                    qb.AddSelectQuery(cSelect);
+
+                    var cRelation = qb.CreateRelation(cSelect, select.Name,
+                        qb.CreateRelationSchema(
+                            select.OutColumn.Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
+                            select.IndexColumnNames.Count > 0 ?
+                                select != cSelects.Last() ?
+                                    CreateRelationIndex(select.IndexColumns, false)
+                                : CreateRelationIndex(select.IndexColumns, true)
+                            : new List<Index>()
+                        ));
+                    if (cSelects.Count == 1) cRelation.Shema.Indexes = new List<Index>();
+                    relations.Add(cRelation);
+                }
+
+                string resultSelect = "SELECT ";
+                if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
+                {
+                    foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
+                    {
+                        if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
+                        {
+                            resultSelect += column.Name + ", ";
+                        }
+                        else
+                        {
+                            resultSelect += column.Name;
+                        }
+                    }
+                }
+                else
+                {
+                    resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
+                }
+
+                resultSelect += " FROM " + Constants.RelationNameTag + ";";
+                //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
+
+                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                            .Columns
+                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                            .ToList(),
+                        new List<Index>()
+                        {
+                        }), 0, resultSelect, relations.ToArray()));
+
+                //qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
+                //            .Columns
+                //            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
+                //            .ToList(),
+                //        new List<Index>()
+                //        {
+                //        }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", qb.CreateRelation(c_join.Last()),
+                //    qb.CreateRelation(c_join[subJoinIndex])));
+
+                var query = qb.GetQuery();
+                outputXML = new XmlQueryPacket() { XmlQuery = query.SaveToString() };
+
+            }
+
+
+            return outputXML;
+        }
+
+        private XmlQueryPacket PerformQuerry(int number)
+        {
+            return PerformQuerry(number, GetQuery(number));
+        }
+
+        private XmlQueryPacket PerformQuerry(string querry)
+        {
+            return PerformQuerry(1, querry);
+        }
+
+        private void PerformTest(int[] queries, string address, int port)
+        {
+            var client = new ClusterixClient(address, port);
+            foreach (int query in queries)
+            {
+                client.Send(PerformQuerry(query));
             }
         }
 
@@ -2820,324 +3683,7 @@ namespace MySQL_Clear_standart
 
         #region Актуальные методы(в разработке)
 
-        private void TryConnect(JoinStructure[] inJoinQ, NewSortStructure sortQ, int subJoinIndex, string address)
-        {
-            int qNumber = 1;
-            if (comboBox_tab2_QueryNumber.Text != "0"  )
-            {
-                qNumber = int.Parse(comboBox_tab2_QueryNumber.Text) - 1;
-            }
-            else
-            {
-                qNumber = 14;
-            }
-            QueryBuilder qb = new QueryBuilder(qNumber);
-            bool isNoMainjoin = inJoinQ.Length == subJoinIndex + 1;
-
-            var c_join = new JoinQuery[inJoinQ.Length];
-
-            for (var index = 0; index < inJoinQ.Length; index++)
-            {
-                SelectQuery select = null;
-                if (!inJoinQ[index].Switched)
-                {
-                    if (inJoinQ[index].RightSelect != null && inJoinQ[index].RightSelect.Output != "")
-                    {
-                        select = qb.CreateSelectQuery(inJoinQ[index].RightSelect.Output, 0);
-                    }
-                    else
-                    {
-                       // select.;
-
-                    }
-                }
-                else
-                {
-                    if (inJoinQ[index].LeftSelect != null && inJoinQ[index].LeftSelect.Output != "")
-                    {
-                        select = qb.CreateSelectQuery(inJoinQ[index].LeftSelect.Output, 0);
-                    }
-                }
-
-                if (select != null)
-                    qb.AddSelectQuery(select);
-
-                var leftRelation = new Relation();
-                if (inJoinQ[index].IsFirst)
-                {
-                    var select2 = qb.CreateSelectQuery(inJoinQ[index].LeftSelect.Output, 0);
-                    qb.AddSelectQuery(select2);
-
-                    leftRelation = qb.CreateRelation(
-                        select2,"a", //joinQ[index].LeftSelect.Name,
-                        qb.CreateRelationSchema(inJoinQ[index].LeftSelect.OutTable.Columns
-                                .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                .ToList(), inJoinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
-                            inJoinQ[index] != inJoinQ.Last() ?
-                            //new List<Index>()
-                            //{
-                            //    new Index()
-                            //    {
-                            //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
-                            //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
-                            //    }
-                            //}
-                            CreateRelationIndex(inJoinQ[index].LeftSelect.IndexColumns, false)
-                                : CreateRelationIndex(inJoinQ[index].LeftSelect.IndexColumns, true)
-                            : new List<Index>()));
-
-                }
-                else
-                {
-                    leftRelation = qb.CreateRelation(c_join[index - 1]);
-                }
-                var rightRelation = new Relation();
-                if (!inJoinQ[index].Switched)
-                {
-                    if (inJoinQ[index].RightSelect != null)
-                    {
-                        rightRelation =
-                            qb.CreateRelation(
-                                select, "b", //joinQ[index].RightSelect.Name,
-                                qb.CreateRelationSchema(inJoinQ[index].RightSelect.OutTable.Columns
-                                    .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                    .ToList(), inJoinQ[index].RightSelect.IndexColumnNames.Count > 0 ? 
-                                    inJoinQ[index] != inJoinQ.Last( )?
-                                    //new List<Index>()
-                                    //{
-                                    //    new Index()
-                                    //    {
-                                    //        FieldNames = joinQ[index].RightSelect.IndexColumnNames,
-                                    //        Name = $"INDEX_{joinQ[index].RightSelect.Name}"
-                                    //    }
-                                    //}
-                                    CreateRelationIndex(inJoinQ[index].RightSelect.IndexColumns, false) 
-                                        : CreateRelationIndex(inJoinQ[index].RightSelect.IndexColumns, true)
-                                    : new List<Index>()));
-                    }
-                    else
-                    {
-                        rightRelation = qb.CreateEmptyRelation();
-                        rightRelation.IsEmpty = true;
-                        
-                    }
-                }
-                else
-                {
-                    rightRelation =
-                        qb.CreateRelation(
-                            select, "c", //joinQ[index].LeftSelect.Name,
-                            qb.CreateRelationSchema(inJoinQ[index].LeftSelect.OutTable.Columns
-                                    .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                    .ToList(), inJoinQ[index].LeftSelect.IndexColumnNames.Count > 0 ?
-                                inJoinQ[index] != inJoinQ.Last() ?
-                                //new List<Index>()
-                                //{
-                                //    new Index()
-                                //    {
-                                //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
-                                //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
-                                //    }
-                                //}
-                                //
-                                
-                                CreateRelationIndex(inJoinQ[index].LeftSelect.IndexColumns, false)
-                                    : CreateRelationIndex(inJoinQ[index].LeftSelect.IndexColumns, true)
-                                : new List<Index>()));
-                }
-                
-
-                c_join[index] = qb.AddJoinQuery(
-                    qb.CreateJoinQuery(inJoinQ[index].Output,
-                        qb.CreateRelationSchema(
-                            inJoinQ[index].OutTable.Columns
-                                .Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
-                            inJoinQ[index].IndexColumnNames.Count > 0 ?
-                                inJoinQ[index] != inJoinQ.Last() ?
-                                //new List<Index>()
-                                //{
-                                //    new Index()
-                                //    {
-                                //        FieldNames = joinQ[index].IndexColumnNames,
-                                //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
-                                //    }
-                                //}
-                                CreateRelationIndex(inJoinQ[index].IndexColumns, false)
-                                    :CreateRelationIndex(inJoinQ[index].IndexColumns, true)
-                                : new List<Index>()), 0,
-                        leftRelation, rightRelation));
-            }
-
-            string resultSelect = "SELECT ";
-            if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
-            {
-                foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
-                {
-                    if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
-                    {
-                        resultSelect += column.Name + ", ";
-                    }
-                    else
-                    {
-                        resultSelect += column.Name;
-                    }
-                }
-            }
-            else
-            {
-                resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
-            }
-
-            resultSelect += " FROM " + Constants.RelationNameTag + ";";
-            //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
-            if (subJoinIndex > -1) //ПАЧИНИТЬ
-            {
-                if (!isNoMainjoin)
-                {
-                    
-                    qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
-                                .Columns
-                                .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                                .ToList(),
-                            new List<Index>()
-                            {
-                            }), 0, resultSelect, qb.CreateRelation(c_join.Last()),
-                        qb.CreateRelation(c_join[subJoinIndex])));
-                }
-                else
-                {
-                    var sortRealtion = qb.CreateRelation(c_join[subJoinIndex]);
-                    sortRealtion.Shema.Indexes = new List<Index>();
-                    qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
-                            .Columns
-                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                            .ToList(),
-                        new List<Index>()
-                        {
-                        }), 0, resultSelect , 
-                        //qb.CreateRelation(c_join[subJoinIndex])
-                        sortRealtion
-                        ));
-                }
-            }
-            else
-            {
-                var sortRealtion = qb.CreateRelation(c_join.Last());
-                sortRealtion.Shema.Indexes = new List<Index>();
-                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
-                        .Select(j => new Field() {Name = j.Name, Params = j.Type.Name})
-                        .ToList(),
-                    new List<Index>()
-                    {
-                    }), 0, resultSelect, qb.CreateRelation(c_join.Last())));
-            
-            }
-
-
-            var query = qb.GetQuery();
-            query.Save(query.Number + ".xml");
-
-            #region Вывод ручных запросов
-
-            FillTextBoxWithHandQ(query);
-
-            #endregion
-
-            if (checkBox_Tab2_ClusterixN_Online.Checked)
-            {
-                var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
-                clinet.Send(new XmlQueryPacket() {XmlQuery = query.SaveToString()});
-            }
-
-
-            string debug = "==========DEBUG==========";
-            foreach (JoinQuery joinQuery in c_join)
-            {
-                debug += Environment.NewLine + joinQuery.QueryId;
-                debug += Environment.NewLine + "\t" + joinQuery.LeftRelation.Name + " = " +
-                         joinQuery.RightRelation.Name;
-
-            }
-            
-            //Console.WriteLine(debug);
-        }
-
-        private void TryConnect(SelectStructure[] selectQ, NewSortStructure sortQ, string address)
-        {
-            QueryBuilder qb = new QueryBuilder(int.Parse(comboBox_tab2_QueryNumber.Text) - 1);
-            List<Relation> relations = new List<Relation>();
-            foreach (SelectStructure select in selectQ)
-            {
-                var cSelect = new SelectQuery();
-                cSelect = qb.CreateSelectQuery(select.Output, 0);
-                qb.AddSelectQuery(cSelect);
-
-                var cRelation = qb.CreateRelation(cSelect, select.Name,
-                    qb.CreateRelationSchema(
-                        select.OutColumn.Select(j => new Field() {Name = j.Name, Params = j.Type.Name}).ToList(),
-                        select.IndexColumnNames.Count > 0 ?
-                            select != selectQ.Last() ?
-                                CreateRelationIndex(select.IndexColumns, false)
-                            : CreateRelationIndex(select.IndexColumns, true) 
-                        : new List<Index>()
-                    ));
-                if (selectQ.Length == 1) cRelation.Shema.Indexes = new List<Index>();
-                relations.Add(cRelation);
-            }
-
-            string resultSelect = "SELECT ";
-            if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
-            {
-                foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
-                {
-                    if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
-                    {
-                        resultSelect += column.Name + ", ";
-                    }
-                    else
-                    {
-                        resultSelect += column.Name;
-                    }
-                }
-            }
-            else
-            {
-                resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
-            }
-
-            resultSelect += " FROM " + Constants.RelationNameTag + ";";
-            //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
-
-            qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
-                        .Columns
-                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                        .ToList(),
-                    new List<Index>()
-                    {
-                    }), 0, resultSelect, relations.ToArray() ));
-
-            //qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
-            //            .Columns
-            //            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-            //            .ToList(),
-            //        new List<Index>()
-            //        {
-            //        }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", qb.CreateRelation(c_join.Last()),
-            //    qb.CreateRelation(c_join[subJoinIndex])));
-
-            var query = qb.GetQuery();
-            query.Save(query.Number + ".xml");
-            #region Вывод ручных запросов
-
-            FillTextBoxWithHandQ(query);
-
-            #endregion
-            if (checkBox_Tab2_ClusterixN_Online.Checked)
-            {
-                var clinet = new ClusterixClient(address, 1234); //10.114.20.200"
-                clinet.Send(new XmlQueryPacket() { XmlQuery = query.SaveToString() });
-            }
-        }
+       
 
         private JoinStructure[] TransformToJoin(List<JoinStructure> inputJoins)
         {
@@ -3147,550 +3693,7 @@ namespace MySQL_Clear_standart
             return outputJoins;
         }
 
-        private XmlQueryPacket PerformQuerry(int number, string qText)
-        {
-            XmlQueryPacket outputXML = new XmlQueryPacket();
-            string querryText = qText;
-            GetTree(querryText);
-            SelectStructure[] selectQ, subSelectQ;
-            JoinStructure[] joinQ, subJoinQ;
-            NewSortStructure sortQ;
-
-            
-
-
-            selectQ = MakeSelect(_dbName, _listener);
-            joinQ = MakeJoin(_dbName, _listener, selectQ, Constants.LeftRelationNameTag,
-                Constants.RightRelationNameTag);
-
-            if (_listener.SubQueryListeners.Count > 0)
-            {
-                subSelectQ = MakeSelect(_dbName, _listener.SubQueryListeners[0]); //Добавить foreach
-                subJoinQ = MakeJoin(_dbName, _listener.SubQueryListeners[0], subSelectQ, Constants.LeftRelationNameTag, Constants.RightRelationNameTag);
-            }
-            else
-            {
-                subSelectQ = null;
-                subJoinQ = null;
-            }
-
-            sortQ = MakeSort(_dbName, _listener, _sortRule, Constants.RelationNameTag);
-            
-            JoinStructure[] connectJoins;
-            if (_listener.SubQueryListeners.Count > 0)
-            {
-                connectJoins = new JoinStructure[subJoinQ.Length + joinQ.Length];
-                for (int i = 0; i < subJoinQ.Length; i++)
-                {
-                    connectJoins[i] = subJoinQ[i];
-                }
-
-                for (int i = subJoinQ.Length, j = 0; i < joinQ.Length + subJoinQ.Length; i++, j++)
-                {
-                    connectJoins[i] = joinQ[j];
-                }
-            }
-            else
-            {
-                connectJoins = new JoinStructure[joinQ.Length];
-                for (int i = 0; i < joinQ.Length; i++)
-                {
-                    connectJoins[i] = joinQ[i];
-                }
-            }
-
-            bool isNoMainjoin = false;
-
-            if (subJoinQ != null)
-            {
-                isNoMainjoin = connectJoins.Length == subJoinQ.Length;
-            }
-
-            if (connectJoins.Length > 0)
-            {
-                if (subJoinQ != null)
-                {
-                    //TryConnect(connectJoins, sortQ, subJoinQ.Length - 1, _connectionIP);
-
-                    QueryBuilder qb = new QueryBuilder(number);
-                    //bool isNoMainjoin = connectJoins.Length == subJoinIndex + 1;
-
-                    var c_join = new JoinQuery[connectJoins.Length];
-
-                    for (var index = 0; index < connectJoins.Length; index++)
-                    {
-                        SelectQuery select = null;
-                        if (!connectJoins[index].Switched)
-                        {
-                            if (connectJoins[index].RightSelect != null && connectJoins[index].RightSelect.Output != "")
-                            {
-                                select = qb.CreateSelectQuery(connectJoins[index].RightSelect.Output, 0);
-                            }
-                            else
-                            {
-                                // select.;
-
-                            }
-                        }
-                        else
-                        {
-                            if (connectJoins[index].LeftSelect != null && connectJoins[index].LeftSelect.Output != "")
-                            {
-                                select = qb.CreateSelectQuery(connectJoins[index].LeftSelect.Output, 0);
-                            }
-                        }
-
-                        if (select != null)
-                            qb.AddSelectQuery(select);
-
-                        var leftRelation = new Relation();
-                        if (connectJoins[index].IsFirst)
-                        {
-                            var select2 = qb.CreateSelectQuery(connectJoins[index].LeftSelect.Output, 0);
-                            qb.AddSelectQuery(select2);
-
-                            leftRelation = qb.CreateRelation(
-                                select2, "a", //joinQ[index].LeftSelect.Name,
-                                qb.CreateRelationSchema(connectJoins[index].LeftSelect.OutTable.Columns
-                                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                                        .ToList(), connectJoins[index].LeftSelect.IndexColumnNames.Count > 0 ?
-                                    connectJoins[index] != connectJoins.Last() ?
-                                    //new List<Index>()
-                                    //{
-                                    //    new Index()
-                                    //    {
-                                    //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
-                                    //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
-                                    //    }
-                                    //}
-                                    CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, false)
-                                        : CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, true)
-                                    : new List<Index>()));
-
-                        }
-                        else
-                        {
-                            leftRelation = qb.CreateRelation(c_join[index - 1]);
-                        }
-                        var rightRelation = new Relation();
-                        if (!connectJoins[index].Switched)
-                        {
-                            if (connectJoins[index].RightSelect != null)
-                            {
-                                rightRelation =
-                                    qb.CreateRelation(
-                                        select, "b", //joinQ[index].RightSelect.Name,
-                                        qb.CreateRelationSchema(connectJoins[index].RightSelect.OutTable.Columns
-                                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                                            .ToList(), connectJoins[index].RightSelect.IndexColumnNames.Count > 0 ?
-                                            connectJoins[index] != connectJoins.Last() ?
-                                            //new List<Index>()
-                                            //{
-                                            //    new Index()
-                                            //    {
-                                            //        FieldNames = joinQ[index].RightSelect.IndexColumnNames,
-                                            //        Name = $"INDEX_{joinQ[index].RightSelect.Name}"
-                                            //    }
-                                            //}
-                                            CreateRelationIndex(connectJoins[index].RightSelect.IndexColumns, false)
-                                                : CreateRelationIndex(connectJoins[index].RightSelect.IndexColumns, true)
-                                            : new List<Index>()));
-                            }
-                            else
-                            {
-                                rightRelation = qb.CreateEmptyRelation();
-                                rightRelation.IsEmpty = true;
-                                
-                            }
-                        }
-                        else
-                        {
-                            rightRelation =
-                                qb.CreateRelation(
-                                    select, "c", //joinQ[index].LeftSelect.Name,
-                                    qb.CreateRelationSchema(connectJoins[index].LeftSelect.OutTable.Columns
-                                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                                            .ToList(), connectJoins[index].LeftSelect.IndexColumnNames.Count > 0 ?
-                                        connectJoins[index] != connectJoins.Last() ?
-                                        //new List<Index>()
-                                        //{
-                                        //    new Index()
-                                        //    {
-                                        //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
-                                        //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
-                                        //    }
-                                        //}
-                                        //
-
-                                        CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, false)
-                                            : CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, true)
-                                        : new List<Index>()));
-                        }
-
-
-                        c_join[index] = qb.AddJoinQuery(
-                            qb.CreateJoinQuery(connectJoins[index].Output,
-                                qb.CreateRelationSchema(
-                                    connectJoins[index].OutTable.Columns
-                                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
-                                    connectJoins[index].IndexColumnNames.Count > 0 ?
-                                        connectJoins[index] != connectJoins.Last() ?
-                                        //new List<Index>()
-                                        //{
-                                        //    new Index()
-                                        //    {
-                                        //        FieldNames = joinQ[index].IndexColumnNames,
-                                        //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
-                                        //    }
-                                        //}
-                                        CreateRelationIndex(connectJoins[index].IndexColumns, false)
-                                            : CreateRelationIndex(connectJoins[index].IndexColumns, true)
-                                        : new List<Index>()), 0,
-                                leftRelation, rightRelation));
-                    }
-
-                    string resultSelect = "SELECT ";
-                    if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
-                    {
-                        foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
-                        {
-                            if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
-                            {
-                                resultSelect += column.Name + ", ";
-                            }
-                            else
-                            {
-                                resultSelect += column.Name;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
-                    }
-                    resultSelect += " FROM " + Constants.RelationNameTag + ";";
-                    //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
-
-                    var sortRealtion = qb.CreateRelation(c_join[subJoinQ.Length - 1]);
-                    if (connectJoins.Length == subJoinQ.Length)
-                    {
-                        sortRealtion.Shema.Indexes = new List<Index>();
-                    }
-
-                    if (!isNoMainjoin)
-                    {
-
-                        qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
-                                    .Columns
-                                    .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                                    .ToList(),
-                                new List<Index>()
-                                {
-                                }), 0, resultSelect, qb.CreateRelation(c_join.Last()),
-                            //qb.CreateRelation(c_join[subJoinQ.Length-1])
-                            sortRealtion
-                            ));
-                    }
-                    else
-                    {
-                        qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
-                                .Columns
-                                .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                                .ToList(),
-                            new List<Index>()
-                            {
-                            }), 0, resultSelect,
-                            //qb.CreateRelation(c_join[subJoinQ.Length - 1])
-                            sortRealtion
-                            ));
-                    }
-                    var query = qb.GetQuery();
-                    outputXML = new XmlQueryPacket() { XmlQuery = query.SaveToString() };
-
-                }
-                else
-                {
-                    //TryConnect(connectJoins, sortQ, -1, _connectionIP);
-
-                    QueryBuilder qb = new QueryBuilder(number);
-                    //bool isNoMainjoin = connectJoins.Length == subJoinIndex + 1;
-
-                    var c_join = new JoinQuery[connectJoins.Length];
-
-                    for (var index = 0; index < connectJoins.Length; index++)
-                    {
-                        
-                        SelectQuery select = null;
-                        if (!connectJoins[index].Switched)
-                        {
-                            if (connectJoins[index].RightSelect != null && connectJoins[index].RightSelect.Output != "")
-                            {
-                                select = qb.CreateSelectQuery(connectJoins[index].RightSelect.Output, 0);
-                            }
-                            else
-                            {
-                                // select.;
-
-                            }
-                        }
-                        else
-                        {
-                            if (connectJoins[index].LeftSelect != null && connectJoins[index].LeftSelect.Output != "")
-                            {
-                                select = qb.CreateSelectQuery(connectJoins[index].LeftSelect.Output, 0);
-                            }
-                        }
-
-                        if (select != null)
-                            qb.AddSelectQuery(select);
-
-                        var leftRelation = new Relation();
-                        if (connectJoins[index].IsFirst)
-                        {
-                            var select2 = qb.CreateSelectQuery(connectJoins[index].LeftSelect.Output, 0);
-                            qb.AddSelectQuery(select2);
-
-                            leftRelation = qb.CreateRelation(
-                                select2, "a", //joinQ[index].LeftSelect.Name,
-                                qb.CreateRelationSchema(connectJoins[index].LeftSelect.OutTable.Columns
-                                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                                        .ToList(), connectJoins[index].LeftSelect.IndexColumnNames.Count > 0 ?
-                                    connectJoins[index] != connectJoins.Last() ?
-                                    //new List<Index>()
-                                    //{
-                                    //    new Index()
-                                    //    {
-                                    //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
-                                    //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
-                                    //    }
-                                    //}
-                                    CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, false)
-                                        : CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, true)
-                                    : new List<Index>()));
-
-                        }
-                        else
-                        {
-                            leftRelation = qb.CreateRelation(c_join[index - 1]);
-                        }
-                        var rightRelation = new Relation();
-                        if (!connectJoins[index].Switched)
-                        {
-                            if (connectJoins[index].RightSelect != null)
-                            {
-                                rightRelation =
-                                    qb.CreateRelation(
-                                        select, "b", //joinQ[index].RightSelect.Name,
-                                        qb.CreateRelationSchema(connectJoins[index].RightSelect.OutTable.Columns
-                                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                                            .ToList(), connectJoins[index].RightSelect.IndexColumnNames.Count > 0 ?
-                                            connectJoins[index] != connectJoins.Last() ?
-                                            //new List<Index>()
-                                            //{
-                                            //    new Index()
-                                            //    {
-                                            //        FieldNames = joinQ[index].RightSelect.IndexColumnNames,
-                                            //        Name = $"INDEX_{joinQ[index].RightSelect.Name}"
-                                            //    }
-                                            //}
-                                            CreateRelationIndex(connectJoins[index].RightSelect.IndexColumns, false)
-                                                : CreateRelationIndex(connectJoins[index].RightSelect.IndexColumns, true)
-                                            : new List<Index>()));
-                            }
-                            else
-                            {
-                                rightRelation = qb.CreateEmptyRelation();
-                                rightRelation.IsEmpty = true;
-                                
-                            }
-                        }
-                        else
-                        {
-                            rightRelation =
-                                qb.CreateRelation(
-                                    select, "c", //joinQ[index].LeftSelect.Name,
-                                    qb.CreateRelationSchema(connectJoins[index].LeftSelect.OutTable.Columns
-                                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                                            .ToList(), connectJoins[index].LeftSelect.IndexColumnNames.Count > 0 ?
-                                        connectJoins[index] != connectJoins.Last() ?
-                                        //new List<Index>()
-                                        //{
-                                        //    new Index()
-                                        //    {
-                                        //        FieldNames = joinQ[index].LeftSelect.IndexColumnNames,
-                                        //        Name = $"INDEX_{joinQ[index].LeftSelect.Name}"
-                                        //    }
-                                        //}
-                                        //
-
-                                        CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, false)
-                                            : CreateRelationIndex(connectJoins[index].LeftSelect.IndexColumns, true)
-                                        : new List<Index>()));
-                        }
-
-
-                        c_join[index] = qb.AddJoinQuery(
-                            qb.CreateJoinQuery(connectJoins[index].Output,
-                                qb.CreateRelationSchema(
-                                    connectJoins[index].OutTable.Columns
-                                        .Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
-                                    connectJoins[index].IndexColumnNames.Count > 0 ?
-                                        connectJoins[index] != connectJoins.Last() ?
-                                        //new List<Index>()
-                                        //{
-                                        //    new Index()
-                                        //    {
-                                        //        FieldNames = joinQ[index].IndexColumnNames,
-                                        //        Name = $"INDEX_{joinQ[index].IndexColumnNames[0]}"
-                                        //    }
-                                        //}
-                                        CreateRelationIndex(connectJoins[index].IndexColumns, false)
-                                            : CreateRelationIndex(connectJoins[index].IndexColumns, true)
-                                        : new List<Index>()), 0,
-                                leftRelation, rightRelation));
-                    }
-
-                    string resultSelect = "SELECT ";
-                    if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
-                    {
-                        foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
-                        {
-                            if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
-                            {
-                                resultSelect += column.Name + ", ";
-                            }
-                            else
-                            {
-                                resultSelect += column.Name;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
-                    }
-                    resultSelect += " FROM " + Constants.RelationNameTag + ";";
-                    //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
-
-                    var sortRealtion = qb.CreateRelation(c_join.Last());
-                    sortRealtion.Shema.Indexes = new List<Index>();
-
-                    qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0].Columns
-                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                            .ToList(),
-                        new List<Index>()
-                        {
-                        }), 0, resultSelect, 
-                        //qb.CreateRelation(c_join.Last())
-                        sortRealtion
-                        ));
-
-
-                    var query = qb.GetQuery();
-                    outputXML = new XmlQueryPacket() { XmlQuery = query.SaveToString() };
-                }
-            }
-            else
-            {
-                List<SelectStructure> cSelects = new List<SelectStructure>();
-
-                cSelects.AddRange(selectQ);
-                if (subSelectQ != null)
-                {
-                    cSelects.AddRange(subSelectQ);
-                }
-
-                //TryConnect(cSelects.ToArray(), sortQ, _connectionIP);
-
-                QueryBuilder qb = new QueryBuilder(number);
-                List<Relation> relations = new List<Relation>();
-                foreach (SelectStructure select in cSelects)
-                {
-                    var cSelect = new SelectQuery();
-                    cSelect = qb.CreateSelectQuery(select.Output, 0);
-                    qb.AddSelectQuery(cSelect);
-
-                    var cRelation = qb.CreateRelation(cSelect, select.Name,
-                        qb.CreateRelationSchema(
-                            select.OutColumn.Select(j => new Field() { Name = j.Name, Params = j.Type.Name }).ToList(),
-                            select.IndexColumnNames.Count > 0 ?
-                                select != cSelects.Last() ?
-                                    CreateRelationIndex(select.IndexColumns, false)
-                                : CreateRelationIndex(select.IndexColumns, true)
-                            : new List<Index>()
-                        ));
-                    if (cSelects.Count == 1) cRelation.Shema.Indexes = new List<Index>();
-                    relations.Add(cRelation);
-                }
-
-                string resultSelect = "SELECT ";
-                if (sortQ.OutDataBase.Tables[0].Columns.Length > 1)
-                {
-                    foreach (ColumnStructure column in sortQ.OutDataBase.Tables[0].Columns)
-                    {
-                        if (column != sortQ.OutDataBase.Tables[0].Columns.Last())
-                        {
-                            resultSelect += column.Name + ", ";
-                        }
-                        else
-                        {
-                            resultSelect += column.Name;
-                        }
-                    }
-                }
-                else
-                {
-                    resultSelect += sortQ.OutDataBase.Tables[0].Columns[0].Name;
-                }
-
-                resultSelect += " FROM " + Constants.RelationNameTag + ";";
-                //resultSelect = "SELECT * FROM " + Constants.RelationNameTag + ";";
-
-                qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
-                            .Columns
-                            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                            .ToList(),
-                        new List<Index>()
-                        {
-                        }), 0, resultSelect, relations.ToArray()));
-
-                //qb.SetSortQuery(qb.CreateSortQuery(sortQ.Output, qb.CreateRelationSchema(sortQ.OutDataBase.Tables[0]
-                //            .Columns
-                //            .Select(j => new Field() { Name = j.Name, Params = j.Type.Name })
-                //            .ToList(),
-                //        new List<Index>()
-                //        {
-                //        }), 0, "SELECT * FROM " + Constants.RelationNameTag + ";", qb.CreateRelation(c_join.Last()),
-                //    qb.CreateRelation(c_join[subJoinIndex])));
-
-                var query = qb.GetQuery();
-                outputXML = new XmlQueryPacket() {XmlQuery = query.SaveToString()};
-
-            }
-
-
-            return outputXML;
-        }
-
-        private XmlQueryPacket PerformQuerry(int number)
-        {
-            return PerformQuerry(number, GetQuery(number));
-        }
-
-        private XmlQueryPacket PerformQuerry(string querry)
-        {
-            return PerformQuerry(1, querry);
-        }
-
-        private void PerformTest(int[] queries, string address, int port)
-        {
-            var client = new ClusterixClient(address, port);
-            foreach (int query in queries)
-            {
-                client.Send(PerformQuerry(query));
-            }
-        }
-
+      
         private List<List<JoinStructure>> FindePrimeSeq(List<List<JoinStructure>> joinSequences)
         {
             List<List<JoinStructure>> outSequence = new List<List<JoinStructure>>();
@@ -3847,7 +3850,27 @@ namespace MySQL_Clear_standart
                 }
             }
 
+            foreach (List<JoinStructure> joinStructures in outSeq)
+            {
+                Console.WriteLine("======последовательность======");
+                foreach (JoinStructure structure in joinStructures)
+                {
+                    Console.WriteLine("\t" + structure.ComparitionString + " " + structure.OutTable.RowCount);
+                }
+            }
+
+
             return outSeq;
+        }
+
+        private List<JoinStructure> OptimizeJoin(List<List<JoinStructure>> inputPrimedSeq, DataBaseStructure inDatabase)
+        {
+            List<JoinStructure> outputJoinSeq = inputPrimedSeq[0];
+
+            //JoinOptimizer jOpt = new JoinOptimizer();
+            
+
+            return outputJoinSeq;
         }
 
         #endregion
