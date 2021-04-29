@@ -3689,23 +3689,15 @@ namespace MySQL_Clear_standart
         private List<JoinStructure> GetJoinSequenceSecondMethod(List<JoinStructure> joinStructures, int joinDepth)
         {
             List<JoinStructure> output = new List<JoinStructure>();
-            List<string> tableNames = new List<string>();
-            List<string> usedTables = new List<string>();
-            bool isAdditional = false;
+            List<SelectStructure> usedSelect = new List<SelectStructure>();
+           
             bool allJoined = true;
-
-            foreach (JoinStructure join in joinStructures)
-            {
-                tableNames.Add(join.LeftSelect.TableName);
-                tableNames.Add(join.RightSelect.TableName);
-            }
-
-            tableNames = tableNames.Distinct().ToList();
+            
 
             output.Add(joinStructures[0]);
             joinStructures[0].IsJoined = true;
-            usedTables.Add(joinStructures[0].LeftSelect.TableName);
-            usedTables.Add(joinStructures[0].RightSelect.TableName);
+            usedSelect.Add(joinStructures[0].LeftSelect);
+            usedSelect.Add(joinStructures[0].RightSelect);
 
 
             for (var i = 1; i < joinStructures.Count; i++)
@@ -3715,14 +3707,14 @@ namespace MySQL_Clear_standart
                 bool right = false;
                 if (!@join.IsJoined)
                 {
-                    foreach (string tableName in usedTables)
+                    foreach (SelectStructure select in usedSelect)
                     {
-                        if (tableName == @join.LeftSelect.TableName)
+                        if (select == @join.LeftSelect)
                         {
                             left = true;
                         }
 
-                        if (tableName == @join.RightSelect.TableName)
+                        if (select == @join.RightSelect)
                         {
                             right = true;
                         }
@@ -3742,7 +3734,7 @@ namespace MySQL_Clear_standart
                             i = 0;
                             @join.IsJoined = true;
                             output.Add(@join);
-                            usedTables.Add(@join.RightSelect.TableName);
+                            usedSelect.Add(@join.RightSelect);
                         }
 
                         if (right)
@@ -3751,7 +3743,7 @@ namespace MySQL_Clear_standart
                             @join.Switched = true;
                             @join.IsJoined = true;
                             output.Add(@join);
-                            usedTables.Add(@join.LeftSelect.TableName);
+                            usedSelect.Add(@join.LeftSelect);
                         }
                     }
                 }
@@ -3774,8 +3766,8 @@ namespace MySQL_Clear_standart
                 for (int i = output.Count - 1; i >= 1; i--)
                 {
                     output[i].LeftJoin = output[i-1];
-                    if (output[i].LeftSelect.TableName == output[i - 1].RightSelect.TableName ||
-                        output[i].RightSelect.TableName == output[i - 1].LeftSelect.TableName)
+                    if (output[i].LeftSelect == output[i - 1].RightSelect ||
+                        output[i].RightSelect == output[i - 1].LeftSelect)
                     {
                         output[i].Switched = true;
                     }
