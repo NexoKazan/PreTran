@@ -46,6 +46,7 @@ namespace PreTran.Q_Structures
         private bool _isAdditional = false;
         private bool _isFilled = true;
         private bool _isOuterJoin;
+        private bool _isJoined = false; //Всегда должна быть FALSE используется только при создании последовательности join 
         private Interval _sourceInterval;
         private BaseRule _sortRule;
         private ColumnStructure _leftColumn;
@@ -300,6 +301,12 @@ namespace PreTran.Q_Structures
         }
 
         public bool IsOuterJoin => _isOuterJoin;
+
+        public bool IsJoined
+        {
+            get => _isJoined;
+            set => _isJoined = value;
+        }
 
         #endregion
 

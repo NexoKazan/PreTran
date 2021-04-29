@@ -1209,7 +1209,7 @@ namespace MySQL_Clear_standart
 
             return outJoin;
         }
-
+        
         private List<JoinStructure> SortJoin(List<JoinStructure> joinStructures, int joinDepth)
         {
             List<JoinStructure> tmp = new List<JoinStructure>();
@@ -1688,8 +1688,11 @@ namespace MySQL_Clear_standart
 
                     foreach (List<JoinStructure> shuffledJoin in shuffledJoins)
                     {
+                        List<JoinStructure> test = new List<JoinStructure>();
                         List<JoinStructure> tmp = new List<JoinStructure>();
-                        tmp = GetJoinSequence(shuffledJoin, listener.Depth);
+                        //tmp = GetJoinSequence(shuffledJoin, listener.Depth);
+                        tmp = GetJoinSequenceSecondMethod(shuffledJoin, listener.Depth);
+                        Console.WriteLine();
                         List<JoinStructure> sortTmp = SortJoin(tmp, listener.Depth);
                         sequencedJoins.Add(sortTmp);
                     }
@@ -3678,12 +3681,121 @@ namespace MySQL_Clear_standart
 
             PerformTest(tpchFourteenTest.ToArray(), comboBox_tab4_connetionIP.Text, 1234);
         }
-        
+
         #endregion
 
         #region Актуальные методы(в разработке)
 
-       
+        private List<JoinStructure> GetJoinSequenceSecondMethod(List<JoinStructure> joinStructures, int joinDepth)
+        {
+            List<JoinStructure> output = new List<JoinStructure>();
+            List<string> tableNames = new List<string>();
+            List<string> usedTables = new List<string>();
+            bool isAdditional = false;
+            bool allJoined = true;
+
+            foreach (JoinStructure join in joinStructures)
+            {
+                tableNames.Add(join.LeftSelect.TableName);
+                tableNames.Add(join.RightSelect.TableName);
+            }
+
+            tableNames = tableNames.Distinct().ToList();
+
+            output.Add(joinStructures[0]);
+            joinStructures[0].IsJoined = true;
+            usedTables.Add(joinStructures[0].LeftSelect.TableName);
+            usedTables.Add(joinStructures[0].RightSelect.TableName);
+
+
+            for (var i = 1; i < joinStructures.Count; i++)
+            {
+                JoinStructure @join = joinStructures[i];
+                bool left = false;
+                bool right = false;
+                if (!@join.IsJoined)
+                {
+                    foreach (string tableName in usedTables)
+                    {
+                        if (tableName == @join.LeftSelect.TableName)
+                        {
+                            left = true;
+                        }
+
+                        if (tableName == @join.RightSelect.TableName)
+                        {
+                            right = true;
+                        }
+                    }
+
+                    if (left && right)
+                    {
+                        i = 0;
+                        @join.IsJoined = true;
+                        @join.IsAdditional = true;
+                        output.LastOrDefault()?.AdditionalJoins.Add(@join);
+                    }
+                    else
+                    {
+                        if (left)
+                        {
+                            i = 0;
+                            @join.IsJoined = true;
+                            output.Add(@join);
+                            usedTables.Add(@join.RightSelect.TableName);
+                        }
+
+                        if (right)
+                        {
+                            i = 0;
+                            @join.Switched = true;
+                            @join.IsJoined = true;
+                            output.Add(@join);
+                            usedTables.Add(@join.LeftSelect.TableName);
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine();
+
+            foreach (JoinStructure join in joinStructures)
+            {
+                if (!join.IsJoined)
+                {
+                    allJoined = false;
+                }
+                //Обязательно. Необходимо только для составления последовательности
+                join.IsJoined = false;
+            }
+            if (allJoined)
+            {
+                output.First().IsFirst = true;
+                for (int i = output.Count - 1; i >= 1; i--)
+                {
+                    output[i].LeftJoin = output[i-1];
+                    if (output[i].LeftSelect.TableName == output[i - 1].RightSelect.TableName ||
+                        output[i].RightSelect.TableName == output[i - 1].LeftSelect.TableName)
+                    {
+                        output[i].Switched = true;
+                    }
+                }
+
+                for (var i = 0; i < output.Count; i++)
+                {
+                    output[i].Name = $"J_{joinDepth}_{i}";
+                }
+
+                return output;
+            }
+            else
+            {
+                Console.WriteLine("!!!!_Ошибка нового метода составления последовательности JOIN");
+                return GetJoinSequence(joinStructures, joinDepth);
+                //return output;
+            }
+        }
+
 
         private JoinStructure[] TransformToJoin(List<JoinStructure> inputJoins)
         {
@@ -3692,8 +3804,7 @@ namespace MySQL_Clear_standart
 
             return outputJoins;
         }
-
-      
+        
         private List<List<JoinStructure>> FindePrimeSeq(List<List<JoinStructure>> joinSequences)
         {
             List<List<JoinStructure>> outSequence = new List<List<JoinStructure>>();
@@ -3755,6 +3866,19 @@ namespace MySQL_Clear_standart
 
             if (outSequence.Count > 0)
             {
+                int i = 0;
+                //foreach (List<JoinStructure> seq in outSequence)
+                //{
+
+                //    //Console.WriteLine(Environment.NewLine + "=====SEQ_OUT_" + i + "=====" + Environment.NewLine);
+                //    foreach (JoinStructure joinStructure in seq)
+                //    {
+                //        //Console.WriteLine(
+                //        //    $"\t{joinStructure.LeftColumn.Name} {joinStructure.LeftColumn.IsPrimary} = {joinStructure.RightColumn.Name} {joinStructure.RightColumn.IsPrimary}{Environment.NewLine}");
+                //    }
+
+                //    i++;
+                //}
                 return outSequence;
             }
             else
@@ -3831,6 +3955,16 @@ namespace MySQL_Clear_standart
 
         private List<List<JoinStructure>> FilterByOutTableSizeMinFirst(List<List<JoinStructure>> joinSeqList)
         {
+            //foreach (List<JoinStructure> joinStructures in joinSeqList)
+            //{
+            //    Console.WriteLine("======последовательность--начальная======");
+            //    foreach (JoinStructure structure in joinStructures)
+            //    {
+            //        Console.WriteLine("\t" + structure.ComparitionString + " " + structure.OutTable.RowCount);
+            //    }
+            //}
+           
+
 
             List<List<JoinStructure>> outSeq = new List<List<JoinStructure>>();
             outSeq.Add(joinSeqList[0]);
@@ -3850,14 +3984,16 @@ namespace MySQL_Clear_standart
                 }
             }
 
-            foreach (List<JoinStructure> joinStructures in outSeq)
-            {
-                Console.WriteLine("======последовательность======");
-                foreach (JoinStructure structure in joinStructures)
-                {
-                    Console.WriteLine("\t" + structure.ComparitionString + " " + structure.OutTable.RowCount);
-                }
-            }
+            //Console.WriteLine();
+
+            //foreach (List<JoinStructure> joinStructures in outSeq)
+            //{
+            //    Console.WriteLine("======последовательность--конечная======");
+            //    foreach (JoinStructure structure in joinStructures)
+            //    {
+            //        Console.WriteLine("\t" + structure.ComparitionString + " " + structure.OutTable.RowCount);
+            //    }
+            //}
 
 
             return outSeq;
