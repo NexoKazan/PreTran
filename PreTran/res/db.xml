@@ -8,7 +8,7 @@
         <ColumnStructure IsPrimary="0" Name="C_ADDRESS" TypeID="10"/>
         <ColumnStructure IsPrimary="0" Name="C_NATIONKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="0" Name="C_PHONE" TypeID="11"/>
-        <ColumnStructure IsPrimary="0" Name="C_ACCTBAL" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="C_ACCTBAL" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="C_MKTSEGMENT" TypeID="6"/>
         <ColumnStructure IsPrimary="0" Name="C_COMMENT" TypeID="13"/>
       </Columns>
@@ -19,7 +19,7 @@
         <ColumnStructure IsPrimary="0" Name="L_PARTKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="0" Name="L_SUPPKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="2" Name="L_LINENUMBER" TypeID="2"/>
-        <ColumnStructure IsPrimary="0" Name="L_QUANTITY" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="L_QUANTITY" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="L_EXTENDEDPRICE" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="L_DISCOUNT" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="L_TAX" TypeID="18"/>
@@ -38,7 +38,7 @@
         <ColumnStructure IsPrimary="1" Name="O_ORDERKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="0" Name="O_CUSTKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="0" Name="O_ORDERSTATUS" TypeID="14"/>
-        <ColumnStructure IsPrimary="0" Name="O_TOTALPRICE" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="O_TOTALPRICE" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="O_ORDERDATE" TypeID="15"/>
         <ColumnStructure IsPrimary="0" Name="O_ORDERPRIORITY" TypeID="1"/>
         <ColumnStructure IsPrimary="0" Name="O_CLERK" TypeID="1"/>
@@ -66,7 +66,7 @@
         <ColumnStructure IsPrimary="2" Name="PS_PARTKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="2" Name="PS_SUPPKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="0" Name="PS_AVAILQTY" TypeID="2"/>
-        <ColumnStructure IsPrimary="0" Name="PS_SUPPLYCOST" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="PS_SUPPLYCOST" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="PS_COMMENT" TypeID="12"/>
       </Columns>
     </TableStructure>
@@ -77,7 +77,7 @@
         <ColumnStructure IsPrimary="0" Name="S_ADDRESS" TypeID="10"/>
         <ColumnStructure IsPrimary="0" Name="S_NATIONKEY" TypeID="2"/>
         <ColumnStructure IsPrimary="0" Name="S_PHONE" TypeID="11"/>
-        <ColumnStructure IsPrimary="0" Name="S_ACCTBAL" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="S_ACCTBAL" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="S_COMMENT" TypeID="9"/>
       </Columns>
     </TableStructure>
@@ -90,7 +90,7 @@
         <ColumnStructure IsPrimary="0" Name="P_TYPE" TypeID="1"/>
         <ColumnStructure IsPrimary="0" Name="P_SIZE" TypeID="2"/>
         <ColumnStructure IsPrimary="0" Name="P_CONTAINER" TypeID="6"/>
-        <ColumnStructure IsPrimary="0" Name="P_RETAILPRICE" TypeID="7"/>
+        <ColumnStructure IsPrimary="0" Name="P_RETAILPRICE" TypeID="18"/>
         <ColumnStructure IsPrimary="0" Name="P_COMMENT" TypeID="8"/>
       </Columns>
     </TableStructure>
