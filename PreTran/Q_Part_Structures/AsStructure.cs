@@ -18,6 +18,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Linq;
 using Antlr4.Runtime.Misc;
 using PreTran.DataBaseSchemeStructure;
 
@@ -125,7 +126,7 @@ namespace PreTran.Q_Part_Structures
         private bool CheckIsSortPart()
         {
             bool output = false;
-            if ( _aggregateFunctionName != "EXTRACT" &&_asColumns.Length == 1 && _asColumns[0].UsageCounter < 2 )
+            if ( _aggregateFunctionName != "EXTRACT" && (_asColumns.Length > 1 && _asColumns.Count(x=>x.UsageCounter > 1) > 1 || (_asColumns.Length == 1 && _asColumns[0].UsageCounter > 1) ) )
             {
                 output = true;
             }
