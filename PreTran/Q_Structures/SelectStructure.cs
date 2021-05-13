@@ -170,23 +170,27 @@ namespace PreTran.Q_Structures
             }
 
             foreach (AsStructure asStructure in _asList)
-            {//Сосздать конструктор для новых столбцов
-                asStructure.AsRightColumn.UsageCounter = 100;//хардкод, сделать поределение
-                                                             
-                if (!asStructure.AsRightColumn.IsRenamed && asStructure.AsRightColumn.OldName!=null)
+            {
+                if (!asStructure.IsSortPart)
                 {
-                    string tmpNameHolder = asStructure.AsRightColumn.OldName;
-                    asStructure.AsRightColumn.OldName = asStructure.AsRightColumn.Name;
-                    asStructure.AsRightColumn.Name = tmpNameHolder;
-                    asStructure.AsRightColumn.IsRenamed = true;
-                    tempList.Add(asStructure.AsRightColumn);
-                }
-                else
-                {
-                    tempList.Add(asStructure.AsRightColumn);
+                    //Сосздать конструктор для новых столбцов
+                    asStructure.AsRightColumn.UsageCounter = 100; //хардкод, сделать поределение
+
+                    if (!asStructure.AsRightColumn.IsRenamed && asStructure.AsRightColumn.OldName != null)
+                    {
+                        string tmpNameHolder = asStructure.AsRightColumn.OldName;
+                        asStructure.AsRightColumn.OldName = asStructure.AsRightColumn.Name;
+                        asStructure.AsRightColumn.Name = tmpNameHolder;
+                        asStructure.AsRightColumn.IsRenamed = true;
+                        tempList.Add(asStructure.AsRightColumn);
+                    }
+                    else
+                    {
+                        tempList.Add(asStructure.AsRightColumn);
+                    }
                 }
             }
-            
+
             _outColumn = new ColumnStructure[tempList.Count];
             for (int i = 0; i < _outColumn.Length; i++)
             {
@@ -236,22 +240,24 @@ namespace PreTran.Q_Structures
 
             foreach (var asStructure in _asList)
             {
-
-                if (_output != "SELECT ")
+                if (!asStructure.IsSortPart)
                 {
-                    if (_output != "SELECT DISTINCT ")
+                    if (_output != "SELECT ")
                     {
-                        _output += ",";
-                        _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
+                        if (_output != "SELECT DISTINCT ")
+                        {
+                            _output += ",";
+                            _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
+                        }
+                        else
+                        {
+                            _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
+                        }
                     }
                     else
                     {
                         _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
                     }
-                }
-                else
-                {
-                    _output += "\r\n\t" + asStructure.AsString + " AS " + asStructure.AsRightColumn.Name;
                 }
             }
 
@@ -441,23 +447,26 @@ namespace PreTran.Q_Structures
         {
             foreach (var asStructure in _asList)
             {
-                
-                //_sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = false;
-                if (asStructure.AggregateFunctionName != null)
+                if (!asStructure.IsSortPart)
                 {
-                    if (asStructure.AggregateFunctionName.ToLower() != "extract")
+                    //_sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = false;
+                    if (asStructure.AggregateFunctionName != null)
                     {
-                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
-                            asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.Name + ")" + " AS " +
-                            asStructure.AsRightColumn.OldName;
-                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
-                    }
-                    else
-                    {
-                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
-                            asStructure.AsRightColumn.Name + " AS " +
-                            asStructure.AsRightColumn.OldName;
-                        _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
+                        if (asStructure.AggregateFunctionName.ToLower() != "extract")
+                        {
+                            _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
+                                asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.Name + ")" +
+                                " AS " +
+                                asStructure.AsRightColumn.OldName;
+                            _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
+                        }
+                        else
+                        {
+                            _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).Text =
+                                asStructure.AsRightColumn.Name + " AS " +
+                                asStructure.AsRightColumn.OldName;
+                            _sortRule.GetRuleBySourceInterval(asStructure.SourceInterval).IsRealised = true;
+                        }
                     }
                 }
             }
@@ -539,9 +548,12 @@ namespace PreTran.Q_Structures
 
             foreach (AsStructure aS in _asList)
             {
-                foreach (ColumnStructure column in aS.AsColumns)
+                if (!aS.IsSortPart)
                 {
-                    column.UsageCounter--;
+                    foreach (ColumnStructure column in aS.AsColumns)
+                    {
+                        column.UsageCounter--;
+                    }
                 }
             }
 

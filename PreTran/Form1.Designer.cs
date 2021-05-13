@@ -61,12 +61,13 @@
             this.textBox_tab1_Query = new System.Windows.Forms.TextBox();
             this.tabControl_main = new System.Windows.Forms.TabControl();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btn_tab4_PerformTest = new System.Windows.Forms.Button();
+            this.comboBox_tab4_qNumber = new System.Windows.Forms.ComboBox();
+            this.btn_tab4_showXML = new System.Windows.Forms.Button();
             this.comboBox_tab4_connetionIP = new System.Windows.Forms.ComboBox();
             this.btn_tab4_SendToClusterix = new System.Windows.Forms.Button();
             this.richTextBox_tab4_XML = new System.Windows.Forms.RichTextBox();
-            this.btn_tab4_showXML = new System.Windows.Forms.Button();
-            this.comboBox_tab4_qNumber = new System.Windows.Forms.ComboBox();
-            this.btn_tab4_PerformTest = new System.Windows.Forms.Button();
+            this.CheckBox_Tab4_fullTest = new System.Windows.Forms.CheckBox();
             this.tabPage3.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -459,6 +460,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.CheckBox_Tab4_fullTest);
             this.tabPage4.Controls.Add(this.btn_tab4_PerformTest);
             this.tabPage4.Controls.Add(this.comboBox_tab4_qNumber);
             this.tabPage4.Controls.Add(this.btn_tab4_showXML);
@@ -472,6 +474,50 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "tabPage4";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // btn_tab4_PerformTest
+            // 
+            this.btn_tab4_PerformTest.Location = new System.Drawing.Point(593, 6);
+            this.btn_tab4_PerformTest.Name = "btn_tab4_PerformTest";
+            this.btn_tab4_PerformTest.Size = new System.Drawing.Size(121, 23);
+            this.btn_tab4_PerformTest.TabIndex = 21;
+            this.btn_tab4_PerformTest.Text = "Провести тест";
+            this.btn_tab4_PerformTest.UseVisualStyleBackColor = true;
+            this.btn_tab4_PerformTest.Click += new System.EventHandler(this.btn_tab4_PerformTest_Click);
+            // 
+            // comboBox_tab4_qNumber
+            // 
+            this.comboBox_tab4_qNumber.FormattingEnabled = true;
+            this.comboBox_tab4_qNumber.Items.AddRange(new object[] {
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14"});
+            this.comboBox_tab4_qNumber.Location = new System.Drawing.Point(479, 35);
+            this.comboBox_tab4_qNumber.Name = "comboBox_tab4_qNumber";
+            this.comboBox_tab4_qNumber.Size = new System.Drawing.Size(33, 21);
+            this.comboBox_tab4_qNumber.TabIndex = 20;
+            this.comboBox_tab4_qNumber.Text = "1";
+            // 
+            // btn_tab4_showXML
+            // 
+            this.btn_tab4_showXML.Location = new System.Drawing.Point(479, 6);
+            this.btn_tab4_showXML.Name = "btn_tab4_showXML";
+            this.btn_tab4_showXML.Size = new System.Drawing.Size(108, 23);
+            this.btn_tab4_showXML.TabIndex = 19;
+            this.btn_tab4_showXML.Text = "Вывести XML";
+            this.btn_tab4_showXML.UseVisualStyleBackColor = true;
+            this.btn_tab4_showXML.Click += new System.EventHandler(this.btn_tab4_showXML_Click);
             // 
             // comboBox_tab4_connetionIP
             // 
@@ -505,49 +551,15 @@
             this.richTextBox_tab4_XML.TabIndex = 12;
             this.richTextBox_tab4_XML.Text = "";
             // 
-            // btn_tab4_showXML
+            // CheckBox_Tab4_fullTest
             // 
-            this.btn_tab4_showXML.Location = new System.Drawing.Point(479, 6);
-            this.btn_tab4_showXML.Name = "btn_tab4_showXML";
-            this.btn_tab4_showXML.Size = new System.Drawing.Size(108, 23);
-            this.btn_tab4_showXML.TabIndex = 19;
-            this.btn_tab4_showXML.Text = "Вывести XML";
-            this.btn_tab4_showXML.UseVisualStyleBackColor = true;
-            this.btn_tab4_showXML.Click += new System.EventHandler(this.btn_tab4_showXML_Click);
-            // 
-            // comboBox_tab4_qNumber
-            // 
-            this.comboBox_tab4_qNumber.FormattingEnabled = true;
-            this.comboBox_tab4_qNumber.Items.AddRange(new object[] {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12",
-            "13",
-            "14"});
-            this.comboBox_tab4_qNumber.Location = new System.Drawing.Point(479, 35);
-            this.comboBox_tab4_qNumber.Name = "comboBox_tab4_qNumber";
-            this.comboBox_tab4_qNumber.Size = new System.Drawing.Size(33, 21);
-            this.comboBox_tab4_qNumber.TabIndex = 20;
-            this.comboBox_tab4_qNumber.Text = "1";
-            // 
-            // btn_tab4_PerformTest
-            // 
-            this.btn_tab4_PerformTest.Location = new System.Drawing.Point(593, 6);
-            this.btn_tab4_PerformTest.Name = "btn_tab4_PerformTest";
-            this.btn_tab4_PerformTest.Size = new System.Drawing.Size(121, 23);
-            this.btn_tab4_PerformTest.TabIndex = 21;
-            this.btn_tab4_PerformTest.Text = "Провести тест";
-            this.btn_tab4_PerformTest.UseVisualStyleBackColor = true;
-            this.btn_tab4_PerformTest.Click += new System.EventHandler(this.btn_tab4_PerformTest_Click);
+            this.CheckBox_Tab4_fullTest.AutoSize = true;
+            this.CheckBox_Tab4_fullTest.Location = new System.Drawing.Point(593, 37);
+            this.CheckBox_Tab4_fullTest.Name = "CheckBox_Tab4_fullTest";
+            this.CheckBox_Tab4_fullTest.Size = new System.Drawing.Size(63, 17);
+            this.CheckBox_Tab4_fullTest.TabIndex = 22;
+            this.CheckBox_Tab4_fullTest.Text = "FullTest";
+            this.CheckBox_Tab4_fullTest.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -572,6 +584,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_tab1_Tree)).EndInit();
             this.tabControl_main.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
+            this.tabPage4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -615,6 +628,7 @@
         private System.Windows.Forms.ComboBox comboBox_tab4_qNumber;
         private System.Windows.Forms.Button btn_tab4_showXML;
         private System.Windows.Forms.Button btn_tab4_PerformTest;
+        private System.Windows.Forms.CheckBox CheckBox_Tab4_fullTest;
     }
 }
 

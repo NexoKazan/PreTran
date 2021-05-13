@@ -78,6 +78,16 @@ namespace PreTran.Q_Part_Structures
             set { _isSelectPart = value; }
         }
 
+        public bool IsSortPart
+        {
+            get
+            {
+                CheckIsSortPart();
+                return _isSortPart;
+            }
+            set { _isSortPart = value; }
+        }
+
         public bool IsSingleColumn
         {
             get { return _isSingleColumn; }
@@ -110,6 +120,18 @@ namespace PreTran.Q_Part_Structures
         {
             get { return _asColumns; }
             set { _asColumns = value; }
+        }
+
+        private bool CheckIsSortPart()
+        {
+            bool output = false;
+            if ( _aggregateFunctionName != "EXTRACT" &&_asColumns.Length == 1 && _asColumns[0].UsageCounter < 2 )
+            {
+                output = true;
+            }
+
+            _isSortPart = output;
+            return output;
         }
     }
 }
