@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Linq;
 
 namespace PreTran.Visual
@@ -189,6 +190,12 @@ namespace PreTran.Visual
         private Image Draw(ICommonNode node, out int center)
         {             
             var nodeText = node.Text;
+            //подсчёт нодов
+            //Console.WriteLine(node.N_Type);
+            //using (StreamWriter sw = new StreamWriter("nodes.txt", true, System.Text.Encoding.Default))
+            //{
+            //    sw.WriteLine(node.N_Type);
+            //}
             var nodeSize = TextMeasurer.MeasureString("*" + nodeText + "*", NodeTextFont);
             nodeSize.Width = Math.Max(MinimumNodeSize.Width, nodeSize.Width);
             nodeSize.Height = Math.Max(MinimumNodeSize.Height, nodeSize.Height);

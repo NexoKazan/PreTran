@@ -89,6 +89,24 @@ namespace PreTran.Visual
             }
         }
 
+        public string N_Type
+        {
+            get
+            {
+                if (_tree.ChildCount != 0)
+                {
+                    //return _index.ToString() + " " + _tree.GetType().Name.Replace("Context","");
+                    //return _tree.GetType().Name.Replace("Context", "") + " " +_tree.SourceInterval;          
+                    return _tree.GetType().Name.Replace("Context", "");
+                }
+                else
+                {
+                    //return _index.ToString() +" " + _tree.ToString();
+                    //return _tree.ToString() + " " + _tree.SourceInterval;
+                    return _tree.GetType().Name;
+                }
+            }
+        }
     }
 
 

@@ -26,7 +26,8 @@ namespace PreTran.Visual
         string Type { get; }
         int Index { get; }
         string BranchText { get; }
-        string Text { get; }        
+        string Text { get; }
+        string N_Type { get; }
         int Count { get; }           
         IEnumerable<ICommonNode> Children { get; }
     }
