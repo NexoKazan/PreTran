@@ -368,10 +368,9 @@ namespace PreTran.Listeners
                         tmpOrder.IsDESC = true;
                     }
                 }
-
                 OrderByList.Add(tmpOrder);
             }
-            
+
         }
 
         public override void EnterQuerySpecification(MySqlParser.QuerySpecificationContext context)

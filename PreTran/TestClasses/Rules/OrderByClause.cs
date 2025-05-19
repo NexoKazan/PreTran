@@ -23,11 +23,13 @@ namespace PreTran.TestClasses.Rules
             {
                 switch (rule.Text)
                 {
-                    case "ORDER" : rule.Text = Environment.NewLine + rule.Text; break;
-                    case "BY" : rule.Text += Environment.NewLine; break; 
+                    case "ORDER": rule.Text = Environment.NewLine + rule.Text; break;
+                    case "BY": rule.Text += Environment.NewLine; break;
                     default: break;
                 }
+               
             }
+            //Rules = new List<BaseRule>();
         }
 
         public List<string> ColumnNames
@@ -39,10 +41,12 @@ namespace PreTran.TestClasses.Rules
                 foreach (BaseRule rule in columnRules)
                 {
                     _columnNames.Add(rule.Text);
-                }
+                }                
                 return _columnNames;
             }
             set => _columnNames = value;
         }
+
+        //public override string Text { get => "" ; set => base.Text = value; }
     }
 }

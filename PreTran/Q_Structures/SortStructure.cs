@@ -17,11 +17,11 @@
  */
 #endregion
 
+using PreTran.DataBaseSchemeStructure;
+using PreTran.Q_Part_Structures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PreTran.DataBaseSchemeStructure;
-using PreTran.Q_Part_Structures;
 
 namespace PreTran.Q_Structures
 {
@@ -59,7 +59,7 @@ namespace PreTran.Q_Structures
         {
             set { _groupByColumnList = value; }
         }
-        
+
         public List<OrderByStructure> OrderByStructures
         {
             set { _orderByStructures = value; }
@@ -89,7 +89,7 @@ namespace PreTran.Q_Structures
         {
             get { return _name; }
         }
-        
+
         public string CreateTableColumnNames
         {
             get { return _createTableColumnNames; }
@@ -165,7 +165,7 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            if (_asSortList.Count != 0 && tmpSelectColumns.Count!=0)
+            if (_asSortList.Count != 0 && tmpSelectColumns.Count != 0)
             {
                 _output = _output.Insert(_output.Length - 3, ",");
             }
@@ -179,7 +179,7 @@ namespace PreTran.Q_Structures
                     asStructure.AsRightColumn.IsRenamed = false;
                     asStructure.AsRightColumn.OldName = tmpHolder;
                 }
-                if(asStructure.AsRightColumn.OldName!=null)
+                if (asStructure.AsRightColumn.OldName != null)
                 {
                     _output += asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.OldName + ")" + " AS " +
                            asStructure.AsRightColumn.Name;
@@ -200,15 +200,15 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            _outTable = new TableStructure(_name+"_TB", tmpSelectColumns.ToArray());
-            
+            _outTable = new TableStructure(_name + "_TB", tmpSelectColumns.ToArray());
+
             _output = _output.Remove(_output.Length - 1, 1);
             _output += "FROM\r\n\t" + _fromName + "\r\n";
 
             if (_connectBinary != null)
             {
                 _output += "WHERE" + Environment.NewLine;
-                if (_subJoin!=null)
+                if (_subJoin != null)
                 {
                     _output += GetSubQueryString(_subJoin.Name);
                 }
@@ -216,10 +216,10 @@ namespace PreTran.Q_Structures
                 {
                     _output += GetSubQueryString(_subSelect.Name);
                 }
-                
+
             }
 
-            
+
             if (_groupByColumnList.Count != 0)
             {
                 _output += "GROUP BY\r\n\t";
@@ -238,9 +238,9 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            if(_orderByStructures.Count!=0)
+            if (_orderByStructures.Count != 0)
             {
-                _output +=Environment.NewLine + "ORDER BY\r\n\t";
+                _output += Environment.NewLine + "ORDER BY\r\n\t";
             }
 
             foreach (OrderByStructure orderBy in _orderByStructures)
@@ -267,8 +267,6 @@ namespace PreTran.Q_Structures
                 {
                     _output += "\r\n";
                 }
-
-                
             }
             SetCreateTableColumnList();
             SetIndexes();
@@ -315,7 +313,7 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            if (_asSortList.Count != 0 && tmpSelectColumns.Count!=0)
+            if (_asSortList.Count != 0 && tmpSelectColumns.Count != 0)
             {
                 _output = _output.Insert(_output.Length - 3, ",");
             }
@@ -329,7 +327,7 @@ namespace PreTran.Q_Structures
                     asStructure.AsRightColumn.IsRenamed = false;
                     asStructure.AsRightColumn.OldName = tmpHolder;
                 }
-                if(asStructure.AsRightColumn.OldName!=null)
+                if (asStructure.AsRightColumn.OldName != null)
                 {
                     _output += asStructure.AggregateFunctionName + "(" + asStructure.AsRightColumn.OldName + ")" + " AS " +
                            asStructure.AsRightColumn.Name;
@@ -350,8 +348,8 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            _outTable = new TableStructure(_name+"_TB", tmpSelectColumns.ToArray());
-            
+            _outTable = new TableStructure(_name + "_TB", tmpSelectColumns.ToArray());
+
             _output = _output.Remove(_output.Length - 1, 1);
             _output += "FROM\r\n\t" + _fromName + "\r\n";
 
@@ -379,9 +377,9 @@ namespace PreTran.Q_Structures
                 }
             }
 
-            if(_orderByStructures.Count!=0)
+            if (_orderByStructures.Count != 0)
             {
-                _output +=Environment.NewLine + "ORDER BY\r\n\t";
+                _output += Environment.NewLine + "ORDER BY\r\n\t";
             }
 
             foreach (OrderByStructure orderBy in _orderByStructures)
@@ -409,7 +407,7 @@ namespace PreTran.Q_Structures
                     _output += "\r\n";
                 }
 
-                
+
             }
             SetCreateTableColumnList();
             SetIndexes();
@@ -443,15 +441,15 @@ namespace PreTran.Q_Structures
             subQOutput += _connectBinary.LeftString + " " + _connectBinary.ComparisionSymphol + " ( SELECT" +
                           Environment.NewLine;
             subQOutput += "\t" + _selectString;
-            subQOutput +=Environment.NewLine + "FROM " + Environment.NewLine;
-            
-                subQOutput += "\t" + from + " AS SUB";
-            
+            subQOutput += Environment.NewLine + "FROM " + Environment.NewLine;
 
-            if (_notFilledJoin!=null)
+            subQOutput += "\t" + from + " AS SUB";
+
+
+            if (_notFilledJoin != null)
             {
                 subQOutput += Environment.NewLine + "WHERE" + Environment.NewLine;
-                subQOutput +="\t" + _notFilledJoin.LeftColumnString + " = " + "SUB." +  _notFilledJoin.RightColumnString;
+                subQOutput += "\t" + _notFilledJoin.LeftColumnString + " = " + "SUB." + _notFilledJoin.RightColumnString;
             }
 
             subQOutput += " )";
@@ -470,7 +468,7 @@ namespace PreTran.Q_Structures
                         {
                             _join.IndexColumnNames.Add(column.Name);
                         }
-                        else if(_notFilledJoin.RightColumnString == column.Name)
+                        else if (_notFilledJoin.RightColumnString == column.Name)
                         {
                             _join.IndexColumnNames.Add(column.Name);
                         }
@@ -498,7 +496,7 @@ namespace PreTran.Q_Structures
                         {
                             _subJoin.IndexColumnNames.Add(column.Name);
                         }
-                        else if(_notFilledJoin.RightColumnString == column.Name)
+                        else if (_notFilledJoin.RightColumnString == column.Name)
                         {
                             _subJoin.IndexColumnNames.Add(column.Name);
                         }

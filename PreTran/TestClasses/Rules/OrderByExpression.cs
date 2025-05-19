@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using Antlr4.Runtime;
@@ -17,7 +18,8 @@ namespace PreTran.TestClasses.Rules
         {
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.Walk(_listener, context);
-            Rules = _listener.Rules;
+            Rules = _listener.Rules;            
         }
+        
     }
 }
